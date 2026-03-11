@@ -24,36 +24,70 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Grant execute for Gradle wrapper
+      - name: Grant execute for Gradle wrapper (if present)
         run: |
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
+            echo "gradlew present"
           fi
 
-      - name: Install Android SDK (if no gradlew)
+      - name: Ensure Gradle is available (if no gradlew)
+        id: gradle_setup
         run: |
           if [ ! -f "./gradlew" ]; then
+            echo "No gradlew — installing Gradle on runner"
             sudo apt-get update -y
             sudo apt-get install -y wget unzip
-            ANDROID_SDK_ROOT="$HOME/android-sdk"
-            mkdir -p "$ANDROID_SDK_ROOT"
-            wget -q "https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip" -O /tmp/cmdline-tools.zip
-            unzip -q /tmp/cmdline-tools.zip -d /tmp/cmdline-tools
-            mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
-            mv /tmp/cmdline-tools/cmdline-tools/* "$ANDROID_SDK_ROOT/cmdline-tools/latest/"
-            echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-            echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-            yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0" || true
-            echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+            GRADLE_VER=8.11.1
+            GRADLE_ZIP=gradle-${GRADLE_VER}-bin.zip
+            wget -q "https://services.gradle.org/distributions/${GRADLE_ZIP}" -P /tmp
+            sudo unzip -o /tmp/${GRADLE_ZIP} -d /opt/gradle
+            echo "GRADLE_HOME=/opt/gradle/gradle-${GRADLE_VER}" >> $GITHUB_ENV
+            echo "PATH=/opt/gradle/gradle-${GRADLE_VER}/bin:$PATH" >> $GITHUB_ENV
+            echo "gradlew_missing=true" >> $GITHUB_OUTPUT
+          else
+            echo "gradlew_missing=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build adapter AAR
+      - name: Create Gradle wrapper (when missing)
+        if: steps.gradle_setup.outputs.gradlew_missing == 'true'
         run: |
-          if [ -f "./gradlew" ]; then
-            ./gradlew :applovin-adapter:assembleRelease --no-daemon
-          else
-            gradle :applovin-adapter:assembleRelease --no-daemon
+          gradle wrapper --gradle-version 8.11.1
+          chmod +x ./gradlew
+          echo "Created gradlew"
+
+      - name: Install Android SDK
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget unzip lib32z1 lib32stdc++6
+          ANDROID_SDK_ROOT="$HOME/android-sdk"
+          mkdir -p "$ANDROID_SDK_ROOT"
+          wget -q "https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip" -O /tmp/cmdline-tools.zip
+          unzip -q /tmp/cmdline-tools.zip -d /tmp/cmdline-tools
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          mv /tmp/cmdline-tools/cmdline-tools/* "$ANDROID_SDK_ROOT/cmdline-tools/latest/"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH" >> $GITHUB_ENV
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0" || {
+            echo "Failed to install Android SDK packages"
+            exit 1
+          }
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          echo "Android SDK installed"
+
+      - name: Build adapter AAR
+        run: ./gradlew :applovin-adapter:assembleRelease --no-daemon --stacktrace
+
+      - name: Verify AAR
+        run: |
+          if [ ! -f "applovin-adapter/build/outputs/aar/applovin-adapter-release.aar" ]; then
+            echo "AAR not found"
+            ls -la applovin-adapter/build/outputs/aar/ 2>/dev/null || true
+            exit 1
           fi
+          echo "AAR found"
 
       - name: Set adapter version from tag
         id: version
@@ -71,9 +105,8 @@ jobs:
           body: |
             **AppLovin Bidscube Adapter** ${{ steps.version.outputs.version }}
             - Artifact: `com.bidscube:applovin-bidscube-adapter:${{ steps.version.outputs.version }}`
-            - Use with AppLovin MAX SDK 13.6.0+ and Bidscube SDK 1.0.2+
-          files: |
-            applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
+            - Use with AppLovin MAX SDK 13.6.0+ and Bidscube SDK 1.0.0+
+          files: applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
