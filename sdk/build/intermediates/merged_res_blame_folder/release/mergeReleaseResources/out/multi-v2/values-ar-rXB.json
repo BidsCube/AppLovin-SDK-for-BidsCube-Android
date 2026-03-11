@@ -1,0 +1,48 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.bidscube.sdk-release-3:/values-ar-rXB/values-ar-rXB.xml",
+            "map": [
+                {
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/ca65c736fb9e28416f8d98197d14a447/gradle/caches/8.11.1/transforms/b369f30578189612a32fc51e15466a96/transformed/tv-ads-1.0.0/res/values-ar-rXB/values.xml",
+                    "from": {
+                        "startLines": "4,5,6,9",
+                        "startColumns": "0,0,0,0",
+                        "startOffsets": "201,252,401,648",
+                        "endColumns": "50,148,75,81",
+                        "endOffsets": "251,400,476,729"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,110,263,343",
+                        "endColumns": "54,152,79,85",
+                        "endOffsets": "105,258,338,424"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "com.bidscube.sdk-mergeReleaseResources-1:/values-ar-rXB/values-ar-rXB.xml",
+            "map": [
+                {
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/ca65c736fb9e28416f8d98197d14a447/gradle/caches/8.11.1/transforms/b369f30578189612a32fc51e15466a96/transformed/tv-ads-1.0.0/res/values-ar-rXB/values.xml",
+                    "from": {
+                        "startLines": "4,5,6,9",
+                        "startColumns": "0,0,0,0",
+                        "startOffsets": "201,252,401,648",
+                        "endColumns": "50,148,75,81",
+                        "endOffsets": "251,400,476,729"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,110,263,343",
+                        "endColumns": "54,152,79,85",
+                        "endOffsets": "105,258,338,424"
+                    }
+                }
+            ]
+        }
+    ]
+}

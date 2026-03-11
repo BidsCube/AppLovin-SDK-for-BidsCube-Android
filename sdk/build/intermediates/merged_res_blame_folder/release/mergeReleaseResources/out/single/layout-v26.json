@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.bidscube.sdk-release-3:/layout-v26/abc_screen_toolbar.xml",
+        "source": "com.bidscube.sdk-appcompat-1.6.1-38:/layout-v26/abc_screen_toolbar.xml"
+    },
+    {
+        "merged": "com.bidscube.sdk-release-3:/layout-v26/mtrl_calendar_month.xml",
+        "source": "com.bidscube.sdk-material-1.12.0-37:/layout-v26/mtrl_calendar_month.xml"
+    }
+]

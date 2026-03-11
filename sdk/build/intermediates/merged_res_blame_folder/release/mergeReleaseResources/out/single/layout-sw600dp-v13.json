@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.bidscube.sdk-release-3:/layout-sw600dp-v13/mtrl_layout_snackbar.xml",
+        "source": "com.bidscube.sdk-material-1.12.0-37:/layout-sw600dp-v13/mtrl_layout_snackbar.xml"
+    },
+    {
+        "merged": "com.bidscube.sdk-release-3:/layout-sw600dp-v13/design_layout_snackbar.xml",
+        "source": "com.bidscube.sdk-material-1.12.0-37:/layout-sw600dp-v13/design_layout_snackbar.xml"
+    }
+]

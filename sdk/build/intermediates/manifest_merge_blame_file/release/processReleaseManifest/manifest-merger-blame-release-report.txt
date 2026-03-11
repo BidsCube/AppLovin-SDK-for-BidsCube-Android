@@ -1,0 +1,42 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.bidscube.sdk" >
+4
+5    <uses-sdk android:minSdkVersion="24" />
+6
+7    <uses-permission android:name="android.permission.INTERNET" />
+7-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:4:5-67
+7-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:4:22-64
+8    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+8-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:5:5-79
+8-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:5:22-76
+9
+10    <application>
+10-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:7:5-23:19
+11        <activity
+11-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:8:9-11:79
+12            android:name="com.bidscube.sdk.activities.ConsentTestActivity"
+12-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:9:13-59
+13            android:exported="false"
+13-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:10:13-37
+14            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+14-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:11:13-76
+15        <activity
+15-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:13:9-16:79
+16            android:name="com.bidscube.sdk.activities.SDKTestActivity"
+16-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:14:13-55
+17            android:exported="false"
+17-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:15:13-37
+18            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+18-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:16:13-76
+19        <activity
+19-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:18:9-21:79
+20            android:name="com.bidscube.sdk.activities.WindowedAdTestActivity"
+20-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:19:13-62
+21            android:exported="false"
+21-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:20:13-37
+22            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+22-->/Users/catchman/prj/bidcube/bidscube-sdk-android/sdk/src/main/AndroidManifest.xml:21:13-76
+23    </application>
+24
+25</manifest>

@@ -1,0 +1,398 @@
+name: Fast Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: { }
+
+jobs:
+  build:
+    name: Build + Release
+    runs-on: ubuntu-latest
+    env:
+      JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load Maven credentials from gradle.properties (optional)
+        id: load_maven_creds
+        run: |
+          MAVEN_USER=""
+          MAVEN_PASS=""
+          SIGNING_PASS=""
+          if [ -f "gradle.properties" ]; then
+            MAVEN_USER=$(grep -E '^mavenCentralUsername=' gradle.properties | cut -d'=' -f2- | tr -d '\r') || true
+            MAVEN_PASS=$(grep -E '^mavenCentralPassword=' gradle.properties | cut -d'=' -f2- | tr -d '\r') || true
+            SIGNING_PASS=$(grep -E '^signing.password=' gradle.properties | cut -d'=' -f2- | tr -d '\r') || true
+          fi
+          echo "maven_user=$MAVEN_USER" >> $GITHUB_OUTPUT
+          echo "maven_pass=$MAVEN_PASS" >> $GITHUB_OUTPUT
+          echo "signing_pass=$SIGNING_PASS" >> $GITHUB_OUTPUT
+
+      - name: Check for Maven credentials or settings.xml
+        id: check_creds
+        run: |
+          # prefer secrets, then gradle.properties, then settings.xml in repo
+          if [ -n "${{ secrets.MAVEN_CENTRAL_USERNAME }}" ] && [ -n "${{ secrets.MAVEN_CENTRAL_PASSWORD }}" ]; then
+            echo "using secrets for maven credentials"
+            echo "have_creds=true" >> $GITHUB_OUTPUT
+          elif [ -n "${{ steps.load_maven_creds.outputs.maven_user }}" ] && [ -n "${{ steps.load_maven_creds.outputs.maven_pass }}" ]; then
+            echo "using gradle.properties for maven credentials"
+            echo "have_creds=true" >> $GITHUB_OUTPUT
+          elif [ -f "settings.xml" ]; then
+            echo "found settings.xml in repository root; will use it"
+            echo "have_creds=true" >> $GITHUB_OUTPUT
+          else
+            echo "have_creds=false" >> $GITHUB_OUTPUT
+            echo "No Maven credentials found: please set GitHub secrets MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD or provide settings.xml in repo or populate gradle.properties"
+            exit 1
+          fi
+
+      - name: Set up JDK and configure Maven server (actions/setup-java)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          server-id: central
+          # Prefer GitHub secrets; if missing fall back to values read from gradle.properties
+          server-username: ${{ secrets.MAVEN_CENTRAL_USERNAME || steps.load_maven_creds.outputs.maven_user }}
+          server-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD || steps.load_maven_creds.outputs.maven_pass }}
+
+      - name: Grant execute for Gradle wrapper (if present)
+        run: |
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            echo "Made gradlew executable"
+          else
+            echo "No gradlew in repository root; skipping chmod"
+          fi
+
+      - name: Ensure Gradle is available (if no gradlew)
+        run: |
+          # If the repository doesn't include ./gradlew, install a pinned Gradle to the runner
+          if [ ! -f "./gradlew" ]; then
+            echo "No gradlew detected — installing Gradle on runner"
+            sudo apt-get update -y
+            sudo apt-get install -y wget unzip curl
+            GRADLE_VER=8.11.1
+            GRADLE_ZIP=gradle-${GRADLE_VER}-bin.zip
+            wget https://services.gradle.org/distributions/${GRADLE_ZIP} -P /tmp
+            sudo unzip -o /tmp/${GRADLE_ZIP} -d /opt/gradle
+            echo "GRADLE_HOME=/opt/gradle/gradle-${GRADLE_VER}" >> $GITHUB_ENV
+            echo "PATH=/opt/gradle/gradle-${GRADLE_VER}/bin:$PATH" >> $GITHUB_ENV
+            echo "Installed Gradle ${GRADLE_VER} to /opt/gradle"
+          else
+            echo "gradlew present; skipping Gradle install"
+          fi
+
+      - name: Install Android SDK command-line tools and packages (if needed)
+        run: |
+          # If ANDROID_HOME/ANDROID_SDK_ROOT already provided use it
+          if [ -n "$ANDROID_HOME" ] || [ -n "$ANDROID_SDK_ROOT" ]; then
+            echo "ANDROID_HOME or ANDROID_SDK_ROOT already set; skipping SDK install"
+            echo "ANDROID_HOME=$ANDROID_HOME"
+            echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+            exit 0
+          fi
+
+          # Check local.properties for sdk.dir and whether that directory actually exists
+          LOCAL_PROP_FILE="local.properties"
+          LOCAL_SDK_DIR=""
+          if [ -f "$LOCAL_PROP_FILE" ]; then
+            echo "Found local.properties; checking sdk.dir"
+            LOCAL_SDK_DIR=$(grep -E '^sdk.dir=' "$LOCAL_PROP_FILE" | cut -d'=' -f2- | tr -d '\r' || true)
+            if [ -n "$LOCAL_SDK_DIR" ]; then
+              echo "local.properties sdk.dir = $LOCAL_SDK_DIR"
+              # normalize Windows-style path to check existence (best-effort): remove leading drive letter like C:\ -> /mnt/c/
+              if echo "$LOCAL_SDK_DIR" | grep -E '^[A-Za-z]:\\' >/dev/null 2>&1; then
+                WIN_PATH="$LOCAL_SDK_DIR"
+                # convert C:\Users\... to /mnt/c/Users/...
+                DRIVE=$(echo "$WIN_PATH" | cut -c1 | tr '[:upper:]' '[:lower:]')
+                REST=$(echo "$WIN_PATH" | cut -c3- | sed 's|\\|/|g')
+                CHECK_PATH="/mnt/${DRIVE}/${REST}"
+              else
+                CHECK_PATH="$LOCAL_SDK_DIR"
+              fi
+
+              if [ -d "$CHECK_PATH" ]; then
+                echo "local.properties sdk.dir points to existing directory ($CHECK_PATH). Will use that and skip SDK install."
+                # set ANDROID_SDK_ROOT for subsequent steps
+                echo "ANDROID_SDK_ROOT=$CHECK_PATH" >> $GITHUB_ENV
+                echo "ANDROID_HOME=$CHECK_PATH" >> $GITHUB_ENV
+                echo "PATH=$CHECK_PATH/platform-tools:$PATH" >> $GITHUB_ENV
+                exit 0
+              else
+                echo "local.properties sdk.dir does not exist on runner ($CHECK_PATH); proceeding to install Android SDK and override local.properties"
+              fi
+            else
+              echo "local.properties has no sdk.dir; will install Android SDK and write local.properties"
+            fi
+          else
+            echo "No local.properties found; will install Android SDK"
+          fi
+
+          echo "Installing Android command-line tools and SDK packages"
+          sudo apt-get update -y
+          sudo apt-get install -y wget unzip lib32z1 lib32stdc++6
+
+          ANDROID_SDK_ROOT="$HOME/android-sdk"
+          mkdir -p "$ANDROID_SDK_ROOT"
+
+          TMP_ZIP="/tmp/commandline-tools.zip"
+          # use a reasonably recent command-line tools bundle
+          CMDLINE_URL="https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip"
+          wget -q "$CMDLINE_URL" -O "$TMP_ZIP"
+          unzip -q "$TMP_ZIP" -d /tmp/cmdline-tools
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          mv /tmp/cmdline-tools/cmdline-tools/* "$ANDROID_SDK_ROOT/cmdline-tools/latest/"
+
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH" >> $GITHUB_ENV
+
+          # Use sdkmanager from the newly installed cmdline-tools
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          # Accept licenses and install required packages (build-tools and platform)
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
+          "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2" || {
+            echo "Failed to install Android SDK packages"
+            exit 1
+          }
+
+          # Overwrite or create local.properties to point to the freshly installed SDK (so Gradle uses it)
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          echo "Wrote local.properties with sdk.dir=$ANDROID_SDK_ROOT"
+
+          echo "Android SDK installed to $ANDROID_SDK_ROOT"
+
+      - name: Print Android env (debug)
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "PATH=$PATH"
+          echo "Which sdkmanager: $(which sdkmanager || true)"
+
+      - name: Build AAR, sources and javadoc JARs (Gradle)
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew clean :sdk:assembleRelease :sdk:sourcesJar :sdk:javadocJar --no-daemon --stacktrace
+          else
+            echo "gradlew not found; attempting to run gradle if available on PATH"
+            gradle clean :sdk:assembleRelease :sdk:sourcesJar :sdk:javadocJar --no-daemon --stacktrace
+          fi
+
+      - name: Verify built artifacts
+        run: |
+          set -e
+          echo "Verifying built artifacts..."
+          if compgen -G "sdk/build/outputs/aar/*.aar" > /dev/null; then
+            echo "Found AAR in sdk/build/outputs/aar"
+          elif compgen -G "build/outputs/aar/*.aar" > /dev/null; then
+            echo "Found AAR in build/outputs/aar"
+          else
+            echo "Error: no AAR found in sdk/build/outputs/aar or build/outputs/aar"
+            ls -la
+            exit 1
+          fi
+
+          if [ ! -f "sdk/build/libs/sdk-sources.jar" ] && [ ! -f "build/libs/sdk-sources.jar" ]; then
+            echo "Error: sources JAR not found"
+            ls -la sdk/build/libs || true
+            ls -la build/libs || true
+            exit 1
+          fi
+          if [ ! -f "sdk/build/libs/sdk-javadoc.jar" ] && [ ! -f "build/libs/sdk-javadoc.jar" ]; then
+            echo "Error: javadoc JAR not found"
+            ls -la sdk/build/libs || true
+            ls -la build/libs || true
+            exit 1
+          fi
+
+      - name: Import GPG key (if provided)
+        id: import_gpg
+        run: |
+          set -e
+          echo "Checking and installing gnupg"
+          sudo apt-get update -y
+          sudo apt-get install -y gnupg gnupg2 pinentry-curses || true
+
+          HAVE_KEY=0
+          # Prefer base64 secret
+          if [ -n "${{ secrets.GPG_PRIVATE_BASE64 }}" ]; then
+            echo "Found GPG_PRIVATE_BASE64 secret; decoding and importing"
+            echo "${{ secrets.GPG_PRIVATE_BASE64 }}" | base64 --decode > /tmp/private-gpg.asc
+            if gpg --batch --yes --import /tmp/private-gpg.asc >/dev/null 2>&1; then
+              HAVE_KEY=1
+            fi
+          fi
+
+          # Fallback to keys/private-gpg.asc
+          if [ $HAVE_KEY -eq 0 ] && [ -f "keys/private-gpg.asc" ]; then
+            echo "Found keys/private-gpg.asc; importing"
+            if gpg --batch --yes --import keys/private-gpg.asc >/dev/null 2>&1; then
+              HAVE_KEY=1
+            fi
+          fi
+
+          # Fallback to base64 file in repo
+          if [ $HAVE_KEY -eq 0 ] && [ -f "keys/private-gpg.asc.base64" ]; then
+            echo "Found keys/private-gpg.asc.base64; decoding and importing"
+            base64 -d keys/private-gpg.asc.base64 > /tmp/private-gpg.asc
+            if gpg --batch --yes --import /tmp/private-gpg.asc >/dev/null 2>&1; then
+              HAVE_KEY=1
+            fi
+          fi
+
+          if [ $HAVE_KEY -eq 1 ]; then
+            echo "Listing imported secret keys (for debug)"
+            gpg --list-secret-keys --keyid-format LONG || true
+            FPR=$(gpg --with-colons --list-secret-keys | awk -F: '/^fpr:/ { print $10; exit }' || true)
+            echo "Imported key fingerprint: $FPR"
+            if [ -n "$FPR" ]; then
+              echo "$FPR:6:" | gpg --import-ownertrust || true
+              echo "fingerprint=$FPR" >> $GITHUB_OUTPUT
+            fi
+
+            # Read passphrase from secret or local file or gradle.properties
+            PASS="${{ secrets.GPG_PASSPHRASE }}"
+            if [ -z "$PASS" ] && [ -f "keys/gpg_pass" ]; then
+              PASS=$(cat keys/gpg_pass | tr -d '\r' | tr -d '\n')
+            fi
+            if [ -z "$PASS" ] && [ -n "${{ steps.load_maven_creds.outputs.signing_pass }}" ]; then
+              PASS="${{ steps.load_maven_creds.outputs.signing_pass }}"
+            fi
+            if [ -n "$PASS" ]; then
+              echo "GPG_PASSPHRASE set via secret or keys/gpg_pass or gradle.properties"
+              echo "GPG_PASSPHRASE=$PASS" >> $GITHUB_ENV
+              echo "gpg_pass_set=true" >> $GITHUB_OUTPUT
+            fi
+
+            echo "gpg_imported=true" >> $GITHUB_OUTPUT
+          else
+            echo "No GPG key imported; Maven signing will fail if required"
+            echo "gpg_imported=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Prepare release token
+        id: prepare_release_token
+        run: |
+          echo "Using fine-grained PAT from secrets"
+          TOKEN="${{ secrets.RELEASE_TOKEN }}"
+          echo "RELEASE_TOKEN=${TOKEN}" >> $GITHUB_ENV
+          echo "release_token=${TOKEN}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release (if token available)
+        id: create_release
+        if: ${{ steps.prepare_release_token.outputs.release_token != '' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: "Automated release for ${{ github.ref_name }}"
+        env:
+          GITHUB_TOKEN: ${{ env.RELEASE_TOKEN }}
+
+      - name: Debug release token (mask)
+        run: |
+          echo "prepare_release_token output: '${{ steps.prepare_release_token.outputs.release_token }}'"
+          if [ -n "${{ steps.prepare_release_token.outputs.release_token }}" ]; then
+            TOK="${{ steps.prepare_release_token.outputs.release_token }}"
+            LEN=${#TOK}
+            echo "Found release token of length $LEN (masked, first 3 chars shown): ${TOK:0:3}***"
+          else
+            echo "No release token found"
+          fi
+
+      - name: Save artifacts locally when no release token (act/local run)
+        if: ${{ steps.prepare_release_token.outputs.release_token == '' }}
+        run: |
+          echo "No release token available; saving artifacts to ./release_artifacts"
+          mkdir -p release_artifacts
+          cp -v sdk/build/outputs/aar/*.aar release_artifacts/ || true
+          cp -v sdk/build/libs/*.jar release_artifacts/ || true
+          ls -la release_artifacts || true
+
+      - name: Upload built artifacts to the GitHub release
+        if: ${{ steps.create_release.outputs.upload_url != '' }}
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: |
+            sdk/build/outputs/aar/sdk-release.aar
+            build/outputs/aar/sdk-release.aar
+          asset_name: sdk-${{ github.ref_name }}.aar
+          asset_content_type: application/zip
+
+      - name: Deploy to Maven Central (mvn deploy)
+        env:
+          # allow mvn to see the passphrase if set in env
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE || steps.load_maven_creds.outputs.signing_pass }}
+        run: |
+          set -e
+          echo "Deploying to Maven Central using mvn deploy"
+
+          sudo apt-get update -y
+          sudo apt-get install -y gnupg2 pinentry-curses maven || true
+
+          GNUPGHOME=${GNUPGHOME:-$HOME/.gnupg}
+          echo "GNUPGHOME=$GNUPGHOME"
+          echo "GNUPGHOME=$GNUPGHOME" >> $GITHUB_ENV
+
+          # Get fingerprint output from import step
+          FPR="${{ steps.import_gpg.outputs.fingerprint }}"
+          echo "Imported fingerprint from previous step: $FPR"
+
+          # If no imported key or passphrase provided, abort gracefully for local runs
+          if [ -z "$FPR" ] || [ "$FPR" = "null" ]; then
+            echo "No GPG fingerprint available from import step. Skipping mvn deploy to avoid gpg signing failure."
+            exit 0
+          fi
+
+          # Ensure passphrase is available either via environment or from keys/gpg_pass or gradle.properties
+          if [ -z "$GPG_PASSPHRASE" ]; then
+            if [ -f "keys/gpg_pass" ]; then
+              echo "Reading GPG passphrase from keys/gpg_pass"
+              export GPG_PASSPHRASE=$(cat keys/gpg_pass | tr -d '\r' | tr -d '\n')
+              echo "GPG_PASSPHRASE set from keys/gpg_pass"
+            elif [ -n "${{ steps.load_maven_creds.outputs.signing_pass }}" ]; then
+              export GPG_PASSPHRASE="${{ steps.load_maven_creds.outputs.signing_pass }}"
+              echo "GPG_PASSPHRASE set from gradle.properties signing.password"
+            else
+              echo "No GPG_PASSPHRASE available (secret missing). Skipping mvn deploy to avoid signing failure."
+              exit 0
+            fi
+          fi
+
+          # Configure gpg-agent for loopback pinentry
+          echo "allow-loopback-pinentry" >> "$GNUPGHOME/gpg-agent.conf"
+          gpgconf --kill gpg-agent || true
+
+          # Show imported keys
+          gpg --list-secret-keys --keyid-format LONG || true
+
+          # If settings.xml exists in repo, copy it to $HOME/.m2; otherwise rely on setup-java created settings
+          if [ -f "settings.xml" ]; then
+            mkdir -p "$HOME/.m2"
+            cp settings.xml "$HOME/.m2/settings.xml"
+            SETTINGS="$HOME/.m2/settings.xml"
+            echo "Copied repository settings.xml to $SETTINGS"
+          elif [ -f "$HOME/.m2/settings.xml" ]; then
+            SETTINGS="$HOME/.m2/settings.xml"
+            echo "Using settings.xml created by setup-java: $SETTINGS"
+          else
+            echo "No settings.xml available; mvn deploy will likely fail. Aborting"
+            exit 1
+          fi
+
+          # Run mvn deploy and pass the GPG passphrase and keyname to the maven-gpg-plugin
+          echo "Running mvn deploy (with gpg.passphrase and gpg.keyname)..."
+          mvn -B -s "$SETTINGS" -Prelease -DskipTests \
+            -Dgpg.passphrase="$GPG_PASSPHRASE" \
+            -Dgpg.executable=$(which gpg) \
+            -Dgpg.keyname="$FPR" deploy
+
+      - name: Done
+        run: echo "Publish job finished"

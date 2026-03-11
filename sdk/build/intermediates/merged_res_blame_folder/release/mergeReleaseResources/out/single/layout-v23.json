@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.bidscube.sdk-release-3:/layout-v23/exo_player_control_rewind_button.xml",
+        "source": "com.bidscube.sdk-media3-ui-1.4.1-10:/layout-v23/exo_player_control_rewind_button.xml"
+    },
+    {
+        "merged": "com.bidscube.sdk-release-3:/layout-v23/exo_player_control_ffwd_button.xml",
+        "source": "com.bidscube.sdk-media3-ui-1.4.1-10:/layout-v23/exo_player_control_ffwd_button.xml"
+    }
+]

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: com.android.tools:desugar_jdk_libs_configuration:2.0.4" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.android.tools" artifactId="desugar_jdk_libs_configuration" version="2.0.4" baseVersion="2.0.4" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.android.tools/desugar_jdk_libs_configuration/2.0.4/6335e2dd4aaf0d12698d3a8b0da62792eb303886/desugar_jdk_libs_configuration-2.0.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

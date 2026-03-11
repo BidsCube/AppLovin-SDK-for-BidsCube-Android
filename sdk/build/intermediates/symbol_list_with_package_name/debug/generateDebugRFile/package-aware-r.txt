@@ -1,0 +1,3 @@
+com.bidscube.sdk
+drawable close_small_24
+raw vast
