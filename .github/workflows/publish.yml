@@ -174,13 +174,13 @@ jobs:
           echo "PATH=$PATH"
           echo "Which sdkmanager: $(which sdkmanager || true)"
 
-      - name: Build AAR, sources and javadoc JARs (Gradle)
+      - name: Build AAR (Gradle)
         run: |
           if [ -f "./gradlew" ]; then
-            ./gradlew clean :sdk:assembleRelease :sdk:sourcesJar :sdk:javadocJar --no-daemon --stacktrace
+            ./gradlew clean :sdk:assembleRelease --no-daemon --stacktrace
           else
             echo "gradlew not found; attempting to run gradle if available on PATH"
-            gradle clean :sdk:assembleRelease :sdk:sourcesJar :sdk:javadocJar --no-daemon --stacktrace
+            gradle clean :sdk:assembleRelease --no-daemon --stacktrace
           fi
 
       - name: Verify built artifacts
@@ -193,20 +193,7 @@ jobs:
             echo "Found AAR in build/outputs/aar"
           else
             echo "Error: no AAR found in sdk/build/outputs/aar or build/outputs/aar"
-            ls -la
-            exit 1
-          fi
-
-          if [ ! -f "sdk/build/libs/sdk-sources.jar" ] && [ ! -f "build/libs/sdk-sources.jar" ]; then
-            echo "Error: sources JAR not found"
-            ls -la sdk/build/libs || true
-            ls -la build/libs || true
-            exit 1
-          fi
-          if [ ! -f "sdk/build/libs/sdk-javadoc.jar" ] && [ ! -f "build/libs/sdk-javadoc.jar" ]; then
-            echo "Error: javadoc JAR not found"
-            ls -la sdk/build/libs || true
-            ls -la build/libs || true
+            ls -la sdk/build/outputs/aar 2>/dev/null || true
             exit 1
           fi
 
@@ -311,7 +298,6 @@ jobs:
           echo "No release token available; saving artifacts to ./release_artifacts"
           mkdir -p release_artifacts
           cp -v sdk/build/outputs/aar/*.aar release_artifacts/ || true
-          cp -v sdk/build/libs/*.jar release_artifacts/ || true
           ls -la release_artifacts || true
 
       - name: Upload built artifacts to the GitHub release
