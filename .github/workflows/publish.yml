@@ -34,7 +34,7 @@ jobs:
       - name: Check for Maven credentials or settings.xml
         id: check_creds
         run: |
-          # prefer secrets, then gradle.properties, then settings.xml in repo
+          # Prefer secrets, then gradle.properties, then settings.xml in repo. If none: continue without Maven deploy.
           if [ -n "${{ secrets.MAVEN_CENTRAL_USERNAME }}" ] && [ -n "${{ secrets.MAVEN_CENTRAL_PASSWORD }}" ]; then
             echo "using secrets for maven credentials"
             echo "have_creds=true" >> $GITHUB_OUTPUT
@@ -46,8 +46,7 @@ jobs:
             echo "have_creds=true" >> $GITHUB_OUTPUT
           else
             echo "have_creds=false" >> $GITHUB_OUTPUT
-            echo "No Maven credentials found: please set GitHub secrets MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD or provide settings.xml in repo or populate gradle.properties"
-            exit 1
+            echo "No Maven credentials: build and GitHub Release will run; Maven Central deploy will be skipped. To publish to Maven Central set GitHub secrets MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD or add settings.xml or gradle.properties."
           fi
 
       - name: Set up JDK and configure Maven server (actions/setup-java)
