@@ -4,7 +4,7 @@
             "outputFile": "com.bidscube.sdk-mergeReleaseResources-1:/values-en-rXA/values-en-rXA.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/ca65c736fb9e28416f8d98197d14a447/gradle/caches/8.11.1/transforms/b369f30578189612a32fc51e15466a96/transformed/tv-ads-1.0.0/res/values-en-rXA/values.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/d3d4db2993b70cbe682f4f108d65b94e/gradle/caches/8.11.1/transforms/25be8fd7ebf3c2681b4b03cb3c366c49/transformed/tv-ads-1.0.0/res/values-en-rXA/values.xml",
                     "from": {
                         "startLines": "4,5,6,9",
                         "startColumns": "0,0,0,0",
@@ -26,7 +26,7 @@
             "outputFile": "com.bidscube.sdk-release-3:/values-en-rXA/values-en-rXA.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/ca65c736fb9e28416f8d98197d14a447/gradle/caches/8.11.1/transforms/b369f30578189612a32fc51e15466a96/transformed/tv-ads-1.0.0/res/values-en-rXA/values.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/d3d4db2993b70cbe682f4f108d65b94e/gradle/caches/8.11.1/transforms/25be8fd7ebf3c2681b4b03cb3c366c49/transformed/tv-ads-1.0.0/res/values-en-rXA/values.xml",
                     "from": {
                         "startLines": "4,5,6,9",
                         "startColumns": "0,0,0,0",

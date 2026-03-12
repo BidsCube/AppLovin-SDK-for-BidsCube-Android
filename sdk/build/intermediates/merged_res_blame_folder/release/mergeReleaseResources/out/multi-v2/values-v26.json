@@ -4,7 +4,7 @@
             "outputFile": "com.bidscube.sdk-release-3:/values-v26/values-v26.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/ca65c736fb9e28416f8d98197d14a447/gradle/caches/8.11.1/transforms/d78ce68bd0012230d1a05c8a97f92b06/transformed/appcompat-1.6.1/res/values-v26/values-v26.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/d3d4db2993b70cbe682f4f108d65b94e/gradle/caches/8.11.1/transforms/377c357381efbfd33584ba66158be59e/transformed/appcompat-1.6.1/res/values-v26/values-v26.xml",
                     "from": {
                         "startLines": "2,3,4,8,12,16",
                         "startColumns": "4,4,4,4,4,4",
@@ -20,7 +20,7 @@
             "outputFile": "com.bidscube.sdk-mergeReleaseResources-1:/values-v26/values-v26.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/ca65c736fb9e28416f8d98197d14a447/gradle/caches/8.11.1/transforms/d78ce68bd0012230d1a05c8a97f92b06/transformed/appcompat-1.6.1/res/values-v26/values-v26.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/d3d4db2993b70cbe682f4f108d65b94e/gradle/caches/8.11.1/transforms/377c357381efbfd33584ba66158be59e/transformed/appcompat-1.6.1/res/values-v26/values-v26.xml",
                     "from": {
                         "startLines": "2,3,4,8,12,16",
                         "startColumns": "4,4,4,4,4,4",

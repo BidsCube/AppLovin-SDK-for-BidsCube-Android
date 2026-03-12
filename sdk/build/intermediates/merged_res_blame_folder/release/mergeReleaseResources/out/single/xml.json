@@ -1,6 +1,6 @@
 [
     {
         "merged": "com.bidscube.sdk-release-3:/xml/image_share_filepaths.xml",
-        "source": "com.bidscube.sdk-browser-1.5.0-7:/xml/image_share_filepaths.xml"
+        "source": "com.bidscube.sdk-browser-1.5.0-37:/xml/image_share_filepaths.xml"
     }
 ]

@@ -4,7 +4,7 @@
             "outputFile": "com.bidscube.sdk-release-3:/values-b+es+419/values-b+es+419.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/ca65c736fb9e28416f8d98197d14a447/gradle/caches/8.11.1/transforms/d33ebc77c4cefe990237000df10383c2/transformed/material-1.12.0/res/values-b+es+419/values-b+es+419.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/d3d4db2993b70cbe682f4f108d65b94e/gradle/caches/8.11.1/transforms/fec21861cdec34fa29cccbd6c14611fc/transformed/material-1.12.0/res/values-b+es+419/values-b+es+419.xml",
                     "from": {
                         "startLines": "2,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/ca65c736fb9e28416f8d98197d14a447/gradle/caches/8.11.1/transforms/b369f30578189612a32fc51e15466a96/transformed/tv-ads-1.0.0/res/values-b+es+419/values.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/d3d4db2993b70cbe682f4f108d65b94e/gradle/caches/8.11.1/transforms/25be8fd7ebf3c2681b4b03cb3c366c49/transformed/tv-ads-1.0.0/res/values-b+es+419/values.xml",
                     "from": {
                         "startLines": "4,5,6,9",
                         "startColumns": "0,0,0,0",
@@ -45,7 +45,7 @@
             "outputFile": "com.bidscube.sdk-mergeReleaseResources-1:/values-b+es+419/values-b+es+419.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/ca65c736fb9e28416f8d98197d14a447/gradle/caches/8.11.1/transforms/d33ebc77c4cefe990237000df10383c2/transformed/material-1.12.0/res/values-b+es+419/values-b+es+419.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/d3d4db2993b70cbe682f4f108d65b94e/gradle/caches/8.11.1/transforms/fec21861cdec34fa29cccbd6c14611fc/transformed/material-1.12.0/res/values-b+es+419/values-b+es+419.xml",
                     "from": {
                         "startLines": "2,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -64,7 +64,7 @@
                     }
                 },
                 {
-                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/ca65c736fb9e28416f8d98197d14a447/gradle/caches/8.11.1/transforms/b369f30578189612a32fc51e15466a96/transformed/tv-ads-1.0.0/res/values-b+es+419/values.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/d3d4db2993b70cbe682f4f108d65b94e/gradle/caches/8.11.1/transforms/25be8fd7ebf3c2681b4b03cb3c366c49/transformed/tv-ads-1.0.0/res/values-b+es+419/values.xml",
                     "from": {
                         "startLines": "4,5,6,9",
                         "startColumns": "0,0,0,0",

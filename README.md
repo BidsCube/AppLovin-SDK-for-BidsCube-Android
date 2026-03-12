@@ -18,6 +18,29 @@ A comprehensive Android SDK for displaying various types of ads including image 
 5. **AppLovin MAX** — Add `com.bidscube:applovin-bidscube-adapter:1.0.0@aar` and configure Bidscube as a Custom network in the [MAX Dashboard](https://dash.applovin.com) with server param `app_id`. See [applovin-adapter/README.md](applovin-adapter/README.md).
 6. **Requirements** — minSdk 24, permissions: `INTERNET`, `ACCESS_NETWORK_STATE`.
 
+## Local build (same as CI)
+
+To run the same build as CI locally and get the release AAR:
+
+1. **Gradle wrapper (one-time)** — From the project root, generate the wrapper (requires [Gradle](https://gradle.org/install/) installed, or use the Terminal inside Android Studio which often has `gradle` in `PATH`):
+   ```bash
+   gradle wrapper --gradle-version 8.11.1
+   ```
+   This creates `gradlew` and `gradle/wrapper/gradle-wrapper.jar`. Optionally remove `gradlew` and `gradlew.bat` from `.gitignore` and commit them so you don’t need Gradle installed next time.
+
+2. **Java & Android SDK** — Set `JAVA_HOME` to JDK 17. For the SDK module you don’t need Android SDK; for the full build (e.g. `:applovin-adapter:assembleRelease`) set `ANDROID_HOME` to your Android SDK.
+
+3. **Build** — Same command as in the release workflow:
+   ```bash
+   ./gradlew clean :sdk:assembleRelease --no-daemon
+   ```
+   Output AAR: `sdk/build/outputs/aar/sdk-release.aar`.
+
+   For the AppLovin adapter:
+   ```bash
+   ./gradlew clean :applovin-adapter:assembleRelease --no-daemon
+   ```
+
 ## Quick Start
 
 ### 1. Add Dependency

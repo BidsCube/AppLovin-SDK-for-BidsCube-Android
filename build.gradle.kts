@@ -11,5 +11,9 @@ allprojects {
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
     }
+    // Required for AndroidX deps; CI may not have gradle.properties
+    if (!project.hasProperty("android.useAndroidX")) {
+        project.ext.set("android.useAndroidX", true)
+    }
 }
 
