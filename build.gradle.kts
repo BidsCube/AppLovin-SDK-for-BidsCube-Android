@@ -1,5 +1,5 @@
 // Set AndroidX before any project build script runs (CI often has no gradle.properties)
-gradle.beforeProject { proj ->
+gradle.beforeProject { proj: org.gradle.api.Project ->
     if (!proj.hasProperty("android.useAndroidX")) {
         proj.ext.set("android.useAndroidX", true)
     }
