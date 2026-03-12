@@ -16,13 +16,10 @@ Android SDK for image, video, and native ads with GDPR/CCPA consent. Can be used
 
 ### From Maven
 
+Assuming your project already uses `google()` and `mavenCentral()`, add:
+
 ```kotlin
 // build.gradle.kts
-repositories {
-    google()
-    mavenCentral()
-}
-
 dependencies {
     implementation("com.bidscube:applovin-bidscube-sdk:1.0.0@aar")
 }
@@ -30,10 +27,6 @@ dependencies {
 
 ```groovy
 // build.gradle
-repositories {
-    google()
-    mavenCentral()
-}
 dependencies {
     implementation 'com.bidscube:applovin-bidscube-sdk:1.0.0@aar'
 }
