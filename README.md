@@ -8,13 +8,13 @@ Android SDK for image, video, and native ads with GDPR/CCPA consent. Can be used
 - **Bidscube SDK** 1.0.0+
 - **AppLovin MAX** (optional) SDK 13.6.0+ and adapter `applovin-bidscube-adapter` 1.0.0+
 - Permissions: `INTERNET`, `ACCESS_NETWORK_STATE`
-- Bidscube **Application ID** (`app_id`) for MAX mediation
+- For MAX mediation: Bidscube init value **`app_id`** and a MAX **Placement ID** per ad unit
 
 ---
 
 ## Add the SDK
 
-### From Maven (or GitHub Packages)
+### From Maven
 
 ```kotlin
 // build.gradle.kts
@@ -64,28 +64,44 @@ To use Bidscube as a **Custom network** in AppLovin MAX:
 ```kotlin
 dependencies {
     implementation("com.applovin:applovin-sdk:13.6.0@aar")
-    implementation("com.bidscube:applovin-bidscube-sdk:1.0.0@aar")
     implementation("com.bidscube:applovin-bidscube-adapter:1.0.0@aar")
 }
 ```
 
-The SDK is pulled in transitively by the adapter; you can rely on the single adapter line if your repo resolves it.
+The Bidscube SDK is pulled in transitively by the adapter. Only add `com.bidscube:applovin-bidscube-sdk` explicitly if your repository setup does not resolve transitive AAR dependencies correctly.
 
 ### 2. MAX Dashboard setup
 
-1. Open [AppLovin MAX Dashboard](https://dash.applovin.com).
-2. Select your app (bundle ID must match).
-3. Go to **Mediation → Manage Mediation**.
-4. Add a **Custom network** named **Bidscube**.
-5. Set server parameter: **`app_id`** = your Bidscube Application ID.
-6. (Optional) For native ad units, set local parameter: **`is_native`** = `true`.
-7. Enable Bidscube for the MAX ad units you want.
+Follow [AppLovin’s guide for custom SDK networks](https://support.axon.ai/en/max/mediated-network-guides/integrating-custom-sdk-networks/):
 
-### 3. Supported ad formats
+1. Open [AppLovin MAX Dashboard](https://dash.applovin.com) and select your app (bundle ID must match).
+2. Go to **MAX → Mediation → Manage → Networks**.
+3. Click **Click here to add a Custom Network** and create the network:
+   - **Network Type**: **SDK**
+   - **Name**: `Bidscube`
+   - **Android Adapter Class Name**: `com.applovin.mediation.adapters.BidscubeMediationAdapter`
+4. Go to **MAX → Mediation → Manage → Ad Units**, select each ad unit where you want Bidscube, enable **Bidscube** and set the values for that placement.
 
-Banner, Interstitial, Rewarded, Native, MREC.
+### 3. MAX parameters
+
+- **Android Adapter Class Name**: `com.applovin.mediation.adapters.BidscubeMediationAdapter`
+- **`app_id`**: Bidscube init identifier used by the adapter during SDK initialization
+- **Placement ID**: the Bidscube placement used for the specific MAX ad unit request
+- **Custom Parameters**: not used by the current adapter implementation
+
+The adapter reads `app_id` from **Server Parameters** and the ad-specific value from the MAX **Placement ID** field.
+
+### 4. Supported ad formats
+
+Banner, MREC, Interstitial, Rewarded, Native.
 
 Full adapter steps: [applovin-adapter/README.md](applovin-adapter/README.md).
+
+### 5. Troubleshooting
+
+- If the network initializes but ads do not load, verify both **`app_id`** and the MAX **Placement ID**.
+- If MAX does not recognize the custom network, verify the Android adapter class name is `com.applovin.mediation.adapters.BidscubeMediationAdapter`.
+- Run consent before initializing the SDK and loading ads.
 
 ---
 

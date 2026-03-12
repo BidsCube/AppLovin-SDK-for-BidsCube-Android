@@ -4,12 +4,11 @@ AppLovin MAX mediation adapter for Bidscube SDK. Use Bidscube as a custom networ
 
 ## Requirements
 
-- **Android** minSdk 23+
+- **Android** minSdk 24+
 - **AppLovin MAX SDK** 13.6.0+
-- **Bidscube SDK** 1.0.2+
-- **Google UMP SDK** 4.0.0+
+- **Bidscube adapter** 1.0.0+ with Bidscube SDK pulled transitively
 - AppLovin **SDK Key** and **Ad Units**
-- Bidscube **Application ID (`app_id`)**
+- Bidscube init value **`app_id`** and a MAX **Placement ID** per ad unit
 
 ## Add the Adapter
 
@@ -61,41 +60,55 @@ Sync the project and build.
 
 ## AppLovin MAX Dashboard Setup
 
-1. Open the **AppLovin MAX Dashboard**.
-2. Select your application (bundle ID must match your app’s **Bundle Identifier**).
-3. Go to **Mediation → Manage Mediation**.
-4. Add a **Custom network** named **Bidscube**.
-5. Set the required server parameter:
-   - **`app_id`** = your Bidscube Application ID
-6. *(Optional)* For native ad units, set local parameter:
-   - **`is_native`** = `true`
-7. Enable **Bidscube** for the MAX ad units where you want Bidscube demand.
+Use [AppLovin’s guide for custom SDK networks](https://support.axon.ai/en/max/mediated-network-guides/integrating-custom-sdk-networks/):
+
+1. Open the **AppLovin MAX Dashboard** and select your app (bundle ID must match your **Bundle Identifier**).
+2. Go to **MAX → Mediation → Manage → Networks**.
+3. Click **Click here to add a Custom Network** and fill in:
+   - **Network Type**: **SDK**
+   - **Name**: `Bidscube`
+   - **Android Adapter Class Name**: `com.applovin.mediation.adapters.BidscubeMediationAdapter`
+4. Go to **MAX → Mediation → Manage → Ad Units**, select an ad unit, enable **Bidscube** and set the values for that placement.
+
+## MAX Parameters
+
+- **Android Adapter Class Name**: `com.applovin.mediation.adapters.BidscubeMediationAdapter`
+- **`app_id`**: Bidscube init identifier used by the adapter during SDK initialization
+- **Placement ID**: the Bidscube placement used for the specific MAX ad unit request
+- **Custom Parameters**: not used by the current adapter implementation
+
+The adapter reads `app_id` from **Server Parameters** and the ad-specific value from the MAX **Placement ID** field.
 
 ## Consent (GDPR/CCPA)
 
-Run the Google UMP consent flow **before** initializing the AppLovin SDK and loading ads. Bidscube uses consent; without it, ads may not serve correctly.
+Run the consent flow before initializing the AppLovin SDK and loading ads. Bidscube uses consent; without it, ads may not serve correctly.
 
 ## Supported Ad Formats
 
-Banner, Interstitial, Rewarded, Native, MREC.
+Banner, MREC, Interstitial, Rewarded, Native.
 
-## Releasing via GitHub
+## Troubleshooting
 
-**Version:** Adapter version is **1.0.0** (see `applovin-adapter/build.gradle.kts`; override with env `BidscubeAdapterVersion`).
+- If the network initializes but ads do not load, verify both **`app_id`** and the MAX **Placement ID**.
+- If MAX does not recognize the custom network, verify the Android adapter class name is `com.applovin.mediation.adapters.BidscubeMediationAdapter`.
+- Run consent before initializing AppLovin MAX and loading ads.
 
-**Artifact:** `com.bidscube:applovin-bidscube-adapter:1.0.0`
+## Release
 
-**To release:**
+- **Artifact:** `com.bidscube:applovin-bidscube-adapter:1.0.0`
+- **Version source:** `BidscubeAdapterVersion` env var, default `1.0.0`
+- **GitHub release:** push a tag such as `applovin-adapter-v1.0.0`
 
-1. **Tag the repo** (e.g. for the adapter release):
-   ```bash
-   git tag applovin-adapter-v1.0.0
-   git push origin applovin-adapter-v1.0.0
-   ```
-2. **GitHub Actions:** The workflow on tag `applovin-adapter-v*` builds the adapter AAR and uploads it to the GitHub Release. Optionally configure Maven Central credentials in repo secrets to publish to a Maven repository.
-3. **Local publish:** To publish from your machine:
-   ```bash
-   export BidscubeAdapterVersion=1.0.0
-   ./gradlew :applovin-adapter:assembleRelease :applovin-adapter:publishReleasePublicationToCentralRepository
-   ```
-   Set `mavenCentralUsername` and `mavenCentralPassword` in `gradle.properties` or environment; signing uses GPG (e.g. `useGpgCmd()` in the build).
+```bash
+git tag applovin-adapter-v1.0.0
+git push origin applovin-adapter-v1.0.0
+```
+
+- **Local publish:**
+
+```bash
+export BidscubeAdapterVersion=1.0.0
+./gradlew :applovin-adapter:assembleRelease :applovin-adapter:publishReleasePublicationToCentralRepository
+```
+
+For Maven publishing, provide `mavenCentralUsername` and `mavenCentralPassword`; signing uses GPG (`useGpgCmd()`).
