@@ -49,6 +49,8 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         this.context = context;
         this.config = config;
 
+        SDKLogger.d(TAG, "adRequestAuthority from SDKConfig: " + config.getAdRequestAuthority());
+
         // Configure logging based on SDKConfig
         SDKLogger.setLoggingEnabled(config.isEnableLogging());
         SDKLogger.setDefaultTag(TAG);
@@ -60,6 +62,7 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
 
             deviceInfoProvider.getDeviceInfoAsync(deviceInfo -> {
                 this.deviceInfo = deviceInfo;
+                SDKLogger.d(TAG, "DeviceInfo adRequestAuthority: " + deviceInfo.getAdRequestAuthority());
 
                 this.adDisplayManager = new AdDisplayManager(context, deviceInfo);
 

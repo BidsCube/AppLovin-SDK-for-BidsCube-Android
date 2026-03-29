@@ -6,10 +6,15 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.webkit.WebSettings;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 /**
  * Configuration class for the Bidscube SDK
  */
 public class SDKConfig {
+
+    public static final String DEFAULT_AD_REQUEST_AUTHORITY = com.bidscube.sdk.models.DeviceInfo.DEFAULT_AD_REQUEST_AUTHORITY;
 
     private final String appId;
     private final String appName;
@@ -26,6 +31,8 @@ public class SDKConfig {
     private final String gdprConsent;
     private final String usPrivacy;
     private final Boolean coppa;
+    /** HTTPS authority (host[:port]) for ad requests; default {@link #DEFAULT_AD_REQUEST_AUTHORITY}. */
+    private final String adRequestAuthority;
 
     private SDKConfig(Builder builder) {
         this.appId = builder.appId;
@@ -41,6 +48,9 @@ public class SDKConfig {
         this.gdprConsent = builder.gdprConsent;
         this.usPrivacy = builder.usPrivacy;
         this.coppa = builder.coppa;
+        this.adRequestAuthority = builder.adRequestAuthority != null && !builder.adRequestAuthority.isEmpty()
+                ? builder.adRequestAuthority
+                : DEFAULT_AD_REQUEST_AUTHORITY;
     }
 
     public String getAppId() {
@@ -96,6 +106,13 @@ public class SDKConfig {
     }
 
     /**
+     * Host (and optional port) for Bidscube SSP ad URLs, e.g. {@code ssp-bcc-ads.com} or {@code edge.example.com:8443}.
+     */
+    public String getAdRequestAuthority() {
+        return adRequestAuthority;
+    }
+
+    /**
      * Get the SDK version from environment variable or default to 1.0.1
      */
     private static String getSDKVersion() {
@@ -121,6 +138,7 @@ public class SDKConfig {
         private String gdprConsent = null;
         private String usPrivacy = null;
         private Boolean coppa = null;
+        private String adRequestAuthority = DEFAULT_AD_REQUEST_AUTHORITY;
 
         /**
          * Create a new Builder with automatic app detection
@@ -280,6 +298,54 @@ public class SDKConfig {
         public Builder coppa(Boolean coppa) {
             this.coppa = coppa;
             return this;
+        }
+
+        /**
+         * Override the HTTPS host (and optional port) used for all Bidscube ad request URLs.
+         * Accepts {@code host}, {@code host:port}, IPv6 {@code [addr]:port}, a full prefix such as
+         * {@code https://edge.example.com/sdk} (scheme and path are stripped), or percent-encoded
+         * input (e.g. {@code %3A} for {@code :}). The SDK appends path {@code /sdk} and query parameters internally.
+         */
+        public Builder adRequestAuthority(String authorityOrUrl) {
+            this.adRequestAuthority = normalizeAdRequestAuthority(authorityOrUrl);
+            return this;
+        }
+
+        private static String normalizeAdRequestAuthority(String input) {
+            if (input == null) {
+                return DEFAULT_AD_REQUEST_AUTHORITY;
+            }
+            String s = input.trim();
+            if (s.isEmpty()) {
+                return DEFAULT_AD_REQUEST_AUTHORITY;
+            }
+            // Paste from browser / config files may contain percent-encoding (e.g. %3A for ':').
+            for (int i = 0; i < 3; i++) {
+                try {
+                    String dec = URLDecoder.decode(s, "UTF-8");
+                    if (dec.equals(s)) {
+                        break;
+                    }
+                    s = dec.trim();
+                } catch (UnsupportedEncodingException | IllegalArgumentException e) {
+                    break;
+                }
+            }
+            if (s.regionMatches(true, 0, "https://", 0, 8)) {
+                s = s.substring(8);
+            } else if (s.regionMatches(true, 0, "http://", 0, 7)) {
+                s = s.substring(7);
+            }
+            int slash = s.indexOf('/');
+            if (slash > 0) {
+                s = s.substring(0, slash);
+            }
+            int q = s.indexOf('?');
+            if (q > 0) {
+                s = s.substring(0, q);
+            }
+            s = s.trim();
+            return s.isEmpty() ? DEFAULT_AD_REQUEST_AUTHORITY : s;
         }
 
         /**

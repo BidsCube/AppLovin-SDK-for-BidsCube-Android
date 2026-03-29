@@ -75,9 +75,16 @@ Use [AppLovin’s guide for custom SDK networks](https://support.axon.ai/en/max/
 - **Android Adapter Class Name**: `com.applovin.mediation.adapters.BidscubeMediationAdapter`
 - **`app_id`**: Bidscube init identifier used by the adapter during SDK initialization
 - **Placement ID**: the Bidscube placement used for the specific MAX ad unit request
-- **Custom Parameters**: not used by the current adapter implementation
+- **`request_authority`** (optional, **Server Parameters**): value passed to `SDKConfig.Builder.adRequestAuthority(...)`. Use **host** only (`my.trycloudflare.com`), **`host:port`** (`127.0.0.1:8787`), or a pasted prefix **`https://host/`** (scheme/path/query stripped by the SDK). Percent-encoded characters (e.g. `%3A`) are decoded. The SDK always requests **`https://<authority>/sdk?…`**; do not paste the full ad URL with query params here. If omitted, the SDK default host is used.
+- **`ssp_host`** (optional): alias for `request_authority` if `request_authority` is empty
 
 The adapter reads `app_id` from **Server Parameters** and the ad-specific value from the MAX **Placement ID** field.
+
+### Endpoint / domain (traffic)
+
+- **AppLovin MAX** does not define a dedicated “traffic domain” field for custom SDK networks. You configure **App ID**, **Placement ID**, and optional **Server Parameters** / **Custom Parameters** per placement (see [Integrating custom SDK networks](https://support.axon.ai/en/max/mediated-network-guides/integrating-custom-sdk-networks/) and [Building a custom adapter](https://developers.axon.ai/en/max/demand-partners/building-a-custom-adapter)).
+- **This adapter** passes optional **`request_authority`** (or **`ssp_host`**) from **Server Parameters** into `SDKConfig.Builder.adRequestAuthority(...)`. The Bidscube SDK uses that value when building HTTPS URLs (`/sdk` path) for image, video, and native ads. Default host if unset: `ssp-bcc-ads.com`.
+- For direct SDK integration (without MAX), use `new SDKConfig.Builder(context).adRequestAuthority("your.host")` the same way.
 
 ## Consent (GDPR/CCPA)
 

@@ -80,7 +80,8 @@ public class DeviceInfoProvider {
                     gdprApplies,
                     consentString,
                     usPrivacy,
-                    coppa);
+                    coppa,
+                    config.getAdRequestAuthority());
 
             new Handler(Looper.getMainLooper()).post(() -> callback.accept(deviceInfo));
         }).start();

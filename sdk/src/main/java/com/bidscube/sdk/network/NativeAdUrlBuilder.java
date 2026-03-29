@@ -18,10 +18,7 @@ public class NativeAdUrlBuilder {
     }
 
     public Uri build() {
-        Uri.Builder builder = new Uri.Builder()
-                .scheme("https")
-                .authority("ssp-bcc-ads.com")
-                .appendPath("sdk");
+        Uri.Builder builder = SspAdUriHelper.newHttpsSdkUriBuilder(deviceInfo);
 
         builder.appendQueryParameter("c", "n")
                .appendQueryParameter("m", "s")

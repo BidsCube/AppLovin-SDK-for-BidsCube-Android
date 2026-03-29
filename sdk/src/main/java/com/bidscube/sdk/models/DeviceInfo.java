@@ -6,6 +6,9 @@ package com.bidscube.sdk.models;
  */
 public class DeviceInfo {
 
+    /** Default Bidscube SSP host for HTTPS ad requests (path /sdk is appended by URL builders). */
+    public static final String DEFAULT_AD_REQUEST_AUTHORITY = "ssp-bcc-ads.com";
+
     private final String bundle;
     private final String appName;
     private final String appStoreUrl;
@@ -21,6 +24,8 @@ public class DeviceInfo {
     private final String gdprConsent;
     private final String usPrivacy;
     private final boolean coppa;
+    /** HTTPS authority (host[:port]) for ad request URLs, e.g. ssp-bcc-ads.com */
+    private final String adRequestAuthority;
 
     private static final int DEFAULT_GDPR = 0;
     private static final String DEFAULT_GDPR_CONSENT = "";
@@ -33,7 +38,8 @@ public class DeviceInfo {
     public DeviceInfo(String bundle, String appName, String appStoreUrl, String language,
                       int deviceWidth, int deviceHeight, String userAgent, String ifa,
                       int dnt, String appVersion,
-                      int gdpr, String gdprConsent, String usPrivacy, boolean coppa) {
+                      int gdpr, String gdprConsent, String usPrivacy, boolean coppa,
+                      String adRequestAuthority) {
         this.bundle = bundle;
         this.appName = appName;
         this.appStoreUrl = appStoreUrl;
@@ -48,6 +54,9 @@ public class DeviceInfo {
         this.gdprConsent = gdprConsent;
         this.usPrivacy = usPrivacy;
         this.coppa = coppa;
+        this.adRequestAuthority = adRequestAuthority != null && !adRequestAuthority.isEmpty()
+                ? adRequestAuthority
+                : DEFAULT_AD_REQUEST_AUTHORITY;
     }
 
     /**
@@ -58,7 +67,8 @@ public class DeviceInfo {
                       int dnt, String appVersion) {
         this(bundle, appName, appStoreUrl, language, deviceWidth, deviceHeight,
                 userAgent, ifa, dnt, appVersion,
-                DEFAULT_GDPR, DEFAULT_GDPR_CONSENT, DEFAULT_US_PRIVACY, DEFAULT_COPPA);
+                DEFAULT_GDPR, DEFAULT_GDPR_CONSENT, DEFAULT_US_PRIVACY, DEFAULT_COPPA,
+                DEFAULT_AD_REQUEST_AUTHORITY);
     }
 
     public String getBundle() {
@@ -115,5 +125,12 @@ public class DeviceInfo {
 
     public String isCoppa() {
         return coppa ? "1" : "0";
+    }
+
+    /**
+     * Host (and optional port) used for HTTPS ad requests to Bidscube SSP.
+     */
+    public String getAdRequestAuthority() {
+        return adRequestAuthority;
     }
 }

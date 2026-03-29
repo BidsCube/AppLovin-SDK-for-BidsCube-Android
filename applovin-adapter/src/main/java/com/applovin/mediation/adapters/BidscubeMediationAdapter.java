@@ -73,12 +73,19 @@ public class BidscubeMediationAdapter
             }
 
             try {
-                SDKConfig config = new SDKConfig.Builder(context)
+                String requestAuthority = parameters.getServerParameters().getString("request_authority");
+                if (requestAuthority == null || requestAuthority.isEmpty()) {
+                    requestAuthority = parameters.getServerParameters().getString("ssp_host");
+                }
+                SDKConfig.Builder configBuilder = new SDKConfig.Builder(context)
                         .enableLogging(false)
                         .enableDebugMode(false)
                         .defaultAdTimeout(30000)
-                        .defaultAdPosition("UNKNOWN")
-                        .build();
+                        .defaultAdPosition("UNKNOWN");
+                if (requestAuthority != null && !requestAuthority.isEmpty()) {
+                    configBuilder.adRequestAuthority(requestAuthority);
+                }
+                SDKConfig config = configBuilder.build();
                 BidscubeSDK.initialize(context, config);
                 log("Bidscube SDK successfully initialized with app id: " + appId);
                 status = InitializationStatus.INITIALIZED_SUCCESS;

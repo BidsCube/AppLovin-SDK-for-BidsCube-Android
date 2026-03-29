@@ -41,6 +41,15 @@ repositories { flatDir { dirs("libs") } }
 dependencies { implementation(files("libs/sdk-release.aar")) }
 ```
 
+### Publisher test app (`bidscube-testapp-android`)
+
+The sibling folder [bidscube-testapp-android](../bidscube-testapp-android) depends on this `:sdk` module. It is included from this repo as **`:bidscube-testapp-android`**.
+
+- Build & install: `./gradlew :bidscube-testapp-android:installDebug` (application id **`com.bidscube.publisher.testapp`** — not the Play Store package name; uninstall any old `com.bidscube.sdk` debug build if you had one).
+- Custom SSP / mock: run `python3 scripts/mock_bidscube_ssp.py` (може сам відкрити публічний URL через cloudflared/ngrok). Для **debug** задайте `bidcube.testSspAuthority=<host>` у [bidscube-testapp-android/gradle.properties](../bidscube-testapp-android/gradle.properties) і перезіберіть. Деталі: **Test a custom SSP host locally**.
+
+You can also open only the test app folder and run `./gradlew assembleDebug` (its `settings.gradle` still points `project(":sdk")` at this `sdk` directory).
+
 ### As a module
 
 In `settings.gradle.kts`: `include(":app", ":sdk")` (and point `:sdk` to this repo’s `sdk` folder if needed).  
@@ -80,9 +89,11 @@ Follow [AppLovin’s guide for custom SDK networks](https://support.axon.ai/en/m
 - **Android Adapter Class Name**: `com.applovin.mediation.adapters.BidscubeMediationAdapter`
 - **`app_id`**: Bidscube init identifier used by the adapter during SDK initialization
 - **Placement ID**: the Bidscube placement used for the specific MAX ad unit request
-- **Custom Parameters**: not used by the current adapter implementation
+- **`request_authority`** / **`ssp_host`** (optional): override the HTTPS host for Bidscube ad requests (see [applovin-adapter/README.md](applovin-adapter/README.md))
 
 The adapter reads `app_id` from **Server Parameters** and the ad-specific value from the MAX **Placement ID** field.
+
+**Domain / traffic endpoint:** MAX has no separate domain field; use optional **`request_authority`** or **`ssp_host`** in server parameters, or `SDKConfig.Builder.adRequestAuthority(...)` for direct SDK use. Default: `ssp-bcc-ads.com`. Details: **Endpoint / domain (traffic)** in [applovin-adapter/README.md](applovin-adapter/README.md).
 
 ### 4. Supported ad formats
 
@@ -107,10 +118,90 @@ import com.bidscube.sdk.config.SDKConfig;
 SDKConfig config = new SDKConfig.Builder(this)
         .enableLogging(true)
         .enableDebugMode(false)
+        // Optional: HTTPS host[:port] for ad URLs (default ssp-bcc-ads.com), e.g.:
+        // .adRequestAuthority("example.com")
         .build();
 
 BidscubeSDK.initialize(this, config);
 ```
+
+### Ad request endpoint (custom SSP host / pasted link)
+
+All image, video, and native ad requests use **`https://<authority>/sdk?…`**. By default `authority` is `ssp-bcc-ads.com`. Override it **only via the SDK** with `SDKConfig.Builder.adRequestAuthority(String)` before `BidscubeSDK.initialize`.
+
+**What you can pass** (the SDK normalizes input and builds `/sdk` itself):
+
+| Input example | Resulting authority |
+|----------------|---------------------|
+| `example.com` | `example.com` (HTTPS, default port **443**) |
+| `edge.example.com` | `edge.example.com` (HTTPS, default port 443) |
+| `127.0.0.1:8787` | host `127.0.0.1`, port `8787` (local dev + tunnel) |
+| `https://my-host.trycloudflare.com/` | `my-host.trycloudflare.com` (scheme and path stripped) |
+| Value with `%3A` etc. | Percent-decoded first, then parsed |
+
+Example in code:
+
+```java
+new SDKConfig.Builder(context)
+        .adRequestAuthority("example.com")   // GET https://example.com/sdk?...
+        .build();
+```
+
+**Do not** put the full ad URL with query string into `adRequestAuthority` — only **host**, optional **port**, or a **short URL prefix**; query parameters are added by the SDK (`ImageAdUrlBuilder`, `VideoAdUrlBuilder`, `NativeAdUrlBuilder`).
+
+**AppLovin MAX:** set **`request_authority`** or **`ssp_host`** in server parameters (host only, same rules); the adapter forwards the value into `SDKConfig.Builder.adRequestAuthority(...)`. See [applovin-adapter/README.md](applovin-adapter/README.md).
+
+**Publisher test app:** for debug builds you can set `bidcube.testSspAuthority=<host>` in `bidscube-testapp-android/gradle.properties` (copied from `python3 scripts/mock_bidscube_ssp.py` after cloudflared prints the trycloudflare URL), then rebuild.
+
+### Reference: data you pass and wire format
+
+Two layers: **what you set in code / MAX**, and **what the SDK adds** to the HTTP request to the SSP.
+
+#### 1) Before `BidscubeSDK.initialize` (`SDKConfig.Builder`)
+
+| Input | Format | Notes |
+|-------|--------|--------|
+| **`adRequestAuthority`** (optional) | Single UTF-8 string: `host`, `host:port`, `https://host/…`, optional percent-encoding (`%3A`, etc.) | SDK normalizes it and builds **`https://<authority>/sdk`**. Default authority is `ssp-bcc-ads.com`. Example host: **`example.com`**. |
+| **`appId`**, **`appName`**, **`appVersion`**, **`language`**, **`userAgent`** (optional) | Strings | If omitted, values come from the app package / system. They appear in the request as `bundle`, `name`, etc. |
+| **`gdpr`**, **`gdprConsent`**, **`usPrivacy`**, **`coppa`** (optional) | `Integer` / `String` / `Boolean` or `null` | `null` → for some fields the SDK uses **UMP / ConsentManager** after consent is collected. |
+| **`enableLogging`**, **`enableDebugMode`**, **`defaultAdTimeout`**, **`defaultAdPosition`** | boolean / int / String | Not sent in the SSP request body; control SDK behavior only. |
+
+#### 2) On each ad load (your input)
+
+| SDK API | Parameter | Format |
+|---------|-----------|--------|
+| Image (banner, etc.) | **placement id** | String, e.g. `"20212"` → query **`placementId`** |
+| Video | placement **id** | String → query **`id`** |
+| Native | **placement id** + **w**, **h** | String + two `double` values (logical ad size) → query **`id`**, **`w`**, **`h`** |
+
+**AppLovin MAX** (dashboard): **`app_id`** (string, server parameters), **Placement ID** (string), optional **`request_authority`** / **`ssp_host`** — same format rules as `adRequestAuthority` (e.g. `example.com` or `https://example.com/` stripped to host).
+
+#### 3) What the SDK sends to the SSP (automatic)
+
+- **Method:** `GET`
+- **URL:** `https://<authority>/sdk?<query>` — query built with `Uri.appendQueryParameter` (standard **percent-encoding** for UTF-8 and special characters).
+
+**Image** (`c=b`, `m=api`, `res=js`, `app=1` plus `DeviceInfo` fields):
+
+| Query key | Value (as string) | Source |
+|-----------|-------------------|--------|
+| `placementId` | string | your API call |
+| `c`, `m`, `res`, `app` | fixed literals | SDK |
+| `bundle`, `name`, `app_store_url`, `language` | strings | `DeviceInfo` / config |
+| `deviceWidth`, `deviceHeight` | integers via `String.valueOf` | display |
+| `ua` | string | WebView / system user-agent |
+| `ifa` | string or empty | advertising ID |
+| `dnt` | `0` / `1` | limit ad tracking |
+
+**Video** (`c=v`, `m=xml`, `app=1`): same idea — `id`, `w`, `h` (screen), `bundle`, `name`, `app_version`, `ifa`, `dnt`, `app_store_url`, `ua`, `language`, `deviceWidth`, `deviceHeight`.
+
+**Native** (`c=n`, `m=s`, `app=1`): `id`, `bundle`, `name`, `app_version`, `ifa`, `dnt`, `app_store_url`, `ua`, **`gdpr`**, **`gdpr_consent`**, **`us_privacy`**, **`ccpa`**, **`coppa`**, `language`, `deviceWidth`, `deviceHeight`, **`w`**, **`h`** (sizes from the native call).
+
+#### 4) SSP response (expected by the SDK from mock or production)
+
+- **Body:** JSON, UTF-8  
+- **Fields:** **`adm`** (string — usually HTML/JS creative), **`position`** (integer, layout hint)  
+- Parser: `BidscubeResponseParser` (see `sdk` module).
 
 Before loading ads, request consent and show the form if required:
 
@@ -132,6 +223,18 @@ BidscubeSDK.requestConsentInfoUpdate(new ConsentCallback() {
     public void onConsentDenied() { showAlternativeContent(); }
 });
 ```
+
+---
+
+## Test a custom SSP host locally
+
+1. **Build the SDK:** `./gradlew :sdk:assembleRelease` → AAR at `sdk/build/outputs/aar/sdk-release.aar`. (The `:applovin-adapter` module needs the AppLovin MAX SDK on the Gradle classpath; build it from an app project that already depends on MAX, or publish the adapter from CI.)
+2. **Baseline without a custom host:** leave `adRequestAuthority` unset; requests go to the default production host (`ssp-bcc-ads.com`).
+3. **Custom host + mock SSP:** the SDK always uses **HTTPS**, so a plain `http://10.0.2.2:8787` URL will not work from the app without extra TLS setup. Practical approach:
+   - Run `python3 scripts/mock_bidscube_ssp.py` — starts the local mock on port **8787** and by default tries a public HTTPS tunnel (**cloudflared**, then **ngrok**) if they are on `PATH`. The script prints a ready line for `bidcube.testSspAuthority` / `adRequestAuthority`.
+   - If the tunnel does not start: run **`cloudflared tunnel --url http://127.0.0.1:8787`** or **`ngrok http 8787`** in another terminal, or `python3 scripts/mock_bidscube_ssp.py --no-tunnel` and start a tunnel manually.
+   - Pass **only the tunnel hostname** (no `https://`, no path), e.g. `abcd123.trycloudflare.com` or `abcd123.ngrok-free.app`, via `SDKConfig.Builder(context).adRequestAuthority("…")`, MAX **`request_authority`**, or **`bidcube.testSspAuthority`** in the publisher test app. For a staging hostname such as **`example.com`**, use `.adRequestAuthority("example.com")` the same way.
+4. **Verify:** enable logging (`.enableLogging(true)`) and check logcat for `HttpProvider` — you should see a GET to `https://<your-host>/sdk?...`.
 
 ---
 
