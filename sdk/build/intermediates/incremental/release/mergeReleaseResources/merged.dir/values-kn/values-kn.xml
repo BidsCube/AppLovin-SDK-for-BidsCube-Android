@@ -87,7 +87,6 @@
     <string name="error_a11y_label">ದೋಷ: ಅಮಾನ್ಯ</string>
     <string name="error_icon_content_description">ದೋಷ</string>
     <string name="error_message_description_text">ಈ ಜಾಹೀರಾತಿನ ಕುರಿತು ಹೆಚ್ಚಿನ ವಿವರಗಳನ್ನು ಪಡೆಯುವಾಗ ಸಮಸ್ಯೆ ಎದುರಾಗಿದೆ</string>
-    <string name="error_message_text">ಏನೋ ತಪ್ಪಾಗಿದೆ</string>
     <string name="exo_controls_cc_disabled_description">ಸಬ್‌ಟೈಟಲ್‌ಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ</string>
     <string name="exo_controls_cc_enabled_description">ಸಬ್‌ಟೈಟಲ್‌ಗಳನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ</string>
     <string name="exo_controls_fastforward_description">ಫಾಸ್ಟ್ ಫಾರ್ವರ್ಡ್</string>
@@ -204,6 +203,7 @@
     <string name="side_sheet_accessibility_pane_title">ಸೈಡ್ ಶೀಟ್</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">ಏನೋ ತಪ್ಪಾಗಿದೆ</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"ಆಫ್"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"ಆನ್"</string>
 </resources>

@@ -55,14 +55,13 @@
     <string msgid="3209159573327985035" name="copy">"Copiar"</string>
     <string msgid="3260749812566568062" name="copy_toast_msg">"Link copiado para a área de transferência"</string>
     <string name="error_message_description_text">Ocorreu um problema ao acessar mais detalhes sobre esse anúncio</string>
-    <string name="error_message_text">Algo deu errado</string>
     <string name="exo_controls_cc_disabled_description">Ativar legendas</string>
     <string name="exo_controls_cc_enabled_description">Desativar legendas</string>
     <string name="exo_controls_fastforward_description">Avançar</string>
     <string name="exo_controls_fullscreen_enter_description">Entrar no modo de tela cheia</string>
     <string name="exo_controls_fullscreen_exit_description">Sair do modo de tela cheia</string>
     <string name="exo_controls_hide">Ocultar controles do player</string>
-    <string name="exo_controls_next_description">Próxima</string>
+    <string name="exo_controls_next_description">Avançar</string>
     <string name="exo_controls_overflow_hide_description">Ocultar configurações extras</string>
     <string name="exo_controls_overflow_show_description">Exibir configurações extras</string>
     <string name="exo_controls_pause_description">Pausar</string>
@@ -107,6 +106,7 @@
     <string msgid="6264217191555673260" name="search_menu_title">"Pesquisar"</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">Algo deu errado</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"DESATIVADO"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"ATIVADO"</string>
 </resources>

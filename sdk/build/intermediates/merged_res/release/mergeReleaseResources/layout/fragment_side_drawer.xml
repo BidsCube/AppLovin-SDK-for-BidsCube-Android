@@ -48,14 +48,14 @@
           style="@style/FallbackMenuTextTitle"
           android:layout_width="0dp"
           android:layout_height="wrap_content"
-          android:contentDescription="@string/error_message_text"
+          android:contentDescription="@string/tv_ads_error_message_text"
           android:gravity="center"
           android:background="@android:color/transparent"
           app:layout_constraintEnd_toEndOf="@id/error_message_layout"
           app:layout_constraintStart_toStartOf="@id/error_message_layout"
           app:layout_constraintBottom_toTopOf="@id/error_message_description_view"
           android:layout_marginBottom="4dp"
-          android:text="@string/error_message_text" />
+          android:text="@string/tv_ads_error_message_text" />
 
       <TextView
           android:id="@+id/error_message_description_view"

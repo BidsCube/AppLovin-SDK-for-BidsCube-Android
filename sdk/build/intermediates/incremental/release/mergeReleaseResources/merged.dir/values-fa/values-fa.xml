@@ -87,7 +87,6 @@
     <string name="error_a11y_label">خطا: نامعتبر</string>
     <string name="error_icon_content_description">خطا</string>
     <string name="error_message_description_text">هنگام دریافت جزئیات بیشتر درباره این آگهی مشکلی رخ داد</string>
-    <string name="error_message_text">مشکلی رخ داد</string>
     <string name="exo_controls_cc_disabled_description">فعال کردن زیرنویس</string>
     <string name="exo_controls_cc_enabled_description">غیرفعال کردن زیرنویس</string>
     <string name="exo_controls_fastforward_description">جلو بردن سریع</string>
@@ -204,6 +203,7 @@
     <string name="side_sheet_accessibility_pane_title">برگ کناری</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>، <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">مشکلی پیش آمد</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"خاموش"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"روشن"</string>
 </resources>

@@ -87,7 +87,6 @@
     <string name="error_a11y_label">Lỗi: không hợp lệ</string>
     <string name="error_icon_content_description">Lỗi</string>
     <string name="error_message_description_text">Đã xảy ra lỗi khi tải thêm thông tin chi tiết về quảng cáo này</string>
-    <string name="error_message_text">Đã xảy ra lỗi</string>
     <string name="exo_controls_cc_disabled_description">Bật phụ đề</string>
     <string name="exo_controls_cc_enabled_description">Tắt phụ đề</string>
     <string name="exo_controls_fastforward_description">Tua đi</string>
@@ -134,7 +133,7 @@
     <string name="fallback_image_content_descriptor">Lý do có quảng cáo này</string>
     <string msgid="4566929209979330987" name="fallback_menu_item_copy_link">"Sao chép đường liên kết"</string>
     <string msgid="3413186855122069269" name="fallback_menu_item_open_in_browser">"Mở trong trình duyệt"</string>
-    <string msgid="7145444925855055364" name="fallback_menu_item_share_link">"Chia sẻ liên kết"</string>
+    <string msgid="7145444925855055364" name="fallback_menu_item_share_link">"Chia sẻ đường liên kết"</string>
     <string name="icon_content_description">Biểu tượng hộp thoại</string>
     <string name="item_view_role_description">Thẻ</string>
     <string name="material_clock_toggle_content_description">Chọn SA hoặc CH</string>
@@ -204,6 +203,7 @@
     <string name="side_sheet_accessibility_pane_title">Trang bên</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">Đã xảy ra lỗi</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"TẮT"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"BẬT"</string>
 </resources>

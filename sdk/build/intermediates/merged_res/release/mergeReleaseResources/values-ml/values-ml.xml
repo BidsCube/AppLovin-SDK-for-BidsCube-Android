@@ -87,7 +87,6 @@
     <string name="error_a11y_label">പിശക്: അസാധുവാണ്</string>
     <string name="error_icon_content_description">പിശക്</string>
     <string name="error_message_description_text">ഈ പരസ്യവുമായി ബന്ധപ്പെട്ട കൂടുതൽ വിശദാംശങ്ങൾ ലഭ്യമാക്കുന്നതിൽ പിശകുണ്ടായി</string>
-    <string name="error_message_text">എന്തോ കുഴപ്പമുണ്ടായി</string>
     <string name="exo_controls_cc_disabled_description">സബ്‌ടൈറ്റിലുകൾ പ്രവർത്തനക്ഷമമാക്കുക</string>
     <string name="exo_controls_cc_enabled_description">സബ്‌ടൈറ്റിലുകൾ പ്രവർത്തനരഹിതമാക്കുക</string>
     <string name="exo_controls_fastforward_description">വേഗത്തിൽ മുന്നോട്ട് പോവുക</string>
@@ -204,6 +203,7 @@
     <string name="side_sheet_accessibility_pane_title">സൈഡ് ഷീറ്റ്</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">എന്തോ കുഴപ്പമുണ്ടായി</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"ഓഫാണ്"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"ഓൺ"</string>
 </resources>

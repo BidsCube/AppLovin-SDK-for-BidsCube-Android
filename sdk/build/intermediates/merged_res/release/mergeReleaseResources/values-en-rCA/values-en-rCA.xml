@@ -37,15 +37,15 @@
     <string msgid="59049573811482460" name="call_notification_screening_text">"Screening an incoming call"</string>
     <string msgid="3260749812566568062" name="copy_toast_msg">"Link copied to clipboard"</string>
     <string name="error_message_description_text">There was an issue getting more details about this ad</string>
-    <string name="error_message_text">Something went wrong</string>
     <string msgid="1234962710353108940" name="expand_button_title">"Advanced"</string>
-    <string name="fallback_image_content_descriptor">Why this ad?</string>
+    <string name="fallback_image_content_descriptor">Why this Ad</string>
     <string msgid="4566929209979330987" name="fallback_menu_item_copy_link">"Copy link"</string>
     <string msgid="3413186855122069269" name="fallback_menu_item_open_in_browser">"Open in browser"</string>
     <string msgid="7145444925855055364" name="fallback_menu_item_share_link">"Share link"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Search"</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">Something went wrong</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"OFF"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"ON"</string>
 </resources>

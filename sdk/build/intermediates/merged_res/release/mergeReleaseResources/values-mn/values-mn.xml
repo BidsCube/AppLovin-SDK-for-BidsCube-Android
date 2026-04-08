@@ -87,7 +87,6 @@
     <string name="error_a11y_label">Алдаа: хүчингүй</string>
     <string name="error_icon_content_description">Алдаа</string>
     <string name="error_message_description_text">Энэ зарын талаар дэлгэрэнгүй мэдээлэл авахад асуудал гарлаа</string>
-    <string name="error_message_text">Алдаа гарлаа</string>
     <string name="exo_controls_cc_disabled_description">Хадмалыг идэвхжүүлэх</string>
     <string name="exo_controls_cc_enabled_description">Хадмалыг идэвхгүй болгох</string>
     <string name="exo_controls_fastforward_description">Хурдан урагшлуулах</string>
@@ -204,6 +203,7 @@
     <string name="side_sheet_accessibility_pane_title">Хажуугийн хүснэгт</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">Ямар нэг алдаа гарлаа</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"ИДЭВХГҮЙ"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"ИДЭВХТЭЙ"</string>
 </resources>

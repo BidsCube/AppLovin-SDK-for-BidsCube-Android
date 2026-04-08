@@ -4,20 +4,20 @@
             "outputFile": "com.bidscube.sdk-release-3:/values-no/values-no.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/3faa3097ec065c47f5fafd5297a393be/gradle/caches/8.11.1/transforms/25be8fd7ebf3c2681b4b03cb3c366c49/transformed/tv-ads-1.0.0/res/values-no/values.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/3faa3097ec065c47f5fafd5297a393be/gradle/caches/8.11.1/transforms/965042cff2180e7980eed45ef1fb3175/transformed/tv-ads-1.0.1/res/values-no/values.xml",
                     "from": {
-                        "startLines": "4,5,6,9",
+                        "startLines": "4,5,8,11",
                         "startColumns": "0,0,0,0",
-                        "startOffsets": "197,243,376,600",
-                        "endColumns": "45,132,56,76",
-                        "endOffsets": "242,375,432,676"
+                        "startOffsets": "197,243,543,750",
+                        "endColumns": "45,132,76,63",
+                        "endOffsets": "242,375,619,813"
                     },
                     "to": {
                         "startLines": "2,3,4,5",
                         "startColumns": "4,4,4,4",
-                        "startOffsets": "55,105,242,303",
-                        "endColumns": "49,136,60,80",
-                        "endOffsets": "100,237,298,379"
+                        "startOffsets": "55,105,242,323",
+                        "endColumns": "49,136,80,67",
+                        "endOffsets": "100,237,318,386"
                     }
                 }
             ]
@@ -26,20 +26,20 @@
             "outputFile": "com.bidscube.sdk-mergeReleaseResources-1:/values-no/values-no.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/3faa3097ec065c47f5fafd5297a393be/gradle/caches/8.11.1/transforms/25be8fd7ebf3c2681b4b03cb3c366c49/transformed/tv-ads-1.0.0/res/values-no/values.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/3faa3097ec065c47f5fafd5297a393be/gradle/caches/8.11.1/transforms/965042cff2180e7980eed45ef1fb3175/transformed/tv-ads-1.0.1/res/values-no/values.xml",
                     "from": {
-                        "startLines": "4,5,6,9",
+                        "startLines": "4,5,8,11",
                         "startColumns": "0,0,0,0",
-                        "startOffsets": "197,243,376,600",
-                        "endColumns": "45,132,56,76",
-                        "endOffsets": "242,375,432,676"
+                        "startOffsets": "197,243,543,750",
+                        "endColumns": "45,132,76,63",
+                        "endOffsets": "242,375,619,813"
                     },
                     "to": {
                         "startLines": "2,3,4,5",
                         "startColumns": "4,4,4,4",
-                        "startOffsets": "55,105,242,303",
-                        "endColumns": "49,136,60,80",
-                        "endOffsets": "100,237,298,379"
+                        "startOffsets": "55,105,242,323",
+                        "endColumns": "49,136,80,67",
+                        "endOffsets": "100,237,318,386"
                     }
                 }
             ]

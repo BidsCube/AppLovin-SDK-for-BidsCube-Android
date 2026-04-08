@@ -87,7 +87,6 @@
     <string name="error_a11y_label">সমস্যা: সঠিক নয়</string>
     <string name="error_icon_content_description">সমস্যা</string>
     <string name="error_message_description_text">এই বিজ্ঞাপন সম্পর্কে আরও তথ্য পাওয়ার সময় কোনও সমস্যা হয়েছে</string>
-    <string name="error_message_text">কোনও সমস্যা হয়েছে</string>
     <string name="exo_controls_cc_disabled_description">সাবটাইটেল চালু করুন</string>
     <string name="exo_controls_cc_enabled_description">সাবটাইটেল বন্ধ করুন</string>
     <string name="exo_controls_fastforward_description">দ্রুত এগিয়ে যান</string>
@@ -204,6 +203,7 @@
     <string name="side_sheet_accessibility_pane_title">সাইড শিট</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"৯৯৯+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">কোনও সমস্যা হয়েছে</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"বন্ধ"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"চালু"</string>
 </resources>

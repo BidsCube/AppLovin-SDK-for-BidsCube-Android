@@ -125,11 +125,9 @@ public class SDKConfig {
         return statsRequestAuthority;
     }
 
-    /**
-     * Get the SDK version from environment variable or default to 1.2.2 (published bidscube-sdk).
-     */
-    private static String getSDKVersion() {
-        return System.getenv().getOrDefault("BidscubeVersion", "1.2.2");
+    /** Fallback app version label when PackageManager lookup fails; matches published AAR ({@link com.bidscube.sdk.BuildConfig#SDK_VERSION_NAME}). */
+    private static String embeddedSdkVersionLabel() {
+        return com.bidscube.sdk.BuildConfig.SDK_VERSION_NAME;
     }
 
     /**
@@ -186,7 +184,7 @@ public class SDKConfig {
 
                 this.appId = "unknown_app";
                 this.appName = "Unknown App";
-                this.appVersion = getSDKVersion();
+                this.appVersion = embeddedSdkVersionLabel();
                 this.language = "en";
                 this.userAgent = buildDefaultUserAgent(context);
             }

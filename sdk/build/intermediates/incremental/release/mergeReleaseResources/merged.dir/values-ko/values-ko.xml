@@ -87,7 +87,6 @@
     <string name="error_a11y_label">오류: 잘못됨</string>
     <string name="error_icon_content_description">오류</string>
     <string name="error_message_description_text">이 광고에 관한 세부정보를 가져오는 중에 문제가 발생했습니다.</string>
-    <string name="error_message_text">문제 발생</string>
     <string name="exo_controls_cc_disabled_description">자막 사용 설정</string>
     <string name="exo_controls_cc_enabled_description">자막 사용 중지</string>
     <string name="exo_controls_fastforward_description">빨리 감기</string>
@@ -204,6 +203,7 @@
     <string name="side_sheet_accessibility_pane_title">사이드 시트</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">문제가 발생했습니다</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"사용 안함"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"사용"</string>
 </resources>

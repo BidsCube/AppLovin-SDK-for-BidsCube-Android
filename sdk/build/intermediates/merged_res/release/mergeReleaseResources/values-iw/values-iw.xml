@@ -90,7 +90,6 @@
     <string name="error_a11y_label">שגיאה: לא תקין</string>
     <string name="error_icon_content_description">שגיאה</string>
     <string name="error_message_description_text">הייתה בעיה בקבלת פרטים נוספים בנוגע למודעה הזו</string>
-    <string name="error_message_text">משהו השתבש</string>
     <string name="exo_controls_cc_disabled_description">הפעלת כתוביות</string>
     <string name="exo_controls_cc_enabled_description">השבתת כתוביות</string>
     <string name="exo_controls_fastforward_description">הרצה קדימה</string>
@@ -104,9 +103,9 @@
     <string name="exo_controls_play_description">הפעלה</string>
     <string name="exo_controls_playback_speed">מהירות</string>
     <string name="exo_controls_previous_description">הקודם</string>
-    <string name="exo_controls_repeat_all_description">המצב הנוכחי: חזרה על כל הפריטים. לחצן להחלפת מצב החזרה.</string>
-    <string name="exo_controls_repeat_off_description">המצב הנוכחי: ללא חזרה. לחצן להחלפת מצב החזרה.</string>
-    <string name="exo_controls_repeat_one_description">המצב הנוכחי: חזרה על פריט אחד. לחצן להחלפת מצב החזרה.</string>
+    <string name="exo_controls_repeat_all_description">המצב הנוכחי: חזרה על כל הפריטים. כפתור להחלפת מצב החזרה.</string>
+    <string name="exo_controls_repeat_off_description">המצב הנוכחי: ללא חזרה. כפתור להחלפת מצב החזרה.</string>
+    <string name="exo_controls_repeat_one_description">המצב הנוכחי: חזרה על פריט אחד. כפתור להחלפת מצב החזרה.</string>
     <string name="exo_controls_rewind_description">הרצה אחורה</string>
     <string name="exo_controls_seek_bar_description">התקדמות ההפעלה</string>
     <string name="exo_controls_settings_description">הגדרות</string>
@@ -134,7 +133,7 @@
     <string name="exo_track_unknown_name">לא ידוע (%1$s)</string>
     <string msgid="1234962710353108940" name="expand_button_title">"מתקדם"</string>
     <string name="exposed_dropdown_menu_content_description">הצגת התפריט הנפתח</string>
-    <string name="fallback_image_content_descriptor">למה דווקא מודעה זו?</string>
+    <string name="fallback_image_content_descriptor">למה דווקא המודעה הזו?</string>
     <string msgid="4566929209979330987" name="fallback_menu_item_copy_link">"העתקת הקישור"</string>
     <string msgid="3413186855122069269" name="fallback_menu_item_open_in_browser">"פתיחה בדפדפן"</string>
     <string msgid="7145444925855055364" name="fallback_menu_item_share_link">"לשיתוף הקישור"</string>
@@ -207,6 +206,7 @@
     <string name="side_sheet_accessibility_pane_title">גיליון צדדי</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">משהו השתבש</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"כבוי"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"מופעל"</string>
 </resources>

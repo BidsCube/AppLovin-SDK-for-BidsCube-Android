@@ -1,3 +1,5 @@
+import org.gradle.plugins.signing.SigningExtension
+
 plugins {
     id("com.android.library")
     kotlin("android")
@@ -5,13 +7,24 @@ plugins {
     id("signing")
 }
 
+// Published Maven version; also BuildConfig.SDK_VERSION_NAME at runtime.
+val sdkVersionString = System.getenv("BidscubeVersion") ?: "1.2.2"
+val sdkVersion by extra(sdkVersionString)
+
+val skipSigning = (project.findProperty("skipSigning") as String?) == "true"
+
 android {
     namespace = "com.bidscube.sdk"
     compileSdk = 36
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         minSdk = 24
         consumerProguardFiles("consumer-rules.pro")
+        buildConfigField("String", "SDK_VERSION_NAME", "\"$sdkVersionString\"")
     }
 
     buildTypes {
@@ -39,21 +52,17 @@ android {
 }
 
 dependencies {
-    val media3Version = "1.4.1"
+    val media3Version = "1.8.0"
     implementation("androidx.media3:media3-common:$media3Version")
     implementation("androidx.media3:media3-ui:$media3Version")
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
-    compileOnly("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
     implementation("com.google.android.ump:user-messaging-platform:2.2.0")
     implementation("com.google.android.gms:play-services-ads-identifier:18.0.1")
-    implementation("com.google.ads.interactivemedia.v3:interactivemedia:3.33.0")
+    implementation("com.google.ads.interactivemedia.v3:interactivemedia:3.37.0")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.github.bumptech.glide:glide:4.15.1")
 }
-
-/** Matches published `com.bidscube:bidscube-sdk` (see bidscube-sdk-android-main). */
-val sdkVersion by extra(System.getenv("BidscubeVersion") ?: "1.2.2")
 
 afterEvaluate {
     publishing {
@@ -107,12 +116,17 @@ afterEvaluate {
     }
 }
 
-signing {
+extensions.configure<SigningExtension>("signing") {
     useGpgCmd()
 }
 
 afterEvaluate {
-    publishing.publications.findByName("release")?.let { signing.sign(it) }
+    if (!skipSigning) {
+        val pub = publishing.publications.findByName("release")
+        if (pub != null) {
+            extensions.getByType(SigningExtension::class.java).sign(pub)
+        }
+    }
     tasks.matching { it.name.startsWith("publish", ignoreCase = true) }.configureEach {
         dependsOn("assembleRelease")
     }

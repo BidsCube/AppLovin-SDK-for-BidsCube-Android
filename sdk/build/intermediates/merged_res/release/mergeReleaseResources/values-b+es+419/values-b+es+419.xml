@@ -16,7 +16,6 @@
     <string name="error_a11y_label">Error: No válido</string>
     <string name="error_icon_content_description">Error</string>
     <string name="error_message_description_text">Se produjo un error al obtener más detalles sobre este anuncio</string>
-    <string name="error_message_text">Se produjo un error</string>
     <string name="exposed_dropdown_menu_content_description">Mostrar menú desplegable</string>
     <string name="fallback_image_content_descriptor">¿Por qué este anun.?</string>
     <string name="icon_content_description">Ícono de diálogo</string>
@@ -83,4 +82,5 @@
     <string name="searchview_clear_text_content_description">Borrar texto</string>
     <string name="searchview_navigation_content_description">Atrás</string>
     <string name="side_sheet_accessibility_pane_title">Hoja lateral</string>
+    <string name="tv_ads_error_message_text">Se produjo un error</string>
 </resources>

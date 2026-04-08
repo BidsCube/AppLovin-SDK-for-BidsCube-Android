@@ -1,0 +1,1013 @@
+<!DOCTYPE HTML>
+<!-- NewPage -->
+<html lang="en"><head>
+    <title>BidscubeSDKImpl </title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="dc.created" content="2020-03-25">
+    <link rel="stylesheet" type="text/css" href="../../../stylesheet.css" title="Style">
+    <link rel="stylesheet" type="text/css" href="../../../dokka-javadoc-stylesheet.css" title="Style">
+    <link rel="stylesheet" type="text/css" href="../../../jquery/jquery-ui.css" title="Style">
+    <script type="text/javascript" src="../../../jquery/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="../../../jquery/jquery-migrate-3.0.1.js"></script>
+    <script type="text/javascript" src="../../../jquery/jquery-ui.js"></script>
+
+    <script type="text/javascript" src="../../../search.js"></script>
+    <script async type="text/javascript" src="../../../module-search-index.js"></script>
+    <script async type="text/javascript" src="../../../package-search-index.js"></script>
+    <script async type="text/javascript" src="../../../type-search-index.js"></script>
+    <script async type="text/javascript" src="../../../member-search-index.js"></script>
+    <script async type="text/javascript" src="../../../tag-search-index.js"></script>
+</head><body>
+<script type="text/javascript">
+var pathtoroot = "../../../";
+</script>
+<noscript>
+    <div>JavaScript is disabled on your browser.</div>
+</noscript><header role="banner">
+    <nav role="navigation">
+        <div class="fixedNav">
+            <!-- ========= START OF TOP NAVBAR ======= -->
+            <div class="topNav"><a id="navbar.top">
+                <!--   -->
+            </a>
+                <div class="skipNav"><a href="#skip.navbar.top" title="Skip navigation links">Skip navigation links</a>
+                </div>
+                <a id="navbar.top.firstrow">
+                    <!--   -->
+                </a>
+                <ul class="navList" title="Navigation">
+    <li><a href="../../../index.html">Overview</a></li>
+    
+    <li><a href="package-summary.html">Package</a></li>
+    
+    <li class="navBarCell1Rev">Class</li>
+    
+    <li><a href="package-tree.html">Tree</a></li>
+    
+    <li><a href="../../../deprecated.html">Deprecated</a></li>
+    <li><a href="../../../index-files/index-1.html">Index</a></li>
+    <li>Help</li>
+</ul></div>
+            <div class="subNav">
+<ul class="navList" id="allclasses_navbar_top" style="display: block;">
+    <li><a href="../../../allclasses.html">All&nbsp;Classes</a></li>
+</ul>
+
+<ul class="navListSearch">
+<li><label for="search">SEARCH:</label>
+<input type="text" id="search" value="search" class="ui-autocomplete-input" autocomplete="off" placeholder="Search">
+<input type="reset" id="reset" value="reset">
+</li>
+</ul>
+<div>
+<script type="text/javascript"><!--
+  allClassesLink = document.getElementById("allclasses_navbar_top");
+  if(window==top) {
+    allClassesLink.style.display = "block";
+  }
+  else {
+    allClassesLink.style.display = "none";
+  }
+  //-->
+</script>
+<noscript>
+<div>JavaScript is disabled on your browser.</div>
+</noscript>
+</div>
+<a id="skip.navbar.top">
+<!--   -->
+</a></div><!-- ========= END OF TOP NAVBAR ========= -->
+        </div>
+        <div class="navPadding">&nbsp;</div>
+        <script type="text/javascript"><!--
+        $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
+        //-->
+        </script>
+    </nav>
+</header>
+
+<main role="main">
+    <div class="header">
+        <div class="subTitle"><span class="packageLabelInType">Package</span>&nbsp;<a href="package-summary.html"></a></div>
+        <h2 title="Class BidscubeSDKImpl" class="title">Class BidscubeSDKImpl</h2>
+    </div>
+    <div class="contentContainer">
+        <!-- <ul class="inheritance">
+            <li>java.lang.Object</li>
+            <li>
+                <ul class="inheritance">
+                    <li>adaptation.Adaptation</li>
+                </ul>
+            </li>
+        </ul> TODO inheritance tree -->
+        <div class="description">
+            <ul class="blockList">
+                <li class="blockList">
+                    
+                    <dl>
+                        <dt>All Implemented Interfaces:</dt>
+                        <dd>
+                            
+                            <code>com.bidscube.sdk.interfaces.IBidscubeSDK</code>
+                            
+                            
+                        </dd>
+                    </dl>
+                    
+                    <hr>
+                    <pre class="wrap-overflow">
+@<a href=https://developer.android.com/reference/kotlin/androidx/media3/common/util/UnstableApi.html>UnstableApi</a>() 
+public class <span class="typeNameLabel"><a href=BidscubeSDKImpl.html>BidscubeSDKImpl</a></span>
+ implements <a href=interfaces/IBidscubeSDK.html>IBidscubeSDK</a>
+                    </pre>
+                    <div class="block"><p>Main implementation of Bidscube SDK This class handles all ad operations and provides a clean interface for external applications</p></div>
+                </li>
+            </ul>
+        </div>
+        <div class="summary">
+            <ul class="blockList">
+                <li class="blockList">
+                <!-- ======== NESTED CLASS SUMMARY ======== -->
+                    
+                    <!-- =========== FIELD SUMMARY =========== -->
+                    
+                    <section role="region">
+                        <ul class="blockList">
+                            <li class="blockList"><a id="field.summary">
+                                <!--   -->
+                            </a>
+                                <h3>Field Summary</h3>
+                                <div class="memberSummary">
+                                    <table>
+                                        <caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+                                        <tr>
+                                            <th class="colFirst" scope="col">Modifier and Type</th>
+                                            <th class="colSecond" scope="col">Field</th>
+                                            <th class="colLast" scope="col">Description</th>
+                                        </tr>
+                                        
+                                        <tr class="altColor">
+                                            <td class="colFirst"><code>private  <a href=config/SDKConfig.html>SDKConfig</a></code></td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#config>config</a></code></th>
+                                            <td class="colLast"></td>
+                                        </tr>
+                                        
+                                        <tr class="rowColor">
+                                            <td class="colFirst"><code>private  boolean</code></td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#isInitialized()>isInitialized</a></code></th>
+                                            <td class="colLast"></td>
+                                        </tr>
+                                        
+                                    </table>
+                                </div>
+                            </li>
+                        </ul>
+                    </section>
+                    
+                    <!-- ======== CONSTRUCTOR SUMMARY ======== -->
+                    
+                    <!-- =========== ENUM CONSTANT SUMMARY =========== -->
+                    
+                    <!-- ========== METHOD SUMMARY =========== -->
+                    
+                    <section role="region">
+                        <ul class="blockList">
+                            <li class="blockList"><a id="method.summary">
+                                <!--   -->
+                            </a>
+                                <h3>Method Summary</h3>
+                                <div class="memberSummary">
+                                    <div role="tablist" aria-orientation="horizontal">
+                                        <button role="tab" aria-selected="true" aria-controls="memberSummary_tabpanel" tabindex="0" onkeydown="switchTab(event)" id="t0" class="activeTableTab">All Methods</button>
+                                        <!-- TODO: Instance and Concrete Methods #1118 -->
+                                    </div>
+                                    <div id="memberSummary_tabpanel" role="tabpanel">
+                                    <table aria-labelledby="t0">
+                                        <tr>
+                                            <th class="colFirst" scope="col">Modifier and Type</th>
+                                            <th class="colSecond" scope="col">Method</th>
+                                            <th class="colLast" scope="col">Description</th>
+                                        </tr>
+                                        
+                                        <tr id="i0" class="altColor">
+                                            <td class="colFirst"><code><a href=config/SDKConfig.html>SDKConfig</a></code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#getConfig()>getConfig</a>() </code>
+                                            </th>
+                                            <td class="colLast"></td>
+                                        </tr>
+                                        
+                                        <tr id="i1" class="rowColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#setConfig(SDKConfig)>setConfig</a>(<a href=config/SDKConfig.html>SDKConfig</a> config) </code>
+                                            </th>
+                                            <td class="colLast"></td>
+                                        </tr>
+                                        
+                                        <tr id="i2" class="altColor">
+                                            <td class="colFirst"><code>boolean</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#isInitialized()>isInitialized</a>() </code>
+                                            </th>
+                                            <td class="colLast">Check if SDK is initialized</td>
+                                        </tr>
+                                        
+                                        <tr id="i3" class="rowColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#initialize(Context,SDKConfig)>initialize</a>(<a href=https://developer.android.com/reference/kotlin/android/content/Context.html>Context</a> context, <a href=config/SDKConfig.html>SDKConfig</a> config) </code>
+                                            </th>
+                                            <td class="colLast">Initialize the SDK with required parameters</td>
+                                        </tr>
+                                        
+                                        <tr id="i4" class="altColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#showImageAd(String,AdCallback)>showImageAd</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback) </code>
+                                            </th>
+                                            <td class="colLast">Show image ad - display mode determined by response position</td>
+                                        </tr>
+                                        
+                                        <tr id="i5" class="rowColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#showVideoAd(String,AdCallback)>showVideoAd</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback) </code>
+                                            </th>
+                                            <td class="colLast">Show video ad - display mode determined by response position</td>
+                                        </tr>
+                                        
+                                        <tr id="i6" class="altColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#showSkippableVideoAd(String,AdCallback)>showSkippableVideoAd</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback) </code>
+                                            </th>
+                                            <td class="colLast"></td>
+                                        </tr>
+                                        
+                                        <tr id="i7" class="rowColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#showNativeAd(String,AdCallback)>showNativeAd</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback) </code>
+                                            </th>
+                                            <td class="colLast">Show native ad - display mode determined by response position</td>
+                                        </tr>
+                                        
+                                        <tr id="i8" class="altColor">
+                                            <td class="colFirst"><code><a href=https://developer.android.com/reference/kotlin/android/view/View.html>View</a></code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#getImageAdView(String,AdCallback)>getImageAdView</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback) </code>
+                                            </th>
+                                            <td class="colLast">Get image ad view for integration into layouts (no dialog)</td>
+                                        </tr>
+                                        
+                                        <tr id="i9" class="rowColor">
+                                            <td class="colFirst"><code><a href=https://developer.android.com/reference/kotlin/android/view/View.html>View</a></code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#getVideoAdView(String,AdCallback)>getVideoAdView</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback) </code>
+                                            </th>
+                                            <td class="colLast">Get video ad view for integration into layouts (no dialog)</td>
+                                        </tr>
+                                        
+                                        <tr id="i10" class="altColor">
+                                            <td class="colFirst"><code><a href=https://developer.android.com/reference/kotlin/android/view/View.html>View</a></code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#getNativeAdView(String,AdCallback)>getNativeAdView</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback) </code>
+                                            </th>
+                                            <td class="colLast">Get native ad view for integration into layouts (no dialog)</td>
+                                        </tr>
+                                        
+                                        <tr id="i11" class="rowColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#setAdPosition(AdPosition)>setAdPosition</a>(<a href=models/enums/AdPosition.html>AdPosition</a> position) </code>
+                                            </th>
+                                            <td class="colLast">Set ad position for windowed ads</td>
+                                        </tr>
+                                        
+                                        <tr id="i12" class="altColor">
+                                            <td class="colFirst"><code><a href=models/enums/AdPosition.html>AdPosition</a></code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#getCurrentAdPosition()>getCurrentAdPosition</a>() </code>
+                                            </th>
+                                            <td class="colLast">Get current ad position (manual override)</td>
+                                        </tr>
+                                        
+                                        <tr id="i13" class="rowColor">
+                                            <td class="colFirst"><code><a href=models/enums/AdPosition.html>AdPosition</a></code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#getEffectiveAdPosition()>getEffectiveAdPosition</a>() </code>
+                                            </th>
+                                            <td class="colLast">Get effective ad position (response position takes precedence)</td>
+                                        </tr>
+                                        
+                                        <tr id="i14" class="altColor">
+                                            <td class="colFirst"><code><a href=models/enums/AdPosition.html>AdPosition</a></code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#getResponseAdPosition()>getResponseAdPosition</a>() </code>
+                                            </th>
+                                            <td class="colLast">Get response ad position</td>
+                                        </tr>
+                                        
+                                        <tr id="i15" class="rowColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#cleanup()>cleanup</a>() </code>
+                                            </th>
+                                            <td class="colLast">Clean up SDK resources</td>
+                                        </tr>
+                                        
+                                        <tr id="i16" class="altColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#requestConsentInfoUpdate(ConsentCallback)>requestConsentInfoUpdate</a>(<a href=interfaces/ConsentCallback.html>ConsentCallback</a> callback) </code>
+                                            </th>
+                                            <td class="colLast">Request consent information updateThis should be called before showing ads to ensure compliance</td>
+                                        </tr>
+                                        
+                                        <tr id="i17" class="rowColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#showConsentForm(ConsentCallback)>showConsentForm</a>(<a href=interfaces/ConsentCallback.html>ConsentCallback</a> callback) </code>
+                                            </th>
+                                            <td class="colLast">Show consent form to userThis should be called when consent is required</td>
+                                        </tr>
+                                        
+                                        <tr id="i18" class="altColor">
+                                            <td class="colFirst"><code>boolean</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#isConsentRequired()>isConsentRequired</a>() </code>
+                                            </th>
+                                            <td class="colLast">Check if consent is required for the current user</td>
+                                        </tr>
+                                        
+                                        <tr id="i19" class="rowColor">
+                                            <td class="colFirst"><code>boolean</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#hasAdsConsent()>hasAdsConsent</a>() </code>
+                                            </th>
+                                            <td class="colLast">Check if user has given consent for ads</td>
+                                        </tr>
+                                        
+                                        <tr id="i20" class="altColor">
+                                            <td class="colFirst"><code>boolean</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#hasAnalyticsConsent()>hasAnalyticsConsent</a>() </code>
+                                            </th>
+                                            <td class="colLast">Check if user has given consent for analytics</td>
+                                        </tr>
+                                        
+                                        <tr id="i21" class="rowColor">
+                                            <td class="colFirst"><code><a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a></code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#getConsentStatusSummary()>getConsentStatusSummary</a>() </code>
+                                            </th>
+                                            <td class="colLast">Get current consent status summary</td>
+                                        </tr>
+                                        
+                                        <tr id="i22" class="altColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#resetConsent()>resetConsent</a>() </code>
+                                            </th>
+                                            <td class="colLast">Reset consent information (for testing purposes)</td>
+                                        </tr>
+                                        
+                                        <tr id="i23" class="rowColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#enableConsentDebugMode(String)>enableConsentDebugMode</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> deviceId) </code>
+                                            </th>
+                                            <td class="colLast">Enable debug mode for consent testing</td>
+                                        </tr>
+                                        
+                                        <tr id="i24" class="altColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#setMockConsentData(boolean,String,String,String,String)>setMockConsentData</a>(boolean gdprApplies, <a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> gdprConsent, <a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> additionalConsent, <a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> gppString, <a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> usPrivacy) </code>
+                                            </th>
+                                            <td class="colLast">Set mock consent data for testing purposesThis is useful for testing Polish region scenarios</td>
+                                        </tr>
+                                        
+                                        <tr id="i25" class="rowColor">
+                                            <td class="colFirst"><code>void</code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=BidscubeSDKImpl.html#setPolishTestConsentData(String)>setPolishTestConsentData</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> testCase) </code>
+                                            </th>
+                                            <td class="colLast">Set Polish region test consent data</td>
+                                        </tr>
+                                        
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <ul class="blockList">
+                                
+                                    <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
+                                        <!--   -->
+                                    </a>
+                                        <h3>Methods inherited from class&nbsp;java.lang.Object</h3>
+                                        <code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString,
+                                            wait, wait, wait</code></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+                    
+                </li>
+            </ul>
+        </div>
+        <div class="details">
+            <ul class="blockList">
+                <li class="blockList">
+                    <!-- ========= CONSTRUCTOR DETAIL ======== -->
+                    
+                    <!-- ============ METHOD DETAIL ========== -->
+                    
+                    <section role="region">
+                        <ul class="blockList">
+                            <li class="blockList"><a id="method.detail">
+                                <!--   -->
+                            </a>
+                                <h3>Method Detail</h3>
+                                
+                                <a id="getConfig()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>getConfig</h4>
+                                        <pre class="methodSignature"> <a href=config/SDKConfig.html>SDKConfig</a> <a href=BidscubeSDKImpl.html#getConfig()>getConfig</a>()</pre>
+                                        <div class="block"></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="setConfig(SDKConfig)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>setConfig</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#setConfig(SDKConfig)>setConfig</a>(<a href=config/SDKConfig.html>SDKConfig</a> config)</pre>
+                                        <div class="block"></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="isInitialized()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>isInitialized</h4>
+                                        <pre class="methodSignature"> boolean <a href=BidscubeSDKImpl.html#isInitialized()>isInitialized</a>()</pre>
+                                        <div class="block"><p>Check if SDK is initialized</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="initialize(Context,SDKConfig)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>initialize</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#initialize(Context,SDKConfig)>initialize</a>(<a href=https://developer.android.com/reference/kotlin/android/content/Context.html>Context</a> context, <a href=config/SDKConfig.html>SDKConfig</a> config)</pre>
+                                        <div class="block"><p>Initialize the SDK with required parameters</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>context</code> - Application context</dd>
+                                            
+                                            
+                                            
+                                            <dd><code>config</code> - SDK configuration object</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="showImageAd(String,AdCallback)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>showImageAd</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#showImageAd(String,AdCallback)>showImageAd</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback)</pre>
+                                        <div class="block"><p>Show image ad - display mode determined by response position</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>placementId</code> - Ad placement ID</dd>
+                                            
+                                            
+                                            
+                                            <dd><code>callback</code> - Callback for ad events</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="showVideoAd(String,AdCallback)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>showVideoAd</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#showVideoAd(String,AdCallback)>showVideoAd</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback)</pre>
+                                        <div class="block"><p>Show video ad - display mode determined by response position</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>placementId</code> - Ad placement ID</dd>
+                                            
+                                            
+                                            
+                                            <dd><code>callback</code> - Callback for ad events</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="showSkippableVideoAd(String,AdCallback)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>showSkippableVideoAd</h4>
+                                        <pre class="methodSignature">@<a href=https://developer.android.com/reference/kotlin/java/lang/Deprecated.html>Deprecated</a>() void <a href=BidscubeSDKImpl.html#showSkippableVideoAd(String,AdCallback)>showSkippableVideoAd</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback)</pre>
+                                        <div class="block"></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="showNativeAd(String,AdCallback)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>showNativeAd</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#showNativeAd(String,AdCallback)>showNativeAd</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback)</pre>
+                                        <div class="block"><p>Show native ad - display mode determined by response position</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>placementId</code> - Ad placement ID</dd>
+                                            
+                                            
+                                            
+                                            <dd><code>callback</code> - Callback for ad events</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="getImageAdView(String,AdCallback)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>getImageAdView</h4>
+                                        <pre class="methodSignature"> <a href=https://developer.android.com/reference/kotlin/android/view/View.html>View</a> <a href=BidscubeSDKImpl.html#getImageAdView(String,AdCallback)>getImageAdView</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback)</pre>
+                                        <div class="block"><p>Get image ad view for integration into layouts (no dialog)</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>placementId</code> - Ad placement ID</dd>
+                                            
+                                            
+                                            
+                                            <dd><code>callback</code> - Callback for ad events</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="getVideoAdView(String,AdCallback)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>getVideoAdView</h4>
+                                        <pre class="methodSignature"> <a href=https://developer.android.com/reference/kotlin/android/view/View.html>View</a> <a href=BidscubeSDKImpl.html#getVideoAdView(String,AdCallback)>getVideoAdView</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback)</pre>
+                                        <div class="block"><p>Get video ad view for integration into layouts (no dialog)</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>placementId</code> - Ad placement ID</dd>
+                                            
+                                            
+                                            
+                                            <dd><code>callback</code> - Callback for ad events</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="getNativeAdView(String,AdCallback)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>getNativeAdView</h4>
+                                        <pre class="methodSignature"> <a href=https://developer.android.com/reference/kotlin/android/view/View.html>View</a> <a href=BidscubeSDKImpl.html#getNativeAdView(String,AdCallback)>getNativeAdView</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> placementId, <a href=interfaces/AdCallback.html>AdCallback</a> callback)</pre>
+                                        <div class="block"><p>Get native ad view for integration into layouts (no dialog)</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>placementId</code> - Ad placement ID</dd>
+                                            
+                                            
+                                            
+                                            <dd><code>callback</code> - Callback for ad events</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="setAdPosition(AdPosition)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>setAdPosition</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#setAdPosition(AdPosition)>setAdPosition</a>(<a href=models/enums/AdPosition.html>AdPosition</a> position)</pre>
+                                        <div class="block"><p>Set ad position for windowed ads</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>position</code> - Ad position (ABOVE_THE_FOLD, BELOW_THE_FOLD, HEADER, FOOTER,SIDEBAR, UNKNOWN)</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="getCurrentAdPosition()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>getCurrentAdPosition</h4>
+                                        <pre class="methodSignature"> <a href=models/enums/AdPosition.html>AdPosition</a> <a href=BidscubeSDKImpl.html#getCurrentAdPosition()>getCurrentAdPosition</a>()</pre>
+                                        <div class="block"><p>Get current ad position (manual override)</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="getEffectiveAdPosition()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>getEffectiveAdPosition</h4>
+                                        <pre class="methodSignature"> <a href=models/enums/AdPosition.html>AdPosition</a> <a href=BidscubeSDKImpl.html#getEffectiveAdPosition()>getEffectiveAdPosition</a>()</pre>
+                                        <div class="block"><p>Get effective ad position (response position takes precedence)</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="getResponseAdPosition()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>getResponseAdPosition</h4>
+                                        <pre class="methodSignature"> <a href=models/enums/AdPosition.html>AdPosition</a> <a href=BidscubeSDKImpl.html#getResponseAdPosition()>getResponseAdPosition</a>()</pre>
+                                        <div class="block"><p>Get response ad position</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="cleanup()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>cleanup</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#cleanup()>cleanup</a>()</pre>
+                                        <div class="block"><p>Clean up SDK resources</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="requestConsentInfoUpdate(ConsentCallback)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>requestConsentInfoUpdate</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#requestConsentInfoUpdate(ConsentCallback)>requestConsentInfoUpdate</a>(<a href=interfaces/ConsentCallback.html>ConsentCallback</a> callback)</pre>
+                                        <div class="block"><p>Request consent information updateThis should be called before showing ads to ensure compliance</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>callback</code> - Callback for consent information update events</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="showConsentForm(ConsentCallback)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>showConsentForm</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#showConsentForm(ConsentCallback)>showConsentForm</a>(<a href=interfaces/ConsentCallback.html>ConsentCallback</a> callback)</pre>
+                                        <div class="block"><p>Show consent form to userThis should be called when consent is required</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>callback</code> - Callback for consent form events</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="isConsentRequired()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>isConsentRequired</h4>
+                                        <pre class="methodSignature"> boolean <a href=BidscubeSDKImpl.html#isConsentRequired()>isConsentRequired</a>()</pre>
+                                        <div class="block"><p>Check if consent is required for the current user</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="hasAdsConsent()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>hasAdsConsent</h4>
+                                        <pre class="methodSignature"> boolean <a href=BidscubeSDKImpl.html#hasAdsConsent()>hasAdsConsent</a>()</pre>
+                                        <div class="block"><p>Check if user has given consent for ads</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="hasAnalyticsConsent()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>hasAnalyticsConsent</h4>
+                                        <pre class="methodSignature"> boolean <a href=BidscubeSDKImpl.html#hasAnalyticsConsent()>hasAnalyticsConsent</a>()</pre>
+                                        <div class="block"><p>Check if user has given consent for analytics</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="getConsentStatusSummary()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>getConsentStatusSummary</h4>
+                                        <pre class="methodSignature"> <a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> <a href=BidscubeSDKImpl.html#getConsentStatusSummary()>getConsentStatusSummary</a>()</pre>
+                                        <div class="block"><p>Get current consent status summary</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="resetConsent()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>resetConsent</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#resetConsent()>resetConsent</a>()</pre>
+                                        <div class="block"><p>Reset consent information (for testing purposes)</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="enableConsentDebugMode(String)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>enableConsentDebugMode</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#enableConsentDebugMode(String)>enableConsentDebugMode</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> deviceId)</pre>
+                                        <div class="block"><p>Enable debug mode for consent testing</p></div>
+                                        
+                                        <dl>
+                                            <dt><span class="paramLabel">Parameters:</span></dt>
+                                            
+                                            
+                                            <dd><code>deviceId</code> - Device ID for debug mode</dd>
+                                            
+                                            
+                                        </dl>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="setMockConsentData(boolean,String,String,String,String)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>setMockConsentData</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#setMockConsentData(boolean,String,String,String,String)>setMockConsentData</a>(boolean gdprApplies, <a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> gdprConsent, <a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> additionalConsent, <a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> gppString, <a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> usPrivacy)</pre>
+                                        <div class="block"><p>Set mock consent data for testing purposesThis is useful for testing Polish region scenarios</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="setPolishTestConsentData(String)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockListLast"
+                                          >
+                                    <li class="blockList">
+                                        <h4>setPolishTestConsentData</h4>
+                                        <pre class="methodSignature"> void <a href=BidscubeSDKImpl.html#setPolishTestConsentData(String)>setPolishTestConsentData</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> testCase)</pre>
+                                        <div class="block"><p>Set Polish region test consent data</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                            </li>
+                        </ul>
+                    </section>
+                    
+                </li>
+            </ul>
+        </div>
+    </div>
+</main>
+<footer role="contentinfo">
+    <nav role="navigation">
+        <!-- ======= START OF BOTTOM NAVBAR ====== -->
+        <div class="bottomNav"><a id="navbar.bottom">
+            <!--   -->
+        </a>
+            <div class="skipNav"><a href="#skip.navbar.bottom" title="Skip navigation links">Skip navigation links</a>
+            </div>
+            <a id="navbar.bottom.firstrow">
+                <!--   -->
+            </a>
+            <ul class="navList" title="Navigation">
+    <li><a href="../../../index.html">Overview</a></li>
+    
+    <li><a href="package-summary.html">Package</a></li>
+    
+    <li class="navBarCell1Rev">Class</li>
+    
+    <li><a href="package-tree.html">Tree</a></li>
+    
+    <li><a href="../../../deprecated.html">Deprecated</a></li>
+    <li><a href="../../../index-files/index-1.html">Index</a></li>
+    <li>Help</li>
+</ul></div>
+        <a id="skip.navbar.bottom">
+            <!--   -->
+        </a>
+        <div class="subNav">
+<ul class="navList" id="allclasses_navbar_top" style="display: block;">
+    <li><a href="../../../allclasses.html">All&nbsp;Classes</a></li>
+</ul>
+<div>
+<script type="text/javascript"><!--
+  allClassesLink = document.getElementById("allclasses_navbar_top");
+  if(window==top) {
+    allClassesLink.style.display = "block";
+  }
+  else {
+    allClassesLink.style.display = "none";
+  }
+  //-->
+</script>
+<noscript>
+<div>JavaScript is disabled on your browser.</div>
+</noscript>
+</div>
+<a id="skip.navbar.top">
+<!--   -->
+</a></div><!-- ======== END OF BOTTOM NAVBAR ======= -->
+    </nav>
+</footer><ul class="ui-autocomplete ui-front ui-menu ui-widget ui-widget-content" id="ui-id-1" tabindex="0"
+    style="display: none;"></ul>
+<span role="status" aria-live="assertive" aria-relevant="additions" class="ui-helper-hidden-accessible"></span>
+</body>
+</html>

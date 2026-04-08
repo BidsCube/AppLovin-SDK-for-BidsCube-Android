@@ -1,10 +1,13 @@
 import groovy.util.Node
+import org.gradle.plugins.signing.SigningExtension
 
 plugins {
     id("com.android.library")
     id("maven-publish")
     id("signing")
 }
+
+val skipSigning = (project.findProperty("skipSigning") as String?) == "true"
 
 android {
     namespace = "com.applovin.mediation.adapters.bidscube"
@@ -38,7 +41,7 @@ dependencies {
     implementation("androidx.annotation:annotation:1.8.2")
 }
 
-val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.0.2.2"
+val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.0.2.3"
 
 afterEvaluate {
     val releaseComponent = components.findByName("release")
@@ -110,6 +113,7 @@ afterEvaluate {
                                 d.appendNode("groupId", "com.bidscube")
                                 d.appendNode("artifactId", "bidscube-sdk")
                                 d.appendNode("version", sdkVer)
+                                d.appendNode("type", "aar")
                                 d.appendNode("scope", "compile")
                             }
                         }
@@ -131,10 +135,13 @@ afterEvaluate {
     }
 }
 
-signing {
+extensions.configure<SigningExtension>("signing") {
     useGpgCmd()
 }
 
 afterEvaluate {
-    publishing.publications.findByName("release")?.let { signing.sign(it) }
+    if (!skipSigning) {
+        val pub = publishing.publications.findByName("release") ?: return@afterEvaluate
+        extensions.getByType(SigningExtension::class.java).sign(pub)
+    }
 }

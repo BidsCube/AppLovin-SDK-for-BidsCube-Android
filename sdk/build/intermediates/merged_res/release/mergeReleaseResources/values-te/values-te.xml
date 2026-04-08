@@ -87,7 +87,6 @@
     <string name="error_a11y_label">ఎర్రర్: చెల్లదు</string>
     <string name="error_icon_content_description">ఎర్రర్</string>
     <string name="error_message_description_text">ఈ యాడ్ గురించి మరిన్ని వివరాలను పొందడంలో సమస్య ఏర్పడింది</string>
-    <string name="error_message_text">ఏదో తప్పు జరిగింది</string>
     <string name="exo_controls_cc_disabled_description">ఉప శీర్షికలను ఎనేబుల్ చేయి</string>
     <string name="exo_controls_cc_enabled_description">ఉప శీర్షికలను డిజేబుల్ చేయి</string>
     <string name="exo_controls_fastforward_description">వేగంగా ఫార్వర్డ్ చేయండి</string>
@@ -132,7 +131,7 @@
     <string msgid="1234962710353108940" name="expand_button_title">"అధునాతనం"</string>
     <string name="exposed_dropdown_menu_content_description">డ్రాప్‌డౌన్ మెనూను చూపు</string>
     <string name="fallback_image_content_descriptor">ఈ యాడ్ ఎందుకు ఉంది</string>
-    <string msgid="4566929209979330987" name="fallback_menu_item_copy_link">"లింక్‌ను కాపీ చేయి"</string>
+    <string msgid="4566929209979330987" name="fallback_menu_item_copy_link">"లింక్‌ను కాపీ చేయండి"</string>
     <string msgid="3413186855122069269" name="fallback_menu_item_open_in_browser">"బ్రౌజర్‌లో తెరువు"</string>
     <string msgid="7145444925855055364" name="fallback_menu_item_share_link">"లింక్‌ను షేర్ చేయి"</string>
     <string name="icon_content_description">డైలాగ్ చిహ్నం</string>
@@ -204,6 +203,7 @@
     <string name="side_sheet_accessibility_pane_title">సైడ్ షీట్</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">ఏదో పొరపాటు జరిగింది</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"ఆఫ్ చేయండి"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"ఆన్ చేయండి"</string>
 </resources>

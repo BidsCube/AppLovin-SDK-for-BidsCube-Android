@@ -87,7 +87,6 @@
     <string name="error_a11y_label">အမှား- မမှန်ကန်ပါ</string>
     <string name="error_icon_content_description">အမှား</string>
     <string name="error_message_description_text">ဤကြော်ငြာအကြောင်း နောက်ထပ်အသေးစိတ်များ ရယူရာတွင် ပြဿနာရှိသည်</string>
-    <string name="error_message_text">တစ်ခုခု မှားသွားသည်</string>
     <string name="exo_controls_cc_disabled_description">စာတန်းထိုး ဖွင့်ပါ</string>
     <string name="exo_controls_cc_enabled_description">စာတန်းထိုး ပိတ်ပါ</string>
     <string name="exo_controls_fastforward_description">ရှေ့သို့ အမြန်သွားရန်</string>
@@ -204,6 +203,7 @@
     <string name="side_sheet_accessibility_pane_title">အရန်စာမျက်နှာ</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"၉၉၉+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>၊ <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">တစ်ခုခုမှားသွားသည်</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"ပိတ်ရန်"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"ဖွင့်ရန်"</string>
 </resources>

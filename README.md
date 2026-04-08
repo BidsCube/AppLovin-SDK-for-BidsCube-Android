@@ -66,7 +66,7 @@ To use Bidscube as a **Custom network** in AppLovin MAX:
 ```kotlin
 dependencies {
     implementation("com.applovin:applovin-sdk:13.0.0@aar")
-    implementation("com.bidscube:applovin-bidscube-adapter:1.0.2.2@aar")
+    implementation("com.bidscube:applovin-bidscube-adapter:1.0.2.3@aar")
 }
 ```
 
@@ -306,7 +306,7 @@ Use `NativeAdBinder.bindToView(...)` / `NativeAdBinder.createBannerView(...)` fo
 
 ```bash
 export BidscubeVersion=1.2.2
-export BidscubeAdapterVersion=1.0.2.2
+export BidscubeAdapterVersion=1.0.2.3
 ./gradlew :sdk:publishReleasePublicationToCentralRepository --no-daemon
 ./gradlew :applovin-adapter:publishReleasePublicationToCentralRepository --no-daemon
 ```

@@ -661,6 +661,7 @@
     <attr format="color" name="textOutlineColor"/>
     <attr format="dimension" name="textOutlineThickness"/>
     <attr format="integer" name="time_bar_min_update_interval"/>
+    <attr format="boolean" name="time_bar_scrubbing_enabled"/>
     <attr format="string" name="title"/>
     <attr format="reference" name="toolbarSurfaceStyle"/>
     <attr format="reference" name="tooltipStyle"/>
@@ -1059,7 +1060,6 @@
     <color name="mtrl_textinput_hovered_box_stroke_color">#DE000000</color>
     <color name="notification_action_color_filter">#ffffffff</color>
     <color name="notification_icon_bg_color">#ff9e9e9e</color>
-    <color name="notification_material_background_media_default_color">#ff424242</color>
     <color name="preference_fallback_accent_color">#ff008577</color>
     <color name="primary_dark_material_dark">@android:color/black</color>
     <color name="primary_dark_material_light">@color/material_grey_600</color>
@@ -2084,7 +2084,6 @@
     <item name="material_clock_face" type="id"/>
     <item name="material_clock_level" type="id"/>
     <item name="material_value_index" type="id"/>
-    <item name="media_controller_compat_view_tag" type="id"/>
     <item name="motion_base" type="id"/>
     <item name="mtrl_anchor_parent" type="id"/>
     <item name="mtrl_card_checked_layer_id" type="id"/>
@@ -2305,7 +2304,6 @@
   </string>
     <string name="error_icon_content_description">Error</string>
     <string name="error_message_description_text">There was an issue getting more details about this ad</string>
-    <string name="error_message_text">Something went wrong</string>
     <string name="exo_controls_cc_disabled_description">Enable subtitles</string>
     <string name="exo_controls_cc_enabled_description">Disable subtitles</string>
     <string name="exo_controls_custom_playback_speed" translatable="false"><ns2:g example="1.05" id="playback_speed">%1$.2f</ns2:g>x</string>
@@ -2485,6 +2483,7 @@
     <string name="side_sheet_behavior" translatable="false">com.google.android.material.sidesheet.SideSheetBehavior</string>
     <string name="status_bar_notification_info_overflow">999+</string>
     <string name="summary_collapsed_preference_list"><ns2:g id="current_items">%1$s</ns2:g>, <ns2:g id="added_items">%2$s</ns2:g></string>
+    <string name="tv_ads_error_message_text">Something went wrong</string>
     <string name="v7_preference_off">OFF</string>
     <string name="v7_preference_on">ON</string>
     <style name="AlertDialog.AppCompat" parent="Base.AlertDialog.AppCompat"/>
@@ -6778,17 +6777,12 @@
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
-    <style name="TextAppearance.Compat.Notification.Info.Media"/>
     <style name="TextAppearance.Compat.Notification.Line2" parent="TextAppearance.Compat.Notification.Info"/>
-    <style name="TextAppearance.Compat.Notification.Line2.Media" parent="TextAppearance.Compat.Notification.Info.Media"/>
-    <style name="TextAppearance.Compat.Notification.Media"/>
     <style name="TextAppearance.Compat.Notification.Time">
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
-    <style name="TextAppearance.Compat.Notification.Time.Media"/>
     <style name="TextAppearance.Compat.Notification.Title" parent="@android:style/TextAppearance.StatusBar.EventContent.Title"/>
-    <style name="TextAppearance.Compat.Notification.Title.Media"/>
     <style name="TextAppearance.Design.CollapsingToolbar.Expanded" parent="TextAppearance.AppCompat.Display1">
     <item name="android:textColor">?android:attr/textColorPrimary</item>
   </style>
@@ -13514,6 +13508,7 @@
     <attr name="subtitle_off_icon"/>
     <attr name="show_vr_button"/>
     <attr name="vr_icon"/>
+    <attr name="time_bar_scrubbing_enabled"/>
     <attr name="time_bar_min_update_interval"/>
     <attr name="controller_layout_id"/>
     <attr name="animation_enabled"/>
@@ -13567,6 +13562,7 @@
     <attr name="subtitle_on_icon"/>
     <attr name="show_vr_button"/>
     <attr name="vr_icon"/>
+    <attr name="time_bar_scrubbing_enabled"/>
     <attr name="time_bar_min_update_interval"/>
     <attr name="controller_layout_id"/>
     <attr name="animation_enabled"/>

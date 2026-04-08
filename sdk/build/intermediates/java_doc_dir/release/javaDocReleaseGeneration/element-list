@@ -1,0 +1,25 @@
+$dokka.format:javadoc-v1
+$dokka.linkExtension:html
+$dokka.location:com.bidscube.sdk.ads/AdType.Type///PointingToDeclaration/com/bidscube/sdk/ads/AdType.Type.html
+$dokka.location:com.bidscube.sdk.config/SDKConfig.Builder///PointingToDeclaration/com/bidscube/sdk/config/SDKConfig.Builder.html
+$dokka.location:com.bidscube.sdk.consent/ConsentManager.ConsentFormCallback///PointingToDeclaration/com/bidscube/sdk/consent/ConsentManager.ConsentFormCallback.html
+$dokka.location:com.bidscube.sdk.consent/ConsentManager.ConsentInfoUpdateCallback///PointingToDeclaration/com/bidscube/sdk/consent/ConsentManager.ConsentInfoUpdateCallback.html
+$dokka.location:com.bidscube.sdk.view/IMAPlayerHandler.OnVideoCompletionListener///PointingToDeclaration/com/bidscube/sdk/view/IMAPlayerHandler.OnVideoCompletionListener.html
+$dokka.location:com.bidscube.sdk.view/NativeAdView.OnNativeAdClickListener///PointingToDeclaration/com/bidscube/sdk/view/NativeAdView.OnNativeAdClickListener.html
+com.bidscube.sdk
+com.bidscube.sdk.activities
+com.bidscube.sdk.adapters
+com.bidscube.sdk.ads
+com.bidscube.sdk.config
+com.bidscube.sdk.consent
+com.bidscube.sdk.device.providers
+com.bidscube.sdk.httpProvider
+com.bidscube.sdk.interfaces
+com.bidscube.sdk.models
+com.bidscube.sdk.models.enums
+com.bidscube.sdk.models.natives
+com.bidscube.sdk.network
+com.bidscube.sdk.stats
+com.bidscube.sdk.utils
+com.bidscube.sdk.view
+

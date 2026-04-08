@@ -93,7 +93,6 @@
     <string name="error_a11y_label">Помилка: недійсне значення</string>
     <string name="error_icon_content_description">Помилка</string>
     <string name="error_message_description_text">Не вдалось отримати докладнішу інформацію про це оголошення</string>
-    <string name="error_message_text">Сталася помилка</string>
     <string name="exo_controls_cc_disabled_description">Увімкнути субтитри</string>
     <string name="exo_controls_cc_enabled_description">Вимкнути субтитри</string>
     <string name="exo_controls_fastforward_description">Перемотати вперед</string>
@@ -137,7 +136,7 @@
     <string name="exo_track_unknown_name">Невідомо (%1$s)</string>
     <string msgid="1234962710353108940" name="expand_button_title">"Додатково"</string>
     <string name="exposed_dropdown_menu_content_description">Показати спадне меню</string>
-    <string name="fallback_image_content_descriptor">Чому я бачу це</string>
+    <string name="fallback_image_content_descriptor">Чому я бачу це?</string>
     <string msgid="4566929209979330987" name="fallback_menu_item_copy_link">"Копіювати посилання"</string>
     <string msgid="3413186855122069269" name="fallback_menu_item_open_in_browser">"Відкрити у веб-переглядачі"</string>
     <string msgid="7145444925855055364" name="fallback_menu_item_share_link">"Надіслати посилання"</string>
@@ -210,6 +209,7 @@
     <string name="side_sheet_accessibility_pane_title">Бічна панель</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">Сталася помилка</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"ВИМКНЕНО"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"УВІМКНЕНО"</string>
 </resources>

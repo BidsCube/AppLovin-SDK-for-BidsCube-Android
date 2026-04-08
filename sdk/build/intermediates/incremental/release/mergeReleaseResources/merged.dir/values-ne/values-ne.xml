@@ -83,11 +83,10 @@
     <string name="common_signin_button_text">साइन इन गर्नुहोस्</string>
     <string name="common_signin_button_text_long">Google मार्फत साइन‍ इन गर्नुहोस्</string>
     <string msgid="3209159573327985035" name="copy">"प्रतिलिपि गर्नुहोस्"</string>
-    <string msgid="3260749812566568062" name="copy_toast_msg">"क्लिपबोर्डमा लिंक प्रतिलिपि गरियो"</string>
+    <string msgid="3260749812566568062" name="copy_toast_msg">"क्लिपबोर्डमा लिंक कपी गरियो"</string>
     <string name="error_a11y_label">त्रुटि: अवैध छ</string>
     <string name="error_icon_content_description">त्रुटि</string>
     <string name="error_message_description_text">यो विज्ञापनका बारेमा थप विवरण प्राप्त गर्ने क्रममा समस्या भएको थियो</string>
-    <string name="error_message_text">केही चिज गडबड भयो</string>
     <string name="exo_controls_cc_disabled_description">सबटाइटलहरू सक्षम पार्नुहोस्</string>
     <string name="exo_controls_cc_enabled_description">सबटाइटलहरू असक्षम पार्नुहोस्</string>
     <string name="exo_controls_fastforward_description">फास्ट फर्वार्ड गर्नुहोस्</string>
@@ -204,6 +203,7 @@
     <string name="side_sheet_accessibility_pane_title">साइड सिट</string>
     <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"९९९+"</string>
     <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string name="tv_ads_error_message_text">कुनै समस्या आयो</string>
     <string msgid="5138405918326871307" name="v7_preference_off">"निष्क्रिय पार्नुहोस्‌"</string>
     <string msgid="27351710992731591" name="v7_preference_on">"सक्रिय"</string>
 </resources>

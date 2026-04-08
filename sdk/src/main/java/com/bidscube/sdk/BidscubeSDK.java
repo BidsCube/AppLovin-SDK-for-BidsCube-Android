@@ -24,6 +24,15 @@ public class BidscubeSDK {
     private static IBidscubeSDK sdkInstance;
 
     /**
+     * Minimal integration: default production SSP host, auto-detected app id/name/version/UA from the host app.
+     * For custom SSP host, logging, or consent overrides use {@link #initialize(Context, SDKConfig)}.
+     */
+    @OptIn(markerClass = UnstableApi.class)
+    public static void initialize(Context context) {
+        initialize(context, new SDKConfig.Builder(context.getApplicationContext()).build());
+    }
+
+    /**
      * Initialize the SDK with required parameters
      *
      * @param context Application context
@@ -265,6 +274,11 @@ public class BidscubeSDK {
     public static void enableConsentDebugMode(String deviceId) {
         checkInitialization();
         sdkInstance.enableConsentDebugMode(deviceId);
+    }
+
+    /** Version of this Bidscube SDK artifact (from build; same as published Maven version). */
+    public static String getSdkVersion() {
+        return com.bidscube.sdk.BuildConfig.SDK_VERSION_NAME;
     }
 
     private static void checkInitialization() {
