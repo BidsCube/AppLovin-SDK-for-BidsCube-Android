@@ -5,8 +5,8 @@ Android SDK for image, video, and native ads with GDPR/CCPA consent. Can be used
 ## Requirements
 
 - **Android** minSdk 24+
-- **Bidscube SDK** 1.0.2+
-- **AppLovin MAX** (optional) SDK 13.0.0+ and adapter `applovin-bidscube-adapter` 1.0.2+
+- **Bidscube SDK** (`com.bidscube:bidscube-sdk`) — для прямої інтеграції або транзитивно через адаптер MAX
+- **AppLovin MAX** (optional): SDK 13.0.0+ і **лише** `com.bidscube:applovin-bidscube-adapter` (окремий рядок `bidscube-sdk` не потрібен — див. нижче)
 - Permissions: `INTERNET`, `ACCESS_NETWORK_STATE`
 - For MAX mediation: Bidscube init value **`app_id`** and a MAX **Placement ID** per ad unit
 
@@ -14,21 +14,19 @@ Android SDK for image, video, and native ads with GDPR/CCPA consent. Can be used
 
 ## Add the SDK
 
-### From Maven
+### From Maven (direct SDK, без MAX)
 
-Assuming your project already uses `google()` and `mavenCentral()`, add:
+Координата артефакту: **`com.bidscube:bidscube-sdk`** (версія з `sdk/build.gradle.kts` / env `BidscubeVersion`, наприклад `1.2.2`).
 
 ```kotlin
-// build.gradle.kts
 dependencies {
-    implementation("com.bidscube:applovin-bidscube-sdk:1.0.2@aar")
+    implementation("com.bidscube:bidscube-sdk:1.2.2@aar")
 }
 ```
 
 ```groovy
-// build.gradle
 dependencies {
-    implementation 'com.bidscube:applovin-bidscube-sdk:1.0.2@aar'
+    implementation 'com.bidscube:bidscube-sdk:1.2.2@aar'
 }
 ```
 
@@ -48,7 +46,7 @@ The sibling folder [bidscube-testapp-android](../bidscube-testapp-android) depen
 - Build & install: `./gradlew :bidscube-testapp-android:installDebug` (application id **`com.bidscube.publisher.testapp`** — not the Play Store package name; uninstall any old `com.bidscube.sdk` debug build if you had one).
 - Custom SSP / mock: run `python3 scripts/mock_bidscube_ssp.py` (може сам відкрити публічний URL через cloudflared/ngrok). Для **debug** задайте `bidcube.testSspAuthority=<host>` у [bidscube-testapp-android/gradle.properties](../bidscube-testapp-android/gradle.properties) і перезіберіть. Деталі: **Test a custom SSP host locally**.
 
-You can also open only the test app folder and run `./gradlew assembleDebug` (its `settings.gradle` still points `project(":sdk")` at this `sdk` directory).
+You can also open only the test app folder and run `./gradlew assembleDebug`. За замовчанням `bidscube.useLocalAdapter=true` (якщо поруч є `../bidscube-sdk-android`) підключаються модулі `:applovin-adapter` + `:sdk` — **один** `implementation project(':applovin-adapter')`, без окремого рядка на SDK.
 
 ### As a module
 
@@ -63,14 +61,16 @@ To use Bidscube as a **Custom network** in AppLovin MAX:
 
 ### 1. Add dependencies
 
+Для MAX достатньо **двох** рядків: AppLovin + адаптер. **`bidscube-sdk` не додавайте вручну** — він підтягується транзитивно з POM адаптера (`api` + залежність у Maven metadata).
+
 ```kotlin
 dependencies {
     implementation("com.applovin:applovin-sdk:13.0.0@aar")
-    implementation("com.bidscube:applovin-bidscube-adapter:1.0.2@aar")
+    implementation("com.bidscube:applovin-bidscube-adapter:1.0.2.2@aar")
 }
 ```
 
-The Bidscube SDK is pulled in transitively by the adapter. Only add `com.bidscube:applovin-bidscube-sdk` explicitly if your repository setup does not resolve transitive AAR dependencies correctly.
+Якщо ви копіюєте лише «голий» `applovin-adapter-release.aar` у `libs/` без Gradle/Maven, додайте ще **`sdk-release.aar`** (або `com.bidscube:bidscube-sdk`) — один AAR адаптера не містить класів SDK.
 
 ### 2. MAX Dashboard setup
 
@@ -295,22 +295,37 @@ Use `NativeAdBinder.bindToView(...)` / `NativeAdBinder.createBannerView(...)` fo
 
 ---
 
+## Release to Maven Central (MAX «автономно» для клієнтів)
+
+Щоб інтегратори додавали **тільки** `applovin-bidscube-adapter`, а `BidscubeSDK` з’являвся автоматично:
+
+1. **Спочатку** опублікуйте **`com.bidscube:bidscube-sdk`** (той самий `BidscubeVersion`, що піде в POM адаптера).
+2. **Потім** опублікуйте **`com.bidscube:applovin-bidscube-adapter`** (`BidscubeAdapterVersion`).
+
+Локально (потрібні `mavenCentralUsername` / `mavenCentralPassword` у `gradle.properties` або `-P`, підпис GPG за `signing`):
+
+```bash
+export BidscubeVersion=1.2.2
+export BidscubeAdapterVersion=1.0.2.2
+./gradlew :sdk:publishReleasePublicationToCentralRepository --no-daemon
+./gradlew :applovin-adapter:publishReleasePublicationToCentralRepository --no-daemon
+```
+
+У POM адаптера є залежність **`com.bidscube:bidscube-sdk`** з версією з модуля `:sdk` на момент публікації. Модуль адаптера оголошує `api(project(":sdk"))`, тож API SDK доступний у застосунку з одним рядком `implementation` на адаптер.
+
+---
+
 ## Local build (same as CI)
 
 From project root (wrapper is already in repo):
 
 ```bash
-./gradlew clean :sdk:assembleRelease --no-daemon
-# AAR: sdk/build/outputs/aar/sdk-release.aar
+./gradlew clean :sdk:assembleRelease :applovin-adapter:assembleRelease --no-daemon
+# SDK AAR: sdk/build/outputs/aar/sdk-release.aar
+# Adapter AAR: applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
 ```
 
-Adapter:
-
-```bash
-./gradlew clean :applovin-adapter:assembleRelease --no-daemon
-```
-
-Requires JDK 17 and, for the adapter, Android SDK (`ANDROID_HOME`).
+Requires JDK 17 and Android SDK (`ANDROID_HOME`).
 
 ---
 
@@ -331,4 +346,4 @@ Requires JDK 17 and, for the adapter, Android SDK (`ANDROID_HOME`).
 
 MIT. See [LICENSE](LICENSE).
 
-**Version:** AppLovin Bidscube SDK 1.0.2.
+**Versions:** `bidscube-sdk` — env `BidscubeVersion` / `sdk/build.gradle.kts`; `applovin-bidscube-adapter` — env `BidscubeAdapterVersion` / `applovin-adapter/build.gradle.kts`.

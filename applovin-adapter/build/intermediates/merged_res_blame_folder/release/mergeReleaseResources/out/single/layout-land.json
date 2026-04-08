@@ -1,14 +1,14 @@
 [
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-41:/layout-land/mtrl_picker_header_dialog.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-37:/layout-land/mtrl_picker_header_dialog.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/layout-land/material_clock_period_toggle_land.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-44:/layout-land/material_clock_period_toggle_land.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-41:/layout-land/material_timepicker.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-37:/layout-land/material_timepicker.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/layout-land/mtrl_picker_header_dialog.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-44:/layout-land/mtrl_picker_header_dialog.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-41:/layout-land/material_clock_period_toggle_land.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-37:/layout-land/material_clock_period_toggle_land.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/layout-land/material_timepicker.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-44:/layout-land/material_timepicker.xml"
     }
 ]

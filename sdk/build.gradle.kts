@@ -43,6 +43,7 @@ dependencies {
     implementation("androidx.media3:media3-common:$media3Version")
     implementation("androidx.media3:media3-ui:$media3Version")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    compileOnly("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("com.google.android.ump:user-messaging-platform:2.2.0")
     implementation("com.google.android.gms:play-services-ads-identifier:18.0.1")
     implementation("com.google.ads.interactivemedia.v3:interactivemedia:3.33.0")
@@ -51,19 +52,20 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.15.1")
 }
 
-val sdkVersion by extra(System.getenv("BidscubeVersion") ?: "1.0.2.1")
+/** Matches published `com.bidscube:bidscube-sdk` (see bidscube-sdk-android-main). */
+val sdkVersion by extra(System.getenv("BidscubeVersion") ?: "1.2.2")
 
 afterEvaluate {
     publishing {
         publications {
             create<MavenPublication>("release") {
                 groupId = "com.bidscube"
-                artifactId = "applovin-bidscube-sdk"
+                artifactId = "bidscube-sdk"
                 version = extra["sdkVersion"] as String
                 from(components["release"])
                 pom {
-                    name.set("AppLovin Bidscube SDK")
-                    description.set("Bidscube SDK for Android with AppLovin MAX integration")
+                    name.set("Bidscube SDK")
+                    description.set("The official Bidscube SDK for Android advertising platform")
                     url.set("https://github.com/BidsCube/bidscube-sdk")
 
                     licenses {

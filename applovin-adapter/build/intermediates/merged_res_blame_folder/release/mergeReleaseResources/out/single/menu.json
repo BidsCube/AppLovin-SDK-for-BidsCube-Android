@@ -1,10 +1,10 @@
 [
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-41:/menu/mediation_debugger_activity_menu.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-applovin-sdk-13.0.0-17:/menu/mediation_debugger_activity_menu.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/menu/creative_debugger_displayed_ad_activity_menu.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-applovin-sdk-13.0.0-24:/menu/creative_debugger_displayed_ad_activity_menu.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-41:/menu/creative_debugger_displayed_ad_activity_menu.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-applovin-sdk-13.0.0-17:/menu/creative_debugger_displayed_ad_activity_menu.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/menu/mediation_debugger_activity_menu.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-applovin-sdk-13.0.0-24:/menu/mediation_debugger_activity_menu.xml"
     }
 ]

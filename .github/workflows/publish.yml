@@ -64,24 +64,31 @@ jobs:
           "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0" || true
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Build AAR
-        run: ./gradlew clean :sdk:assembleRelease --no-daemon --stacktrace
+      - name: Build SDK and AppLovin adapter AARs
+        run: ./gradlew clean :sdk:assembleRelease :applovin-adapter:assembleRelease --no-daemon --stacktrace
 
-      - name: Verify AAR
+      - name: Verify AARs
         run: |
-          if ! compgen -G "sdk/build/outputs/aar/*.aar" > /dev/null; then
-            echo "AAR not found"
-            ls -la sdk/build/outputs/aar 2>/dev/null || true
-            exit 1
+          if [ ! -f "sdk/build/outputs/aar/sdk-release.aar" ]; then
+            echo "sdk-release.aar missing"; exit 1
+          fi
+          if [ ! -f "applovin-adapter/build/outputs/aar/applovin-adapter-release.aar" ]; then
+            echo "applovin-adapter-release.aar missing"; exit 1
           fi
 
-      - name: Create GitHub Release and upload AAR
+      - name: Create GitHub Release and upload AARs
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          body: "AppLovin Bidscube SDK ${{ github.ref_name }}"
-          files: sdk/build/outputs/aar/sdk-release.aar
+          body: |
+            **Bidscube** ${{ github.ref_name }}
+
+            - **Direct SDK:** `sdk-release.aar` → Maven coord `com.bidscube:bidscube-sdk` (publish separately with `BidscubeVersion`).
+            - **AppLovin MAX:** Maven — додайте лише `com.bidscube:applovin-bidscube-adapter` (транзитивно підтягується `bidscube-sdk`). Копія з GitHub: потрібні **обидва** AAR, якщо не використовуєте Maven.
+          files: |
+            sdk/build/outputs/aar/sdk-release.aar
+            applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

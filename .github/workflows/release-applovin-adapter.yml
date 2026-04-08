@@ -86,19 +86,8 @@ jobs:
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
           echo "Android SDK installed"
 
-      - name: Build adapter AAR
-        run: ./gradlew :applovin-adapter:assembleRelease --no-daemon --stacktrace
-
-      - name: Verify AAR
-        run: |
-          if [ ! -f "applovin-adapter/build/outputs/aar/applovin-adapter-release.aar" ]; then
-            echo "AAR not found"
-            ls -la applovin-adapter/build/outputs/aar/ 2>/dev/null || true
-            exit 1
-          fi
-          echo "AAR found"
-
       - name: Set adapter version from tag
+        if: startsWith(github.ref, 'refs/tags/')
         id: version
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
@@ -106,7 +95,24 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release and upload AAR
+      - name: Build SDK and adapter AARs
+        env:
+          BidscubeAdapterVersion: ${{ steps.version.outputs.version }}
+        run: ./gradlew :sdk:assembleRelease :applovin-adapter:assembleRelease --no-daemon --stacktrace
+
+      - name: Verify AARs
+        run: |
+          if [ ! -f "applovin-adapter/build/outputs/aar/applovin-adapter-release.aar" ]; then
+            echo "Adapter AAR not found"
+            ls -la applovin-adapter/build/outputs/aar/ 2>/dev/null || true
+            exit 1
+          fi
+          if [ ! -f "sdk/build/outputs/aar/sdk-release.aar" ]; then
+            echo "sdk-release.aar not found"
+            exit 1
+          fi
+
+      - name: Create GitHub Release and upload AARs
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
@@ -114,9 +120,12 @@ jobs:
           name: AppLovin Bidscube Adapter ${{ steps.version.outputs.version }}
           body: |
             **AppLovin Bidscube Adapter** ${{ steps.version.outputs.version }}
-            - Artifact: `com.bidscube:applovin-bidscube-adapter:${{ steps.version.outputs.version }}`
-            - Use with AppLovin MAX SDK 13.0.0+ and Bidscube SDK 1.0.2+
-          files: applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
+
+            - Maven: `com.bidscube:applovin-bidscube-adapter:${{ steps.version.outputs.version }}` — **окремо `bidscube-sdk` не додавайте**, підтягнеться з POM.
+            - GitHub AAR: для збірки без Maven додайте **обидва** файли (`applovin-adapter-release.aar` + `sdk-release.aar`), якщо не тягнете `bidscube-sdk` з Central.
+          files: |
+            applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
+            sdk/build/outputs/aar/sdk-release.aar
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
