@@ -48,12 +48,12 @@ public class BidscubeMediationAdapter
 
     @Override
     public String getSdkVersion() {
-        return getVersionString(BidscubeSDK.class, "1.0.2");
+        return getVersionString(BidscubeSDK.class, "1.0.2.1");
     }
 
     @Override
     public String getAdapterVersion() {
-        return getVersionString(BidscubeMediationAdapter.class, "1.0.2");
+        return getVersionString(BidscubeMediationAdapter.class, "1.0.2.1");
     }
 
     @Override

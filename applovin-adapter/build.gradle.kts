@@ -36,7 +36,7 @@ dependencies {
     implementation("androidx.annotation:annotation:1.8.2")
 }
 
-val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.0.2"
+val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.0.2.1"
 
 afterEvaluate {
     val releaseComponent = components.findByName("release")

@@ -95,11 +95,6 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
 
             adDisplayManager.showImageAdWithResponsePosition(placementId, url, callback);
 
-            if (callback != null) {
-                callback.onAdLoaded(placementId);
-                callback.onAdDisplayed(placementId);
-            }
-
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to show image ad: " + e.getMessage(), e);
             if (callback != null) {
@@ -119,12 +114,6 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
             String url = videoAdType.buildRequestUrl(deviceInfo).toString();
 
             adDisplayManager.showVideoAdWithResponsePosition(placementId, url, callback);
-
-            if (callback != null) {
-                callback.onAdLoaded(placementId);
-                callback.onAdDisplayed(placementId);
-                callback.onVideoAdStarted(placementId);
-            }
 
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to show video ad: " + e.getMessage(), e);
@@ -159,11 +148,6 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
                 adDisplayManager.showAdNativeFullScreenFromUrl(placementId, url, callback);
             } else {
                 adDisplayManager.showAdNativeWindowedFromUrl(placementId, url, callback);
-            }
-
-            if (callback != null) {
-                callback.onAdLoaded(placementId);
-                callback.onAdDisplayed(placementId);
             }
 
         } catch (Exception e) {
@@ -206,14 +190,7 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
             ImageAdType imageAdType = new ImageAdType(placementId);
             String url = imageAdType.buildRequestUrl(deviceInfo).toString();
 
-            View adView = adDisplayManager.getImageAdView(placementId, url, callback);
-
-            if (callback != null) {
-                callback.onAdLoaded(placementId);
-                callback.onAdDisplayed(placementId);
-            }
-
-            return adView;
+            return adDisplayManager.getImageAdView(placementId, url, callback);
 
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to get image ad view: " + e.getMessage(), e);
@@ -234,15 +211,7 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
             VideoAdType videoAdType = new VideoAdType(placementId);
             String url = videoAdType.buildRequestUrl(deviceInfo).toString();
 
-            View adView = adDisplayManager.getVideoAdView(placementId, url, callback);
-
-            if (callback != null) {
-                callback.onAdLoaded(placementId);
-                callback.onAdDisplayed(placementId);
-                callback.onVideoAdStarted(placementId);
-            }
-
-            return adView;
+            return adDisplayManager.getVideoAdView(placementId, url, callback);
 
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to get video ad view: " + e.getMessage(), e);
@@ -263,14 +232,7 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
             NativeAdType nativeAdType = new NativeAdType(placementId);
             String url = nativeAdType.buildRequestUrl(deviceInfo).toString();
 
-            View adView = adDisplayManager.getNativeAdView(placementId, url, callback);
-
-            if (callback != null) {
-                callback.onAdLoaded(placementId);
-                callback.onAdDisplayed(placementId);
-            }
-
-            return adView;
+            return adDisplayManager.getNativeAdView(placementId, url, callback);
 
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to get native ad view: " + e.getMessage(), e);
