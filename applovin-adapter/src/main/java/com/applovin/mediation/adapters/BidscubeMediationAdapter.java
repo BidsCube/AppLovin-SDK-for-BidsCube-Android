@@ -7,21 +7,21 @@ import android.view.View;
 import androidx.annotation.Nullable;
 
 import com.applovin.mediation.MaxAdFormat;
-import com.applovin.mediation.MaxReward;
-import com.applovin.mediation.adapters.MaxAdapterError;
-import com.applovin.mediation.adapters.MaxAdapterInitializationParameters;
-import com.applovin.mediation.adapters.MaxAdapterResponseParameters;
-import com.applovin.mediation.adapters.MaxAdapterSignalCollectionParameters;
-import com.applovin.mediation.adapters.MaxAdViewAdapter;
-import com.applovin.mediation.adapters.MaxInterstitialAdapter;
-import com.applovin.mediation.adapters.MaxNativeAdAdapter;
-import com.applovin.mediation.adapters.MaxRewardedAdapter;
-import com.applovin.mediation.adapters.MaxSignalProvider;
-import com.applovin.mediation.adapters.listeners.MaxAdViewAdapterListener;
-import com.applovin.mediation.adapters.listeners.MaxInterstitialAdapterListener;
-import com.applovin.mediation.adapters.listeners.MaxNativeAdAdapterListener;
-import com.applovin.mediation.adapters.listeners.MaxRewardedAdapterListener;
-import com.applovin.mediation.adapters.listeners.MaxSignalCollectionListener;
+import com.applovin.mediation.adapter.MaxAdapter;
+import com.applovin.mediation.adapter.MaxAdapterError;
+import com.applovin.mediation.adapter.MaxAdViewAdapter;
+import com.applovin.mediation.adapter.MaxInterstitialAdapter;
+import com.applovin.mediation.adapter.MaxNativeAdAdapter;
+import com.applovin.mediation.adapter.MaxRewardedAdapter;
+import com.applovin.mediation.adapter.MaxSignalProvider;
+import com.applovin.mediation.adapter.listeners.MaxAdViewAdapterListener;
+import com.applovin.mediation.adapter.listeners.MaxInterstitialAdapterListener;
+import com.applovin.mediation.adapter.listeners.MaxNativeAdAdapterListener;
+import com.applovin.mediation.adapter.listeners.MaxRewardedAdapterListener;
+import com.applovin.mediation.adapter.listeners.MaxSignalCollectionListener;
+import com.applovin.mediation.adapter.parameters.MaxAdapterInitializationParameters;
+import com.applovin.mediation.adapter.parameters.MaxAdapterResponseParameters;
+import com.applovin.mediation.adapter.parameters.MaxAdapterSignalCollectionParameters;
 import com.applovin.mediation.nativeAds.MaxNativeAd;
 import com.applovin.sdk.AppLovinSdk;
 import com.bidscube.sdk.BidscubeSDK;
@@ -32,16 +32,32 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Bidscube MAX Mediation Adapter.
  * Integrates Bidscube SDK with AppLovin MAX for Banner, Interstitial, Rewarded and Native ads.
+ * <p>
+ * Built against AppLovin SDK 13.0.x ({@code com.applovin.mediation.adapter} package layout).
  */
 public class BidscubeMediationAdapter
         extends MediationAdapterBase
         implements MaxAdViewAdapter, MaxInterstitialAdapter, MaxRewardedAdapter, MaxNativeAdAdapter, MaxSignalProvider {
 
     private static final AtomicBoolean initialized = new AtomicBoolean();
-    private static InitializationStatus status;
+    private static MaxAdapter.InitializationStatus status;
 
     public BidscubeMediationAdapter(final AppLovinSdk sdk) {
         super(sdk);
+    }
+
+    @Override
+    public String getSdkVersion() {
+        return getVersionString(BidscubeSDK.class, "1.0.2");
+    }
+
+    @Override
+    public String getAdapterVersion() {
+        return getVersionString(BidscubeMediationAdapter.class, "1.0.2");
+    }
+
+    @Override
+    public void onDestroy() {
     }
 
     @Override
@@ -52,14 +68,14 @@ public class BidscubeMediationAdapter
 
     @Override
     public void initialize(final MaxAdapterInitializationParameters parameters, @Nullable final Activity activity,
-            final OnCompletionListener onCompletionListener) {
+            final MaxAdapter.OnCompletionListener onCompletionListener) {
         if (initialized.compareAndSet(false, true)) {
             final String appId = parameters.getServerParameters().getString("app_id");
             log("Initializing Bidscube SDK with app id: " + appId + "...");
 
             if (appId == null || appId.isEmpty()) {
                 log("Bidscube SDK initialization failed: app_id is null or empty");
-                status = InitializationStatus.INITIALIZED_FAILURE;
+                status = MaxAdapter.InitializationStatus.INITIALIZED_FAILURE;
                 onCompletionListener.onCompletion(status, "App id is null or empty");
                 return;
             }
@@ -67,7 +83,7 @@ public class BidscubeMediationAdapter
             Context context = activity != null ? activity.getApplicationContext() : getApplicationContext();
             if (context == null) {
                 log("Bidscube SDK initialization failed: no context available");
-                status = InitializationStatus.INITIALIZED_FAILURE;
+                status = MaxAdapter.InitializationStatus.INITIALIZED_FAILURE;
                 onCompletionListener.onCompletion(status, "No context available");
                 return;
             }
@@ -88,11 +104,11 @@ public class BidscubeMediationAdapter
                 SDKConfig config = configBuilder.build();
                 BidscubeSDK.initialize(context, config);
                 log("Bidscube SDK successfully initialized with app id: " + appId);
-                status = InitializationStatus.INITIALIZED_SUCCESS;
+                status = MaxAdapter.InitializationStatus.INITIALIZED_SUCCESS;
                 onCompletionListener.onCompletion(status, null);
             } catch (Exception e) {
                 log("Bidscube SDK initialization failed with error: " + e.getMessage());
-                status = InitializationStatus.INITIALIZED_FAILURE;
+                status = MaxAdapter.InitializationStatus.INITIALIZED_FAILURE;
                 onCompletionListener.onCompletion(status, e.getMessage());
             }
         } else {
@@ -106,7 +122,7 @@ public class BidscubeMediationAdapter
         final String placementId = parameters.getThirdPartyAdPlacementId();
         log("Loading " + adFormat.getLabel() + " ad for placement: " + placementId + "...");
 
-        if (status != InitializationStatus.INITIALIZED_SUCCESS) {
+        if (status != MaxAdapter.InitializationStatus.INITIALIZED_SUCCESS) {
             log("Bidscube SDK not successfully initialized: failing " + adFormat.getLabel() + " ad load...");
             listener.onAdViewAdLoadFailed(MaxAdapterError.NOT_INITIALIZED);
             return;
@@ -120,11 +136,28 @@ public class BidscubeMediationAdapter
         final String pid = placementId != null ? placementId : "";
 
         try {
-            View adView = BidscubeSDK.getImageAdView(pid, new com.bidscube.sdk.interfaces.AdCallback() {
+            final View[] adViewHolder = new View[1];
+            adViewHolder[0] = BidscubeSDK.getImageAdView(pid, new com.bidscube.sdk.interfaces.AdCallback() {
+                @Override
+                public void onAdLoading(String placementId) {
+                }
+
                 @Override
                 public void onAdLoaded(String placementId) {
                     log("Bidscube " + adFormat.getLabel() + " ad loaded successfully");
-                    listener.onAdViewAdLoaded(adView);
+                    listener.onAdViewAdLoaded(adViewHolder[0]);
+                }
+
+                @Override
+                public void onAdDisplayed(String placementId) {
+                }
+
+                @Override
+                public void onAdClicked(String placementId) {
+                }
+
+                @Override
+                public void onAdClosed(String placementId) {
                 }
 
                 @Override
@@ -133,7 +166,7 @@ public class BidscubeMediationAdapter
                     listener.onAdViewAdLoadFailed(new MaxAdapterError(errorCode, errorMessage));
                 }
             });
-            if (adView == null) {
+            if (adViewHolder[0] == null) {
                 listener.onAdViewAdLoadFailed(MaxAdapterError.UNSPECIFIED);
             }
         } catch (Exception e) {
@@ -148,12 +181,11 @@ public class BidscubeMediationAdapter
         final String placementId = parameters.getThirdPartyAdPlacementId();
         log("Loading interstitial ad for placement: " + placementId + "...");
 
-        if (status != InitializationStatus.INITIALIZED_SUCCESS || !BidscubeSDK.isInitialized()) {
+        if (status != MaxAdapter.InitializationStatus.INITIALIZED_SUCCESS || !BidscubeSDK.isInitialized()) {
             log("Bidscube SDK not successfully initialized: failing interstitial ad load...");
             listener.onInterstitialAdLoadFailed(MaxAdapterError.NOT_INITIALIZED);
             return;
         }
-        // MAX expects load then show; Bidscube showImageAd loads and shows. We report loaded here, show in showInterstitialAd.
         log("Bidscube interstitial ad loaded successfully");
         listener.onInterstitialAdLoaded();
     }
@@ -166,6 +198,14 @@ public class BidscubeMediationAdapter
         log("Showing Bidscube interstitial ad for placement: " + pid + "...");
 
         BidscubeSDK.showImageAd(pid, new com.bidscube.sdk.interfaces.AdCallback() {
+            @Override
+            public void onAdLoading(String placementId) {
+            }
+
+            @Override
+            public void onAdLoaded(String placementId) {
+            }
+
             @Override
             public void onAdDisplayed(String placementId) {
                 listener.onInterstitialAdDisplayed();
@@ -194,12 +234,11 @@ public class BidscubeMediationAdapter
         final String placementId = parameters.getThirdPartyAdPlacementId();
         log("Loading rewarded ad for placement: " + placementId + "...");
 
-        if (status != InitializationStatus.INITIALIZED_SUCCESS || !BidscubeSDK.isInitialized()) {
+        if (status != MaxAdapter.InitializationStatus.INITIALIZED_SUCCESS || !BidscubeSDK.isInitialized()) {
             log("Bidscube SDK not successfully initialized: failing rewarded ad load...");
             listener.onRewardedAdLoadFailed(MaxAdapterError.NOT_INITIALIZED);
             return;
         }
-        // MAX expects load then show; we report loaded here, show in showRewardedAd.
         log("Bidscube rewarded ad loaded successfully");
         listener.onRewardedAdLoaded();
     }
@@ -213,6 +252,14 @@ public class BidscubeMediationAdapter
         configureReward(parameters);
 
         BidscubeSDK.showVideoAd(pid, new com.bidscube.sdk.interfaces.AdCallback() {
+            @Override
+            public void onAdLoading(String placementId) {
+            }
+
+            @Override
+            public void onAdLoaded(String placementId) {
+            }
+
             @Override
             public void onAdDisplayed(String placementId) {
                 listener.onRewardedAdDisplayed();
@@ -245,7 +292,7 @@ public class BidscubeMediationAdapter
             final MaxNativeAdAdapterListener listener) {
         log("Loading Bidscube native ad...");
 
-        if (status != InitializationStatus.INITIALIZED_SUCCESS || !BidscubeSDK.isInitialized()) {
+        if (status != MaxAdapter.InitializationStatus.INITIALIZED_SUCCESS || !BidscubeSDK.isInitialized()) {
             log("Bidscube SDK not successfully initialized: failing native ad load...");
             listener.onNativeAdLoadFailed(MaxAdapterError.NOT_INITIALIZED);
             return;
@@ -255,6 +302,10 @@ public class BidscubeMediationAdapter
         final String pid = placementId != null ? placementId : "";
 
         BidscubeSDK.getNativeAdView(pid, new com.bidscube.sdk.interfaces.AdCallback() {
+            @Override
+            public void onAdLoading(String placementId) {
+            }
+
             @Override
             public void onAdLoaded(String placementId) {
                 MaxNativeAd.Builder builder = new MaxNativeAd.Builder()
@@ -268,16 +319,22 @@ public class BidscubeMediationAdapter
             }
 
             @Override
+            public void onAdDisplayed(String placementId) {
+            }
+
+            @Override
+            public void onAdClicked(String placementId) {
+            }
+
+            @Override
+            public void onAdClosed(String placementId) {
+            }
+
+            @Override
             public void onAdFailed(String placementId, int errorCode, String errorMessage) {
                 log("Bidscube native ad load failed: " + errorMessage);
                 listener.onNativeAdLoadFailed(new MaxAdapterError(errorCode, errorMessage));
             }
         });
-    }
-
-    private static class InitializationStatus {
-        public static final InitializationStatus INITIALIZING = new InitializationStatus();
-        public static final InitializationStatus INITIALIZED_SUCCESS = new InitializationStatus();
-        public static final InitializationStatus INITIALIZED_FAILURE = new InitializationStatus();
     }
 }

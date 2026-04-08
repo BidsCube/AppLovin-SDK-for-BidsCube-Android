@@ -1,0 +1,48 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-mergeReleaseResources-39:/values-fil/values-fil.xml",
+            "map": [
+                {
+                    "source": "/Users/catchman/.gradle/caches/8.11.1/transforms/25be8fd7ebf3c2681b4b03cb3c366c49/transformed/tv-ads-1.0.0/res/values-fil/values.xml",
+                    "from": {
+                        "startLines": "4,5,6,9",
+                        "startColumns": "0,0,0,0",
+                        "startOffsets": "198,245,372,597",
+                        "endColumns": "46,126,56,77",
+                        "endOffsets": "244,371,428,674"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,106,237,298",
+                        "endColumns": "50,130,60,81",
+                        "endOffsets": "101,232,293,375"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-41:/values-fil/values-fil.xml",
+            "map": [
+                {
+                    "source": "/Users/catchman/.gradle/caches/8.11.1/transforms/25be8fd7ebf3c2681b4b03cb3c366c49/transformed/tv-ads-1.0.0/res/values-fil/values.xml",
+                    "from": {
+                        "startLines": "4,5,6,9",
+                        "startColumns": "0,0,0,0",
+                        "startOffsets": "198,245,372,597",
+                        "endColumns": "46,126,56,77",
+                        "endOffsets": "244,371,428,674"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,106,237,298",
+                        "endColumns": "50,130,60,81",
+                        "endOffsets": "101,232,293,375"
+                    }
+                }
+            ]
+        }
+    ]
+}

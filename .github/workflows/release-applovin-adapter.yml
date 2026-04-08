@@ -105,7 +105,7 @@ jobs:
           body: |
             **AppLovin Bidscube Adapter** ${{ steps.version.outputs.version }}
             - Artifact: `com.bidscube:applovin-bidscube-adapter:${{ steps.version.outputs.version }}`
-            - Use with AppLovin MAX SDK 13.6.0+ and Bidscube SDK 1.0.0+
+            - Use with AppLovin MAX SDK 13.0.0+ and Bidscube SDK 1.0.2+
           files: applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
           draft: false
         env:

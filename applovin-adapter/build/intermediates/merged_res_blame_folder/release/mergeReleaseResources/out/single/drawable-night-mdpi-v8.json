@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-41:/drawable-night-mdpi-v8/applovin_ic_warning_outline.png",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-applovin-sdk-13.0.0-17:/drawable-night-mdpi-v8/applovin_ic_warning_outline.png"
+    },
+    {
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-41:/drawable-night-mdpi-v8/applovin_ic_baseline_add_circle_outline.png",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-applovin-sdk-13.0.0-17:/drawable-night-mdpi-v8/applovin_ic_baseline_add_circle_outline.png"
+    }
+]

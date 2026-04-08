@@ -51,7 +51,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.15.1")
 }
 
-val sdkVersion by extra(System.getenv("BidscubeVersion") ?: "1.0.0")
+val sdkVersion by extra(System.getenv("BidscubeVersion") ?: "1.0.2")
 
 afterEvaluate {
     publishing {

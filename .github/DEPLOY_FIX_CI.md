@@ -10,7 +10,7 @@ The error happens because **the workflow file on GitHub** (repo `AppLovin-SDK-fo
 2. Ensure this folder (`bidscube-sdk-android`) is that repo or is in sync with it:
    - If the same repo: commit and push the file `.github/workflows/publish.yml` from this project to the default branch (e.g. `main`).
    - If a different clone: copy `bidscube-sdk-android/.github/workflows/publish.yml` into `AppLovin-SDK-for-BidsCube-Android/.github/workflows/publish.yml`, then commit and push from the AppLovin-SDK-for-BidsCube-Android clone.
-3. Re-run the workflow (push a new tag like `v1.0.0` or use "Run workflow" on the Actions tab). The workflow that runs will be the one from the **branch you pushed** (or the commit the tag points to).
+3. Re-run the workflow (push a new tag like `v1.0.2` or use "Run workflow" on the Actions tab). The workflow that runs will be the one from the **branch you pushed** (or the commit the tag points to).
 
 ### Option B: Edit directly on GitHub
 

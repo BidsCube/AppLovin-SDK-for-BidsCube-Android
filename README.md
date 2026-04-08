@@ -5,8 +5,8 @@ Android SDK for image, video, and native ads with GDPR/CCPA consent. Can be used
 ## Requirements
 
 - **Android** minSdk 24+
-- **Bidscube SDK** 1.0.0+
-- **AppLovin MAX** (optional) SDK 13.6.0+ and adapter `applovin-bidscube-adapter` 1.0.0+
+- **Bidscube SDK** 1.0.2+
+- **AppLovin MAX** (optional) SDK 13.0.0+ and adapter `applovin-bidscube-adapter` 1.0.2+
 - Permissions: `INTERNET`, `ACCESS_NETWORK_STATE`
 - For MAX mediation: Bidscube init value **`app_id`** and a MAX **Placement ID** per ad unit
 
@@ -21,14 +21,14 @@ Assuming your project already uses `google()` and `mavenCentral()`, add:
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.bidscube:applovin-bidscube-sdk:1.0.0@aar")
+    implementation("com.bidscube:applovin-bidscube-sdk:1.0.2@aar")
 }
 ```
 
 ```groovy
 // build.gradle
 dependencies {
-    implementation 'com.bidscube:applovin-bidscube-sdk:1.0.0@aar'
+    implementation 'com.bidscube:applovin-bidscube-sdk:1.0.2@aar'
 }
 ```
 
@@ -65,8 +65,8 @@ To use Bidscube as a **Custom network** in AppLovin MAX:
 
 ```kotlin
 dependencies {
-    implementation("com.applovin:applovin-sdk:13.6.0@aar")
-    implementation("com.bidscube:applovin-bidscube-adapter:1.0.0@aar")
+    implementation("com.applovin:applovin-sdk:13.0.0@aar")
+    implementation("com.bidscube:applovin-bidscube-adapter:1.0.2@aar")
 }
 ```
 
@@ -331,4 +331,4 @@ Requires JDK 17 and, for the adapter, Android SDK (`ANDROID_HOME`).
 
 MIT. See [LICENSE](LICENSE).
 
-**Version:** AppLovin Bidscube SDK 1.0.0.
+**Version:** AppLovin Bidscube SDK 1.0.2.

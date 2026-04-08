@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-41:/layout-v26/abc_screen_toolbar.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-appcompat-1.6.1-9:/layout-v26/abc_screen_toolbar.xml"
+    },
+    {
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-41:/layout-v26/mtrl_calendar_month.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-37:/layout-v26/mtrl_calendar_month.xml"
+    }
+]

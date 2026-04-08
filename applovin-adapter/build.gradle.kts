@@ -31,10 +31,12 @@ android {
 
 dependencies {
     implementation(project(":sdk"))
-    implementation("com.applovin:applovin-sdk:13.6.0@aar")
+    // 13.0.x uses com.applovin.mediation.adapter (+ .parameters / .listeners). Newer SDKs use com.applovin.mediation.adapters — see BidscubeMediationAdapter imports when bumping.
+    implementation("com.applovin:applovin-sdk:13.0.0@aar")
+    implementation("androidx.annotation:annotation:1.8.2")
 }
 
-val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.0.0"
+val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.0.2"
 
 afterEvaluate {
     val releaseComponent = components.findByName("release")
