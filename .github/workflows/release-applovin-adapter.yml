@@ -23,7 +23,7 @@ jobs:
       - name: Require tag ref for manual runs
         if: github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/')
         run: |
-          echo "::error::Select a tag under \"Use workflow from\" (e.g. applovin-adapter-v1.0.2), not branch '${{ github.ref_name }}'. Or push a tag to trigger: git push origin applovin-adapter-vX.Y.Z"
+          echo "::error::Select a tag under \"Use workflow from\" (e.g. applovin-adapter-v1.0.3), not branch '${{ github.ref_name }}'. Or push a tag to trigger: git push origin applovin-adapter-vX.Y.Z"
           exit 1
 
       - name: Set up JDK 17

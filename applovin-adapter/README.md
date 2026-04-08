@@ -6,7 +6,7 @@ AppLovin MAX mediation adapter for Bidscube SDK. Use Bidscube as a custom networ
 
 - **Android** minSdk 24+
 - **AppLovin MAX SDK** 13.0.0+
-- **Bidscube adapter** 1.0.2.3+ with Bidscube SDK pulled transitively
+- **Bidscube adapter** 1.0.3+ with Bidscube SDK pulled transitively
 - AppLovin **SDK Key** and **Ad Units**
 - Bidscube init value **`app_id`** and a MAX **Placement ID** per ad unit
 
@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
     implementation 'com.applovin:applovin-sdk:13.0.0@aar'
-    implementation 'com.bidscube:applovin-bidscube-adapter:1.0.2.3@aar'
+    implementation 'com.bidscube:applovin-bidscube-adapter:1.0.3@aar'
 }
 ```
 
@@ -102,19 +102,19 @@ Banner, MREC, Interstitial, Rewarded, Native.
 
 ## Release
 
-- **Artifact:** `com.bidscube:applovin-bidscube-adapter:1.0.2.3`
-- **Version source:** `BidscubeAdapterVersion` env var, default `1.0.2.3`
-- **GitHub release:** push a tag such as `applovin-adapter-v1.0.2.3`
+- **Artifact:** `com.bidscube:applovin-bidscube-adapter:1.0.3`
+- **Version source:** `BidscubeAdapterVersion` env var, default `1.0.3`
+- **GitHub release:** push a tag such as `applovin-adapter-v1.0.3`
 
 ```bash
-git tag applovin-adapter-v1.0.2.3
-git push origin applovin-adapter-v1.0.2.3
+git tag applovin-adapter-v1.0.3
+git push origin applovin-adapter-v1.0.3
 ```
 
 - **Local publish:**
 
 ```bash
-export BidscubeAdapterVersion=1.0.2.3
+export BidscubeAdapterVersion=1.0.3
 ./gradlew :applovin-adapter:assembleRelease :applovin-adapter:publishReleasePublicationToCentralRepository
 ```
 
