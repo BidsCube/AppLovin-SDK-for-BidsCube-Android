@@ -24,6 +24,21 @@ public final class SspAdUriHelper {
         return applyHttpsAuthority(new Uri.Builder().scheme("https"), authority).appendPath("sdk");
     }
 
+    /**
+     * {@code https://&lt;authority&gt;/&lt;pathSegment&gt;} for optional stats (or other) endpoints.
+     * {@code authority} must be non-blank; callers typically gate on {@link com.bidscube.sdk.config.SDKConfig#getStatsRequestAuthority()}.
+     */
+    public static Uri.Builder newHttpsPathUriBuilder(String authority, String pathSegment) {
+        if (authority == null || authority.trim().isEmpty()) {
+            throw new IllegalArgumentException("authority required");
+        }
+        if (pathSegment == null || pathSegment.trim().isEmpty()) {
+            throw new IllegalArgumentException("pathSegment required");
+        }
+        return applyHttpsAuthority(new Uri.Builder().scheme("https"), authority.trim())
+                .appendPath(pathSegment.trim());
+    }
+
     static Uri.Builder applyHttpsAuthority(Uri.Builder builder, String authority) {
         if (authority == null || authority.isEmpty()) {
             return builder.authority(DeviceInfo.DEFAULT_AD_REQUEST_AUTHORITY);

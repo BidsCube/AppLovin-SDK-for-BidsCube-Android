@@ -39,7 +39,8 @@ public class BidscubeSDK {
         try {
             sdkInstance = new BidscubeSDKImpl();
             sdkInstance.initialize(context, config);
-            SDKLogger.d(TAG, "SDK initialized successfully");
+            // Full init (DeviceInfo + isInitialized) completes asynchronously inside BidscubeSDKImpl.
+            SDKLogger.d(TAG, "SDK initialize started; wait until BidscubeSDK.isInitialized() before ads/consent APIs");
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to initialize SDK: " + e.getMessage(), e);
             throw new RuntimeException("SDK initialization failed", e);

@@ -28,9 +28,11 @@ import com.bidscube.sdk.ads.VideoAdType;
 import com.bidscube.sdk.interfaces.AdCallback;
 import com.bidscube.sdk.models.AdRenderContext;
 import com.bidscube.sdk.models.enums.AdPosition;
+import com.bidscube.sdk.config.SDKConfig;
 import com.bidscube.sdk.httpProvider.HttpProvider;
 
 import com.bidscube.sdk.models.DeviceInfo;
+import com.bidscube.sdk.stats.SdkStatsReporter;
 import com.bidscube.sdk.models.natives.NativeAd;
 import com.bidscube.sdk.network.BidscubeCallback;
 import com.bidscube.sdk.network.BidscubeResponse;
@@ -75,6 +77,7 @@ public class AdDisplayManager {
     private static final String TAG = "AdDisplayManager";
     private final Context context;
     private final DeviceInfo deviceInfo;
+    private final SDKConfig sdkConfig;
 
     private WebView currentBanner = null;
     private IMAPlayerHandler currentVideoPlayer = null;
@@ -85,9 +88,14 @@ public class AdDisplayManager {
     private AdPosition currentAdPosition = AdPosition.UNKNOWN;
     private AdPosition responseAdPosition = AdPosition.UNKNOWN;
 
-    public AdDisplayManager(Context context, DeviceInfo deviceInfo) {
+    public AdDisplayManager(Context context, DeviceInfo deviceInfo, SDKConfig sdkConfig) {
         this.context = context;
         this.deviceInfo = deviceInfo;
+        this.sdkConfig = sdkConfig;
+    }
+
+    private void reportAdStatFail(String placementId, String format, String message) {
+        SdkStatsReporter.reportAdFailure(sdkConfig, placementId, format, message);
     }
 
     // Try to resolve an Activity from the provided Context by unwrapping ContextWrappers.
@@ -420,6 +428,7 @@ public class AdDisplayManager {
                         final String adm = sanitizeAdm(response.getAdm());
                         if (adm == null || adm.isEmpty()) {
                             SDKLogger.e(TAG, "Empty ADM for placement " + placementId);
+                            reportAdStatFail(placementId, "image", "empty_adm");
                             if (callback != null) callback.onAdFailed(placementId, -1, "Empty ADM");
                             return;
                         }
@@ -512,16 +521,19 @@ public class AdDisplayManager {
                                 if (callback != null) callback.onAdLoaded(placementId);
                             } else {
                                 SDKLogger.e(TAG, "Activity root (android.R.id.content) not found");
+                                reportAdStatFail(placementId, "image", "activity_root_not_found");
                                 if (callback != null)
                                     callback.onAdFailed(placementId, -1, "Activity root not found");
                             }
                         } else {
                             SDKLogger.e(TAG, "Could not resolve Activity from Context - ensure SDK initialized with an Activity context");
+                            reportAdStatFail(placementId, "image", "no_activity_context");
                             if (callback != null)
                                 callback.onAdFailed(placementId, -1, "Could not resolve Activity from Context");
                         }
                     } catch (Exception e) {
                         SDKLogger.e(TAG, "Error rendering image ad: " + e.getMessage());
+                        reportAdStatFail(placementId, "image", e.getMessage());
                         if (callback != null) callback.onAdFailed(placementId, -1, e.getMessage());
                     }
                 });
@@ -530,8 +542,10 @@ public class AdDisplayManager {
             @Override
             public void onFail(Exception e) {
                 SDKLogger.e(TAG, "Error loading image ad: " + e.getMessage());
+                String msg = e != null ? e.getMessage() : "unknown";
+                reportAdStatFail(placementId, "image", msg);
                 ((Activity) context).runOnUiThread(() -> {
-                    if (callback != null) callback.onAdFailed(placementId, -1, e.getMessage());
+                    if (callback != null) callback.onAdFailed(placementId, -1, msg);
                 });
             }
         });
@@ -743,6 +757,11 @@ public class AdDisplayManager {
             @Override
             public void onFail(Exception e) {
                 SDKLogger.e(TAG, "Error loading video ad: " + e.getMessage());
+                String msg = e != null ? e.getMessage() : "unknown";
+                reportAdStatFail(placementId, "video", msg);
+                ((Activity) context).runOnUiThread(() -> {
+                    if (callback != null) callback.onAdFailed(placementId, -1, msg);
+                });
             }
         });
     }
@@ -824,10 +843,12 @@ public class AdDisplayManager {
             @Override
             public void onFail(Exception e) {
                 SDKLogger.e(TAG, "Error loading native ad: " + e.getMessage());
+                String msg = e != null ? e.getMessage() : "unknown";
+                reportAdStatFail("", "native", msg);
                 ((Activity) context).runOnUiThread(() -> {
 
                     Dialog errorDialog = new Dialog(context);
-                    showNativeAdErrorDialog(errorDialog, "Error loading native ad: " + e.getMessage());
+                    showNativeAdErrorDialog(errorDialog, "Error loading native ad: " + msg);
                 });
             }
         });
@@ -942,9 +963,11 @@ public class AdDisplayManager {
             @Override
             public void onFail(Exception e) {
                 Log.e(TAG, "Error loading native ad from URL: " + e.getMessage());
+                String msg = e != null ? e.getMessage() : "unknown";
+                reportAdStatFail(placementId, "native", msg);
                 ((Activity) context).runOnUiThread(() -> {
                     Dialog errorDialog = new Dialog(context);
-                    showNativeAdErrorDialog(errorDialog, "Error loading native ad from URL: " + e.getMessage());
+                    showNativeAdErrorDialog(errorDialog, "Error loading native ad from URL: " + msg);
                 });
             }
         });
@@ -1013,9 +1036,11 @@ public class AdDisplayManager {
             @Override
             public void onFail(Exception e) {
                 Log.e(TAG, "Error loading native ad from URL (windowed): " + e.getMessage());
+                String msg = e != null ? e.getMessage() : "unknown";
+                reportAdStatFail(placementId, "native", msg);
                 ((Activity) context).runOnUiThread(() -> {
                     Dialog errorDialog = new Dialog(context);
-                    showNativeAdErrorDialog(errorDialog, "Error loading native ad from URL (windowed): " + e.getMessage());
+                    showNativeAdErrorDialog(errorDialog, "Error loading native ad from URL (windowed): " + msg);
                 });
             }
         });
@@ -1074,23 +1099,24 @@ public class AdDisplayManager {
 
             @Override
             public void onFail(Exception e) {
+                String msg = e != null ? e.getMessage() : "unknown";
+                reportAdStatFail(placementId, "image", msg);
                 ((Activity) context).runOnUiThread(() -> {
 
                     adContainer.removeView(loadingText);
 
                     TextView errorText = new TextView(context);
-                    errorText.setText("Failed to load ad: " + e.getMessage());
+                    errorText.setText("Failed to load ad: " + msg);
                     errorText.setTextColor(Color.WHITE);
                     errorText.setTextSize(14);
                     errorText.setGravity(Gravity.CENTER);
                     adContainer.addView(errorText);
 
                     if (callback != null) {
-                        callback.onAdFailed(placementId, -1, e.getMessage());
-                        callback.onAdFailed(placementId, -1, e.getMessage());
+                        callback.onAdFailed(placementId, -1, msg);
                     }
 
-                    SDKLogger.e(TAG, "Failed to get image ad view: " + e.getMessage());
+                    SDKLogger.e(TAG, "Failed to get image ad view: " + msg);
                 });
             }
         });
@@ -1172,6 +1198,7 @@ public class AdDisplayManager {
 
                     } catch (Exception e) {
                         SDKLogger.e(TAG, "Error creating video ad view: " + e.getMessage());
+                        reportAdStatFail(placementId, "video", e.getMessage());
                         TextView errorText = new TextView(context);
                         errorText.setText("Failed to create video ad: " + e.getMessage());
                         errorText.setTextColor(Color.WHITE);
@@ -1188,22 +1215,24 @@ public class AdDisplayManager {
 
             @Override
             public void onFail(Exception e) {
+                String msg = e != null ? e.getMessage() : "unknown";
+                reportAdStatFail(placementId, "video", msg);
                 ((Activity) context).runOnUiThread(() -> {
 
                     adContainer.removeView(loadingText);
 
                     TextView errorText = new TextView(context);
-                    errorText.setText("Failed to load ad: " + e.getMessage());
+                    errorText.setText("Failed to load ad: " + msg);
                     errorText.setTextColor(Color.WHITE);
                     errorText.setTextSize(14);
                     errorText.setGravity(Gravity.CENTER);
                     adContainer.addView(errorText);
 
                     if (callback != null) {
-                        callback.onAdFailed(placementId, -1, e.getMessage());
+                        callback.onAdFailed(placementId, -1, msg);
                     }
 
-                    SDKLogger.e(TAG, "Failed to get video ad view: " + e.getMessage());
+                    SDKLogger.e(TAG, "Failed to get video ad view: " + msg);
                 });
             }
         });
@@ -1302,6 +1331,7 @@ public class AdDisplayManager {
 
                     } catch (Exception e) {
                         SDKLogger.e(TAG, "Error creating native ad view: " + e.getMessage());
+                        reportAdStatFail(placementId, "native", e.getMessage());
                         TextView errorText = new TextView(context);
                         errorText.setText("Failed to create native ad: " + e.getMessage());
                         errorText.setTextColor(Color.WHITE);
@@ -1318,22 +1348,24 @@ public class AdDisplayManager {
 
             @Override
             public void onFail(Exception e) {
+                String msg = e != null ? e.getMessage() : "unknown";
+                reportAdStatFail(placementId, "native", msg);
                 ((Activity) context).runOnUiThread(() -> {
 
                     adContainer.removeView(loadingText);
 
                     TextView errorText = new TextView(context);
-                    errorText.setText("Failed to load ad: " + e.getMessage());
+                    errorText.setText("Failed to load ad: " + msg);
                     errorText.setTextColor(Color.WHITE);
                     errorText.setTextSize(14);
                     errorText.setGravity(Gravity.CENTER);
                     adContainer.addView(errorText);
 
                     if (callback != null) {
-                        callback.onAdFailed(placementId, -1, e.getMessage());
+                        callback.onAdFailed(placementId, -1, msg);
                     }
 
-                    SDKLogger.e(TAG, "Failed to get native ad view: " + e.getMessage());
+                    SDKLogger.e(TAG, "Failed to get native ad view: " + msg);
                 });
             }
         });

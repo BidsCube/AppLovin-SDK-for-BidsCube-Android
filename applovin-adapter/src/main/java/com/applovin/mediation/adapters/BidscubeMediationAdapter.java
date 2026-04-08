@@ -101,6 +101,10 @@ public class BidscubeMediationAdapter
                 if (requestAuthority != null && !requestAuthority.isEmpty()) {
                     configBuilder.adRequestAuthority(requestAuthority);
                 }
+                String statsAuthority = parameters.getServerParameters().getString("stats_authority");
+                if (statsAuthority != null && !statsAuthority.isEmpty()) {
+                    configBuilder.statsRequestAuthority(statsAuthority);
+                }
                 SDKConfig config = configBuilder.build();
                 BidscubeSDK.initialize(context, config);
                 log("Bidscube SDK successfully initialized with app id: " + appId);

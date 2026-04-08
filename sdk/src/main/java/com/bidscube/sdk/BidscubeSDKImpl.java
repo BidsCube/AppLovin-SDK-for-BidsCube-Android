@@ -19,6 +19,7 @@ import com.bidscube.sdk.models.enums.AdPosition;
 import com.bidscube.sdk.ads.ImageAdType;
 import com.bidscube.sdk.ads.VideoAdType;
 import com.bidscube.sdk.ads.NativeAdType;
+import com.bidscube.sdk.stats.SdkStatsReporter;
 import com.bidscube.sdk.utils.SDKLogger;
 
 /**
@@ -64,10 +65,11 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
                 this.deviceInfo = deviceInfo;
                 SDKLogger.d(TAG, "DeviceInfo adRequestAuthority: " + deviceInfo.getAdRequestAuthority());
 
-                this.adDisplayManager = new AdDisplayManager(context, deviceInfo);
+                this.adDisplayManager = new AdDisplayManager(context, deviceInfo, config);
 
                 this.isInitialized = true;
                 SDKLogger.d(TAG, "SDK initialized successfully");
+                SdkStatsReporter.reportSdkInit(config, deviceInfo);
 
                 if (config.getDefaultAdPosition() != null) {
                     AdPosition position = AdPosition.fromString(config.getDefaultAdPosition());

@@ -33,6 +33,11 @@ public class SDKConfig {
     private final Boolean coppa;
     /** HTTPS authority (host[:port]) for ad requests; default {@link #DEFAULT_AD_REQUEST_AUTHORITY}. */
     private final String adRequestAuthority;
+    /**
+     * Optional HTTPS authority for SDK-originated statistics beacons ({@code GET …/collect?…}).
+     * {@code null} = disabled (default); no traffic to a stats backend unless the integrator sets this.
+     */
+    private final String statsRequestAuthority;
 
     private SDKConfig(Builder builder) {
         this.appId = builder.appId;
@@ -51,6 +56,7 @@ public class SDKConfig {
         this.adRequestAuthority = builder.adRequestAuthority != null && !builder.adRequestAuthority.isEmpty()
                 ? builder.adRequestAuthority
                 : DEFAULT_AD_REQUEST_AUTHORITY;
+        this.statsRequestAuthority = builder.statsRequestAuthority;
     }
 
     public String getAppId() {
@@ -113,6 +119,13 @@ public class SDKConfig {
     }
 
     /**
+     * Optional host (and port) for SDK statistics only. {@code null} or unset means the SDK sends no such beacons.
+     */
+    public String getStatsRequestAuthority() {
+        return statsRequestAuthority;
+    }
+
+    /**
      * Get the SDK version from environment variable or default to 1.0.1
      */
     private static String getSDKVersion() {
@@ -139,6 +152,8 @@ public class SDKConfig {
         private String usPrivacy = null;
         private Boolean coppa = null;
         private String adRequestAuthority = DEFAULT_AD_REQUEST_AUTHORITY;
+        /** {@code null} = stats beacons disabled */
+        private String statsRequestAuthority = null;
 
         /**
          * Create a new Builder with automatic app detection
@@ -311,13 +326,39 @@ public class SDKConfig {
             return this;
         }
 
+        /**
+         * Optional HTTPS authority for SDK statistics ({@code GET https://&lt;host&gt;/collect?e=…}).
+         * Same input rules as {@link #adRequestAuthority(String)} (host, host:port, pasted URL prefix).
+         * If unset or cleared, the SDK performs no stats beacons.
+         */
+        public Builder statsRequestAuthority(String authorityOrUrl) {
+            this.statsRequestAuthority = normalizeOptionalStatsAuthority(authorityOrUrl);
+            return this;
+        }
+
         private static String normalizeAdRequestAuthority(String input) {
             if (input == null) {
                 return DEFAULT_AD_REQUEST_AUTHORITY;
             }
+            String stripped = stripAuthorityInput(input);
+            return stripped.isEmpty() ? DEFAULT_AD_REQUEST_AUTHORITY : stripped;
+        }
+
+        /**
+         * @return {@code null} when disabled / blank after normalization (never falls back to the default ad host).
+         */
+        private static String normalizeOptionalStatsAuthority(String input) {
+            if (input == null) {
+                return null;
+            }
+            String stripped = stripAuthorityInput(input);
+            return stripped.isEmpty() ? null : stripped;
+        }
+
+        private static String stripAuthorityInput(String input) {
             String s = input.trim();
             if (s.isEmpty()) {
-                return DEFAULT_AD_REQUEST_AUTHORITY;
+                return "";
             }
             // Paste from browser / config files may contain percent-encoding (e.g. %3A for ':').
             for (int i = 0; i < 3; i++) {
@@ -344,8 +385,7 @@ public class SDKConfig {
             if (q > 0) {
                 s = s.substring(0, q);
             }
-            s = s.trim();
-            return s.isEmpty() ? DEFAULT_AD_REQUEST_AUTHORITY : s;
+            return s.trim();
         }
 
         /**
