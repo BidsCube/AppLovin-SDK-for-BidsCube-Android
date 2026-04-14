@@ -1,0 +1,103 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.bidscube",
+    "module": "applovin-bidscube-adapter",
+    "version": "1.0.3",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.11.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseVariantReleaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.bidscube",
+          "module": "bidscube-sdk",
+          "version": {
+            "requires": "1.2.2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "applovin-bidscube-adapter-1.0.3.aar",
+          "url": "applovin-bidscube-adapter-1.0.3.aar",
+          "size": 9504,
+          "sha512": "4da157fd819832d6506aa54bb10c2617cba19e8acb4470b4efca6092159a0b3e890fdfce316d958da8ecb4b3d839d267e055dabd3675b69a6d266f8fbe95a237",
+          "sha256": "d5e793799481d142a232cc5885006777be85950950c1396e1aa369377e127843",
+          "sha1": "7e2fd4ee307a3088fe35878bd147360273f96315",
+          "md5": "bc0b89aca747f56f4507fe341821820a"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.applovin",
+          "module": "applovin-sdk",
+          "version": {
+            "requires": "13.0.0"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ],
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "applovin-sdk",
+              "type": "aar",
+              "extension": "aar"
+            }
+          }
+        },
+        {
+          "group": "androidx.annotation",
+          "module": "annotation",
+          "version": {
+            "requires": "1.8.2"
+          }
+        },
+        {
+          "group": "com.bidscube",
+          "module": "bidscube-sdk",
+          "version": {
+            "requires": "1.2.2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "applovin-bidscube-adapter-1.0.3.aar",
+          "url": "applovin-bidscube-adapter-1.0.3.aar",
+          "size": 9504,
+          "sha512": "4da157fd819832d6506aa54bb10c2617cba19e8acb4470b4efca6092159a0b3e890fdfce316d958da8ecb4b3d839d267e055dabd3675b69a6d266f8fbe95a237",
+          "sha256": "d5e793799481d142a232cc5885006777be85950950c1396e1aa369377e127843",
+          "sha1": "7e2fd4ee307a3088fe35878bd147360273f96315",
+          "md5": "bc0b89aca747f56f4507fe341821820a"
+        }
+      ]
+    }
+  ]
+}

@@ -215,14 +215,3 @@ export BidscubeAdapterVersion=1.0.3
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
-
----
-
-## License
-
-MIT. See [LICENSE](LICENSE).
-
-## Version
-
-- **AppLovin Bidscube Android adapter (Maven):** **1.0.3** (`BidscubeAdapterVersion` / `applovin-adapter/build.gradle.kts`).
-- **Bidscube core SDK (Maven):** **1.2.2** (`BidscubeVersion` / `sdk/build.gradle.kts`).
