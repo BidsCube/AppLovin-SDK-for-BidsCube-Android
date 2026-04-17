@@ -248,6 +248,12 @@ public class <span class="typeNameLabel"><a href=SDKConfig.html>SDKConfig</a></s
                                             <td class="colLast"></td>
                                         </tr>
                                         
+                                        <tr class="altColor">
+                                            <td class="colFirst"><code>private final <a href=../video/BidscubeVastVideoPlayerFactory.html>BidscubeVastVideoPlayerFactory</a></code></td>
+                                            <th class="colSecond" scope="row"><code><a href=SDKConfig.html#vastVideoPlayerFactory>vastVideoPlayerFactory</a></code></th>
+                                            <td class="colLast"></td>
+                                        </tr>
+                                        
                                     </table>
                                 </div>
                             </li>
@@ -384,6 +390,14 @@ public class <span class="typeNameLabel"><a href=SDKConfig.html>SDKConfig</a></s
                                         </tr>
                                         
                                         <tr id="i13" class="rowColor">
+                                            <td class="colFirst"><code><a href=../video/BidscubeVastVideoPlayerFactory.html>BidscubeVastVideoPlayerFactory</a></code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=SDKConfig.html#getVastVideoPlayerFactory()>getVastVideoPlayerFactory</a>() </code>
+                                            </th>
+                                            <td class="colLast">Optional factory for VAST video playback.</td>
+                                        </tr>
+                                        
+                                        <tr id="i14" class="altColor">
                                             <td class="colFirst"><code>boolean</code>
                                             </td>
                                             <th class="colSecond" scope="row"><code><a href=SDKConfig.html#isEnableLogging()>isEnableLogging</a>() </code>
@@ -391,7 +405,7 @@ public class <span class="typeNameLabel"><a href=SDKConfig.html>SDKConfig</a></s
                                             <td class="colLast"></td>
                                         </tr>
                                         
-                                        <tr id="i14" class="altColor">
+                                        <tr id="i15" class="rowColor">
                                             <td class="colFirst"><code>boolean</code>
                                             </td>
                                             <th class="colSecond" scope="row"><code><a href=SDKConfig.html#isEnableDebugMode()>isEnableDebugMode</a>() </code>
@@ -622,6 +636,21 @@ public class <span class="typeNameLabel"><a href=SDKConfig.html>SDKConfig</a></s
                                         <h4>getStatsRequestAuthority</h4>
                                         <pre class="methodSignature"> <a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> <a href=SDKConfig.html#getStatsRequestAuthority()>getStatsRequestAuthority</a>()</pre>
                                         <div class="block"><p>Optional host (and port) for SDK statistics only. <code>{@code null}</code> or unset means the SDK sends no such beacons.</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="getVastVideoPlayerFactory()">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>getVastVideoPlayerFactory</h4>
+                                        <pre class="methodSignature"> <a href=../video/BidscubeVastVideoPlayerFactory.html>BidscubeVastVideoPlayerFactory</a> <a href=SDKConfig.html#getVastVideoPlayerFactory()>getVastVideoPlayerFactory</a>()</pre>
+                                        <div class="block"><p>Optional factory for VAST video playback. <code>{@code null}</code> means the default IMA-backed player.</p></div>
                                         
                                         <!-- TODO missing return annotation -->
                                     </li>

@@ -4,6 +4,7 @@ $dokka.location:com.bidscube.sdk.ads/AdType.Type///PointingToDeclaration/com/bi
 $dokka.location:com.bidscube.sdk.config/SDKConfig.Builder///PointingToDeclaration/com/bidscube/sdk/config/SDKConfig.Builder.html
 $dokka.location:com.bidscube.sdk.consent/ConsentManager.ConsentFormCallback///PointingToDeclaration/com/bidscube/sdk/consent/ConsentManager.ConsentFormCallback.html
 $dokka.location:com.bidscube.sdk.consent/ConsentManager.ConsentInfoUpdateCallback///PointingToDeclaration/com/bidscube/sdk/consent/ConsentManager.ConsentInfoUpdateCallback.html
+$dokka.location:com.bidscube.sdk.video/BidscubeVastVideoPlayer.OnVideoCompletionListener///PointingToDeclaration/com/bidscube/sdk/video/BidscubeVastVideoPlayer.OnVideoCompletionListener.html
 $dokka.location:com.bidscube.sdk.view/IMAPlayerHandler.OnVideoCompletionListener///PointingToDeclaration/com/bidscube/sdk/view/IMAPlayerHandler.OnVideoCompletionListener.html
 $dokka.location:com.bidscube.sdk.view/NativeAdView.OnNativeAdClickListener///PointingToDeclaration/com/bidscube/sdk/view/NativeAdView.OnNativeAdClickListener.html
 com.bidscube.sdk
@@ -21,5 +22,6 @@ com.bidscube.sdk.models.natives
 com.bidscube.sdk.network
 com.bidscube.sdk.stats
 com.bidscube.sdk.utils
+com.bidscube.sdk.video
 com.bidscube.sdk.view
 

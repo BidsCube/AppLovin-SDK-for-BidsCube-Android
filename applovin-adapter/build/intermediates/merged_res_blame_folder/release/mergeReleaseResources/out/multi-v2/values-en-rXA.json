@@ -1,0 +1,48 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/values-en-rXA/values-en-rXA.xml",
+            "map": [
+                {
+                    "source": "/Users/catchman/.gradle/caches/8.11.1/transforms/965042cff2180e7980eed45ef1fb3175/transformed/tv-ads-1.0.1/res/values-en-rXA/values.xml",
+                    "from": {
+                        "startLines": "4,5,8,11",
+                        "startColumns": "0,0,0,0",
+                        "startOffsets": "201,254,592,806",
+                        "endColumns": "52,166,79,86",
+                        "endOffsets": "253,420,671,892"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,112,283,367",
+                        "endColumns": "56,170,83,90",
+                        "endOffsets": "107,278,362,453"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-mergeReleaseResources-40:/values-en-rXA/values-en-rXA.xml",
+            "map": [
+                {
+                    "source": "/Users/catchman/.gradle/caches/8.11.1/transforms/965042cff2180e7980eed45ef1fb3175/transformed/tv-ads-1.0.1/res/values-en-rXA/values.xml",
+                    "from": {
+                        "startLines": "4,5,8,11",
+                        "startColumns": "0,0,0,0",
+                        "startOffsets": "201,254,592,806",
+                        "endColumns": "52,166,79,86",
+                        "endOffsets": "253,420,671,892"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,112,283,367",
+                        "endColumns": "56,170,83,90",
+                        "endOffsets": "107,278,362,453"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,48 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/values-fil/values-fil.xml",
+            "map": [
+                {
+                    "source": "/Users/catchman/.gradle/caches/8.11.1/transforms/965042cff2180e7980eed45ef1fb3175/transformed/tv-ads-1.0.1/res/values-fil/values.xml",
+                    "from": {
+                        "startLines": "4,5,8,11",
+                        "startColumns": "0,0,0,0",
+                        "startOffsets": "198,245,540,749",
+                        "endColumns": "46,126,77,63",
+                        "endOffsets": "244,371,617,812"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,106,237,319",
+                        "endColumns": "50,130,81,67",
+                        "endOffsets": "101,232,314,382"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-mergeReleaseResources-40:/values-fil/values-fil.xml",
+            "map": [
+                {
+                    "source": "/Users/catchman/.gradle/caches/8.11.1/transforms/965042cff2180e7980eed45ef1fb3175/transformed/tv-ads-1.0.1/res/values-fil/values.xml",
+                    "from": {
+                        "startLines": "4,5,8,11",
+                        "startColumns": "0,0,0,0",
+                        "startOffsets": "198,245,540,749",
+                        "endColumns": "46,126,77,63",
+                        "endOffsets": "244,371,617,812"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,106,237,319",
+                        "endColumns": "50,130,81,67",
+                        "endOffsets": "101,232,314,382"
+                    }
+                }
+            ]
+        }
+    ]
+}

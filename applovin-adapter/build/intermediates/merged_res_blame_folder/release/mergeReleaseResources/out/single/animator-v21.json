@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/animator-v21/design_appbar_state_list_animator.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/animator-v21/design_appbar_state_list_animator.xml"
+    },
+    {
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/animator-v21/m3_appbar_state_list_animator.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/animator-v21/m3_appbar_state_list_animator.xml"
+    }
+]

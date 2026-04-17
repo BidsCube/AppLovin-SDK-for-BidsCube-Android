@@ -3,12 +3,13 @@
   <groupId>com.bidscube</groupId>
   <artifactId>bidscube-sdk</artifactId>
   <versioning>
-    <latest>1.2.2</latest>
-    <release>1.2.2</release>
+    <latest>1.0.4</latest>
+    <release>1.0.4</release>
     <versions>
       <version>1.0.0</version>
       <version>1.2.2</version>
+      <version>1.0.4</version>
     </versions>
-    <lastUpdated>20260414071453</lastUpdated>
+    <lastUpdated>20260417005435</lastUpdated>
   </versioning>
 </metadata>

@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.bidscube</groupId>
   <artifactId>applovin-bidscube-adapter</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4</version>
   <packaging>aar</packaging>
   <name>AppLovin Bidscube Adapter</name>
   <description>AppLovin MAX mediation adapter for Bidscube SDK. Includes Bidscube SDK transitively.</description>
@@ -37,7 +37,7 @@
     <dependency>
       <groupId>com.bidscube</groupId>
       <artifactId>bidscube-sdk</artifactId>
-      <version>1.2.2</version>
+      <version>1.0.4</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -62,7 +62,7 @@
     <dependency>
       <groupId>com.bidscube</groupId>
       <artifactId>bidscube-sdk</artifactId>
-      <version>1.2.2</version>
+      <version>1.0.4</version>
       <type>aar</type>
       <scope>compile</scope>
     </dependency>

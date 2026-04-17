@@ -297,6 +297,14 @@ public class <span class="typeNameLabel"><a href=SDKConfig.Builder.html>SDKConfi
                                         </tr>
                                         
                                         <tr id="i15" class="rowColor">
+                                            <td class="colFirst"><code><a href=SDKConfig.Builder.html>SDKConfig.Builder</a></code>
+                                            </td>
+                                            <th class="colSecond" scope="row"><code><a href=SDKConfig.Builder.html#vastVideoPlayerFactory(BidscubeVastVideoPlayerFactory)>vastVideoPlayerFactory</a>(<a href=../video/BidscubeVastVideoPlayerFactory.html>BidscubeVastVideoPlayerFactory</a> factory) </code>
+                                            </th>
+                                            <td class="colLast">Supply a custom <a href=../video/BidscubeVastVideoPlayerFactory.html>BidscubeVastVideoPlayerFactory</a> for VAST playback (e.g.</td>
+                                        </tr>
+                                        
+                                        <tr id="i16" class="altColor">
                                             <td class="colFirst"><code><a href=SDKConfig.html>SDKConfig</a></code>
                                             </td>
                                             <th class="colSecond" scope="row"><code><a href=SDKConfig.Builder.html#build()>build</a>() </code>
@@ -587,6 +595,21 @@ public class <span class="typeNameLabel"><a href=SDKConfig.Builder.html>SDKConfi
                                         <h4>statsRequestAuthority</h4>
                                         <pre class="methodSignature"> <a href=SDKConfig.Builder.html>SDKConfig.Builder</a> <a href=SDKConfig.Builder.html#statsRequestAuthority(String)>statsRequestAuthority</a>(<a href=https://developer.android.com/reference/kotlin/java/lang/String.html>String</a> authorityOrUrl)</pre>
                                         <div class="block"><p>Optional HTTPS authority for SDK statistics (<code>{@code GET https://&lt;host&gt;/collect?e=…}</code>).Same input rules as <a href=SDKConfig.Builder.html#adRequestAuthority(String)>adRequestAuthority</a> (host, host:port, pasted URL prefix).If unset or cleared, the SDK performs no stats beacons.</p></div>
+                                        
+                                        <!-- TODO missing return annotation -->
+                                    </li>
+                                </ul>
+                                
+                                <a id="vastVideoPlayerFactory(BidscubeVastVideoPlayerFactory)">
+                                    <!--   -->
+                                </a>
+                                <ul class=
+                                              "blockList"
+                                          >
+                                    <li class="blockList">
+                                        <h4>vastVideoPlayerFactory</h4>
+                                        <pre class="methodSignature"> <a href=SDKConfig.Builder.html>SDKConfig.Builder</a> <a href=SDKConfig.Builder.html#vastVideoPlayerFactory(BidscubeVastVideoPlayerFactory)>vastVideoPlayerFactory</a>(<a href=../video/BidscubeVastVideoPlayerFactory.html>BidscubeVastVideoPlayerFactory</a> factory)</pre>
+                                        <div class="block"><p>Supply a custom <a href=../video/BidscubeVastVideoPlayerFactory.html>BidscubeVastVideoPlayerFactory</a> for VAST playback (e.g. ExoPlayer or another IMA shell). <code>{@code null}</code> clears a previously set value and restores the default built-in player.</p></div>
                                         
                                         <!-- TODO missing return annotation -->
                                     </li>

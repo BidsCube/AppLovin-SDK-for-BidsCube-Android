@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/layout-v23/exo_player_control_ffwd_button.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-media3-ui-1.8.0-31:/layout-v23/exo_player_control_ffwd_button.xml"
+    },
+    {
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/layout-v23/exo_player_control_rewind_button.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-media3-ui-1.8.0-31:/layout-v23/exo_player_control_rewind_button.xml"
+    }
+]

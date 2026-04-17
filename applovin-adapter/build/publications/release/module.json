@@ -3,7 +3,7 @@
   "component": {
     "group": "com.bidscube",
     "module": "applovin-bidscube-adapter",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "attributes": {
       "org.gradle.status": "release"
     }
@@ -27,14 +27,14 @@
           "group": "com.bidscube",
           "module": "bidscube-sdk",
           "version": {
-            "requires": "1.2.2"
+            "requires": "1.0.4"
           }
         }
       ],
       "files": [
         {
-          "name": "applovin-bidscube-adapter-1.0.3.aar",
-          "url": "applovin-bidscube-adapter-1.0.3.aar",
+          "name": "applovin-bidscube-adapter-1.0.4.aar",
+          "url": "applovin-bidscube-adapter-1.0.4.aar",
           "size": 9504,
           "sha512": "4da157fd819832d6506aa54bb10c2617cba19e8acb4470b4efca6092159a0b3e890fdfce316d958da8ecb4b3d839d267e055dabd3675b69a6d266f8fbe95a237",
           "sha256": "d5e793799481d142a232cc5885006777be85950950c1396e1aa369377e127843",
@@ -83,14 +83,14 @@
           "group": "com.bidscube",
           "module": "bidscube-sdk",
           "version": {
-            "requires": "1.2.2"
+            "requires": "1.0.4"
           }
         }
       ],
       "files": [
         {
-          "name": "applovin-bidscube-adapter-1.0.3.aar",
-          "url": "applovin-bidscube-adapter-1.0.3.aar",
+          "name": "applovin-bidscube-adapter-1.0.4.aar",
+          "url": "applovin-bidscube-adapter-1.0.4.aar",
           "size": 9504,
           "sha512": "4da157fd819832d6506aa54bb10c2617cba19e8acb4470b4efca6092159a0b3e890fdfce316d958da8ecb4b3d839d267e055dabd3675b69a6d266f8fbe95a237",
           "sha256": "d5e793799481d142a232cc5885006777be85950950c1396e1aa369377e127843",

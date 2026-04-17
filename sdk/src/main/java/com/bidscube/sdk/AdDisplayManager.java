@@ -39,6 +39,8 @@ import com.bidscube.sdk.network.BidscubeResponse;
 import com.bidscube.sdk.network.NativeAdParser;
 import com.bidscube.sdk.utils.VastParser;
 import com.bidscube.sdk.utils.SDKLogger;
+import com.bidscube.sdk.video.BidscubeVastVideoPlayer;
+import com.bidscube.sdk.video.BidscubeVastVideoPlayerFactory;
 import com.bidscube.sdk.view.BannerViewFactory;
 import com.bidscube.sdk.view.IMAPlayerHandler;
 import com.bidscube.sdk.view.NativeAdView;
@@ -75,12 +77,13 @@ import java.util.regex.Pattern;
 public class AdDisplayManager {
 
     private static final String TAG = "AdDisplayManager";
+    private static final String INTEGRATION = "BidscubeIntegration";
     private final Context context;
     private final DeviceInfo deviceInfo;
     private final SDKConfig sdkConfig;
 
     private WebView currentBanner = null;
-    private IMAPlayerHandler currentVideoPlayer = null;
+    private BidscubeVastVideoPlayer currentVideoPlayer = null;
     private NativeAdView currentNativeAd = null;
 
     private FrameLayout overlayContainer;
@@ -96,6 +99,26 @@ public class AdDisplayManager {
 
     private void reportAdStatFail(String placementId, String format, String message) {
         SdkStatsReporter.reportAdFailure(sdkConfig, placementId, format, message);
+    }
+
+    private BidscubeVastVideoPlayer createVastVideoPlayer(String adm, String vastRedirectUrl) {
+        BidscubeVastVideoPlayerFactory factory = sdkConfig.getVastVideoPlayerFactory();
+        if (factory != null) {
+            try {
+                BidscubeVastVideoPlayer custom = factory.create(context, adm, vastRedirectUrl);
+                if (custom != null) {
+                    Log.i(INTEGRATION, "VAST player: custom factory -> " + custom.getClass().getName());
+                    return custom;
+                }
+                SDKLogger.w(TAG, "vastVideoPlayerFactory returned null; using default IMA player");
+                Log.w(INTEGRATION, "VAST player: factory returned null; falling back to IMAPlayerHandler");
+            } catch (Throwable t) {
+                SDKLogger.e(TAG, "vastVideoPlayerFactory failed; using default IMA player: " + t.getMessage(), t);
+                Log.e(INTEGRATION, "VAST player: factory threw; falling back to IMAPlayerHandler", t);
+            }
+        }
+        Log.i(INTEGRATION, "VAST player: built-in IMA stack (IMAPlayerHandler)");
+        return new IMAPlayerHandler(adm, vastRedirectUrl, context);
     }
 
     private static void fireAdLoadedAndDisplayed(String placementId, AdCallback callback) {
@@ -375,7 +398,10 @@ public class AdDisplayManager {
     /**
      * Configures video player for full screen display
      */
-    private void configureVideoPlayerForFullScreen(IMAPlayerHandler videoPlayer) {
+    private void configureVideoPlayerForFullScreen(BidscubeVastVideoPlayer videoPlayer) {
+        if (!(videoPlayer instanceof IMAPlayerHandler)) {
+            return;
+        }
         try {
 
             Field videoViewField = videoPlayer.getClass().getDeclaredField("videoView");
@@ -657,9 +683,13 @@ public class AdDisplayManager {
                             + effectivePosition);
 
                     final String adm = sanitizeAdm(responseBody.getAdm());
+                    Log.i(INTEGRATION, "video ad: bid response OK placement=" + placementId + " http=" + responseCode
+                            + " admChars=" + (adm != null ? adm.length() : 0)
+                            + " responsePos=" + responseBody.getPosition() + " effective=" + effectivePosition);
 
                     if (handleRenderOverride(placementId, adm, effectivePosition, AdType.Type.VIDEO, callback)) {
                         SDKLogger.d(TAG, "Video ad rendering overridden by host app");
+                        Log.i(INTEGRATION, "video ad: host onAdRenderOverride handled UI");
                         fireVideoAdUiReady(placementId, callback);
                         return;
                     }
@@ -679,7 +709,7 @@ public class AdDisplayManager {
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT));
 
-                        IMAPlayerHandler videoPlayer = new IMAPlayerHandler(adm, vastRedirectUrl, context);
+                        BidscubeVastVideoPlayer videoPlayer = createVastVideoPlayer(adm, vastRedirectUrl);
                         videoPlayer.setLayoutParams(new FrameLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -690,8 +720,9 @@ public class AdDisplayManager {
                         closeBtn.setBackgroundColor(0xCCF44336);
                         closeBtn.setTextColor(Color.WHITE);
                         closeBtn.setPadding(12, 6, 12, 6);
+                        final BidscubeVastVideoPlayer playerRef = videoPlayer;
                         closeBtn.setOnClickListener(v -> {
-                            videoPlayer.release();
+                            playerRef.release();
                             dialog.dismiss();
                         });
 
@@ -708,6 +739,8 @@ public class AdDisplayManager {
                         centerFullScreenDialog(dialog, frameContainer);
                         dialog.show();
 
+                        Log.i(INTEGRATION, "video ad: playVast (fullscreen dialog) player="
+                                + videoPlayer.getClass().getSimpleName());
                         videoPlayer.playVast(adm, false);
                         currentVideoPlayer = videoPlayer;
 
@@ -728,7 +761,7 @@ public class AdDisplayManager {
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT));
 
-                        IMAPlayerHandler videoPlayer = new IMAPlayerHandler(adm, vastRedirectUrl, context);
+                        BidscubeVastVideoPlayer videoPlayer = createVastVideoPlayer(adm, vastRedirectUrl);
                         int heightPx = (int) TypedValue.applyDimension(
                                 TypedValue.COMPLEX_UNIT_DIP, 300, context.getResources().getDisplayMetrics());
                         videoPlayer.setLayoutParams(new FrameLayout.LayoutParams(
@@ -740,8 +773,9 @@ public class AdDisplayManager {
                         closeBtn.setBackgroundColor(0xCCF44336);
                         closeBtn.setTextColor(Color.WHITE);
                         closeBtn.setPadding(12, 6, 12, 6);
+                        final BidscubeVastVideoPlayer playerRefWindowed = videoPlayer;
                         closeBtn.setOnClickListener(v -> {
-                            videoPlayer.release();
+                            playerRefWindowed.release();
                             dialog.dismiss();
                         });
 
@@ -765,6 +799,8 @@ public class AdDisplayManager {
                         }
 
                         dialog.show();
+                        Log.i(INTEGRATION, "video ad: playVast (windowed dialog) player="
+                                + videoPlayer.getClass().getSimpleName());
                         videoPlayer.playVast(adm, false);
                         currentVideoPlayer = videoPlayer;
 
@@ -779,6 +815,7 @@ public class AdDisplayManager {
             public void onFail(Exception e) {
                 SDKLogger.e(TAG, "Error loading video ad: " + e.getMessage());
                 String msg = e != null ? e.getMessage() : "unknown";
+                Log.e(INTEGRATION, "video ad: request failed placement=" + placementId + " error=" + msg, e);
                 reportAdStatFail(placementId, "video", msg);
                 ((Activity) context).runOnUiThread(() -> {
                     if (callback != null) callback.onAdFailed(placementId, -1, msg);
@@ -1197,11 +1234,13 @@ public class AdDisplayManager {
                         }
 
                         final String adm = sanitizeAdm(responseBody.getAdm());
+                        Log.i(INTEGRATION, "getVideoAdView: bid OK placement=" + placementId + " admChars="
+                                + (adm != null ? adm.length() : 0));
                         SDKLogger.v("VastResponse", adm);
                         VastParser.analyzeVast(adm);
                         String vastRedirectUrl = VastParser.getClickThroughUrl(adm);
 
-                        IMAPlayerHandler videoPlayer = new IMAPlayerHandler(adm, vastRedirectUrl, context);
+                        BidscubeVastVideoPlayer videoPlayer = createVastVideoPlayer(adm, vastRedirectUrl);
                         int heightPx = (int) TypedValue.applyDimension(
                                 TypedValue.COMPLEX_UNIT_DIP, 300, context.getResources().getDisplayMetrics());
                         videoPlayer.setLayoutParams(new FrameLayout.LayoutParams(
@@ -1213,8 +1252,11 @@ public class AdDisplayManager {
                         playButton.setBackgroundColor(Color.parseColor("#FF5722"));
                         playButton.setTextColor(Color.WHITE);
                         playButton.setPadding(16, 8, 16, 8);
+                        final BidscubeVastVideoPlayer playerRefInline = videoPlayer;
                         playButton.setOnClickListener(v -> {
-                            videoPlayer.playVast(adm, false);
+                            Log.i(INTEGRATION, "getVideoAdView: user tapped PLAY; playVast player="
+                                    + playerRefInline.getClass().getSimpleName());
+                            playerRefInline.playVast(adm, false);
                             playButton.setVisibility(View.GONE);
                             if (callback != null) {
                                 callback.onVideoAdStarted(placementId);
@@ -1230,6 +1272,7 @@ public class AdDisplayManager {
 
                     } catch (Exception e) {
                         SDKLogger.e(TAG, "Error creating video ad view: " + e.getMessage());
+                        Log.e(INTEGRATION, "getVideoAdView: build player/view failed placement=" + placementId, e);
                         reportAdStatFail(placementId, "video", e.getMessage());
                         TextView errorText = new TextView(context);
                         errorText.setText("Failed to create video ad: " + e.getMessage());
@@ -1248,6 +1291,7 @@ public class AdDisplayManager {
             @Override
             public void onFail(Exception e) {
                 String msg = e != null ? e.getMessage() : "unknown";
+                Log.e(INTEGRATION, "getVideoAdView: HTTP failed placement=" + placementId + " error=" + msg, e);
                 reportAdStatFail(placementId, "video", msg);
                 ((Activity) context).runOnUiThread(() -> {
 

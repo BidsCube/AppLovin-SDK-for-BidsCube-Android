@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.bidscube</groupId>
   <artifactId>bidscube-sdk</artifactId>
-  <version>1.2.2</version>
+  <version>1.0.4</version>
   <packaging>aar</packaging>
   <name>Bidscube SDK</name>
   <description>The official Bidscube SDK for Android advertising platform</description>

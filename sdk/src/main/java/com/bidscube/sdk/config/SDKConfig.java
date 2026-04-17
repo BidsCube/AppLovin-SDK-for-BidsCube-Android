@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.webkit.WebSettings;
 
+import com.bidscube.sdk.video.BidscubeVastVideoPlayerFactory;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
@@ -38,6 +40,8 @@ public class SDKConfig {
      * {@code null} = disabled (default); no traffic to a stats backend unless the integrator sets this.
      */
     private final String statsRequestAuthority;
+    /** When {@code null}, the SDK uses the built-in Google IMA–based player ({@link com.bidscube.sdk.view.IMAPlayerHandler}). */
+    private final BidscubeVastVideoPlayerFactory vastVideoPlayerFactory;
 
     private SDKConfig(Builder builder) {
         this.appId = builder.appId;
@@ -57,6 +61,7 @@ public class SDKConfig {
                 ? builder.adRequestAuthority
                 : DEFAULT_AD_REQUEST_AUTHORITY;
         this.statsRequestAuthority = builder.statsRequestAuthority;
+        this.vastVideoPlayerFactory = builder.vastVideoPlayerFactory;
     }
 
     public String getAppId() {
@@ -125,6 +130,13 @@ public class SDKConfig {
         return statsRequestAuthority;
     }
 
+    /**
+     * Optional factory for VAST video playback. {@code null} means the default IMA-backed player.
+     */
+    public BidscubeVastVideoPlayerFactory getVastVideoPlayerFactory() {
+        return vastVideoPlayerFactory;
+    }
+
     /** Fallback app version label when PackageManager lookup fails; matches published AAR ({@link com.bidscube.sdk.BuildConfig#SDK_VERSION_NAME}). */
     private static String embeddedSdkVersionLabel() {
         return com.bidscube.sdk.BuildConfig.SDK_VERSION_NAME;
@@ -152,6 +164,7 @@ public class SDKConfig {
         private String adRequestAuthority = DEFAULT_AD_REQUEST_AUTHORITY;
         /** {@code null} = stats beacons disabled */
         private String statsRequestAuthority = null;
+        private BidscubeVastVideoPlayerFactory vastVideoPlayerFactory = null;
 
         /**
          * Create a new Builder with automatic app detection
@@ -331,6 +344,15 @@ public class SDKConfig {
          */
         public Builder statsRequestAuthority(String authorityOrUrl) {
             this.statsRequestAuthority = normalizeOptionalStatsAuthority(authorityOrUrl);
+            return this;
+        }
+
+        /**
+         * Supply a custom {@link BidscubeVastVideoPlayerFactory} for VAST playback (e.g. ExoPlayer or another IMA shell).
+         * {@code null} clears a previously set value and restores the default built-in player.
+         */
+        public Builder vastVideoPlayerFactory(BidscubeVastVideoPlayerFactory factory) {
+            this.vastVideoPlayerFactory = factory;
             return this;
         }
 

@@ -15,6 +15,7 @@ import android.widget.VideoView;
 import androidx.media3.common.util.UnstableApi;
 
 import com.bidscube.sdk.adapters.VideoAdPlayerAdapter;
+import com.bidscube.sdk.video.BidscubeVastVideoPlayer;
 import com.google.ads.interactivemedia.v3.api.AdDisplayContainer;
 import com.google.ads.interactivemedia.v3.api.AdsLoader;
 import com.google.ads.interactivemedia.v3.api.AdsManager;
@@ -25,15 +26,13 @@ import com.google.ads.interactivemedia.v3.api.player.VideoAdPlayer;
 
 @SuppressLint("ViewConstructor")
 @UnstableApi
-public class IMAPlayerHandler extends FrameLayout {
+public class IMAPlayerHandler extends BidscubeVastVideoPlayer {
 
     /**
-     * Interface for video completion callbacks
+     * @deprecated Use {@link BidscubeVastVideoPlayer.OnVideoCompletionListener}.
      */
-    public interface OnVideoCompletionListener {
-        void onVideoCompleted();
-
-        void onVideoSkipped();
+    @Deprecated
+    public interface OnVideoCompletionListener extends BidscubeVastVideoPlayer.OnVideoCompletionListener {
     }
 
     private ImaSdkFactory sdkFactory;
@@ -44,7 +43,7 @@ public class IMAPlayerHandler extends FrameLayout {
     private final String eventsTag = "IMAevent";
     private final String vastUrl;
     private final String redirectUrl;
-    private OnVideoCompletionListener completionListener;
+    private BidscubeVastVideoPlayer.OnVideoCompletionListener completionListener;
     private boolean isVideoPlaying = false;
 
     public IMAPlayerHandler(String vastUrl, String redirectUrl, Context context) {
@@ -135,7 +134,10 @@ public class IMAPlayerHandler extends FrameLayout {
         }
     }
 
+    @Override
     public void playVast(String vastTag, boolean isUrl) {
+        int len = vastTag == null ? 0 : vastTag.length();
+        Log.i("BidscubeIntegration", "IMAPlayerHandler.playVast: isUrl=" + isUrl + " payloadChars=" + len);
         AdsRequest request = sdkFactory.createAdsRequest();
 
         if (isUrl) {
@@ -210,6 +212,7 @@ public class IMAPlayerHandler extends FrameLayout {
     /**
      * Skips the current video ad
      */
+    @Override
     public void skipVideo() {
         if (adsManager != null && isVideoPlaying) {
             try {
@@ -253,10 +256,12 @@ public class IMAPlayerHandler extends FrameLayout {
      *
      * @param listener The listener to be called when video completes
      */
-    public void setOnVideoCompletionListener(OnVideoCompletionListener listener) {
+    @Override
+    public void setOnVideoCompletionListener(BidscubeVastVideoPlayer.OnVideoCompletionListener listener) {
         this.completionListener = listener;
     }
 
+    @Override
     public void release() {
         if (adsManager != null) {
             adsManager.destroy();

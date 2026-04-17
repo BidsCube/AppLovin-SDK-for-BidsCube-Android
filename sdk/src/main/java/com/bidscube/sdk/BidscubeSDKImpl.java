@@ -3,6 +3,7 @@ package com.bidscube.sdk;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -31,6 +32,8 @@ import com.bidscube.sdk.utils.SDKLogger;
 public class BidscubeSDKImpl implements IBidscubeSDK {
 
     private static final String TAG = "BidscubeSDKImpl";
+    /** Logcat filter for integration health (init, loads, player); independent of {@link SDKLogger} flag. */
+    private static final String INTEGRATION = "BidscubeIntegration";
 
     private Context context;
     private SDKConfig config;
@@ -44,11 +47,16 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     public void initialize(Context context, SDKConfig config) {
         if (isInitialized) {
             SDKLogger.w(TAG, "SDK already initialized");
+            Log.i(INTEGRATION, "BidscubeSDKImpl: initialize skipped (already initialized)");
             return;
         }
 
         this.context = context;
         this.config = config;
+
+        Log.i(INTEGRATION, "BidscubeSDKImpl: initialize started (async DeviceInfo next); "
+                + "adRequestAuthority=" + config.getAdRequestAuthority()
+                + " vastFactory=" + (config.getVastVideoPlayerFactory() != null));
 
         SDKLogger.d(TAG, "adRequestAuthority from SDKConfig: " + config.getAdRequestAuthority());
 
@@ -69,6 +77,9 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
 
                 this.isInitialized = true;
                 SDKLogger.d(TAG, "SDK initialized successfully");
+                Log.i(INTEGRATION, "BidscubeSDKImpl: ready for ads — isInitialized=true; "
+                        + "adRequestAuthority=" + deviceInfo.getAdRequestAuthority()
+                        + " sdkVersion=" + com.bidscube.sdk.BuildConfig.SDK_VERSION_NAME);
                 SdkStatsReporter.reportSdkInit(config, deviceInfo);
 
                 if (config.getDefaultAdPosition() != null) {
@@ -79,6 +90,7 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
 
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to initialize SDK: " + e.getMessage(), e);
+            Log.e(INTEGRATION, "BidscubeSDKImpl: initialize failed: " + e.getMessage(), e);
             throw new RuntimeException("SDK initialization failed", e);
         }
     }
@@ -92,6 +104,7 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         try {
             ImageAdType imageAdType = new ImageAdType(placementId);
             String url = imageAdType.buildRequestUrl(deviceInfo).toString();
+            Log.i(INTEGRATION, "showImageAd: placement=" + placementId + " requestUrl=" + url);
 
             adDisplayManager.showImageAdWithResponsePosition(placementId, url, callback);
 
@@ -112,6 +125,7 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         try {
             VideoAdType videoAdType = new VideoAdType(placementId);
             String url = videoAdType.buildRequestUrl(deviceInfo).toString();
+            Log.i(INTEGRATION, "showVideoAd: placement=" + placementId + " requestUrl=" + url);
 
             adDisplayManager.showVideoAdWithResponsePosition(placementId, url, callback);
 

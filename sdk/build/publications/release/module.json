@@ -3,7 +3,7 @@
   "component": {
     "group": "com.bidscube",
     "module": "bidscube-sdk",
-    "version": "1.2.2",
+    "version": "1.0.4",
     "attributes": {
       "org.gradle.status": "release"
     }
@@ -33,13 +33,13 @@
       ],
       "files": [
         {
-          "name": "bidscube-sdk-1.2.2.aar",
-          "url": "bidscube-sdk-1.2.2.aar",
-          "size": 194589,
-          "sha512": "887d6b2be58f235f707ed494259a72c2a729daf32df15b32912fb164e5fc1aa8c31a80a475a419f91edcf2b9602097160e9fb78dd93247433d46bce5ad3903cd",
-          "sha256": "4c23ad382c710ebe784f884f5b2b230e4d226b0082aa458272c960034ee27972",
-          "sha1": "52b3a7c4a8feff6298444e3df7612986a9030958",
-          "md5": "9733c6469be39ad4afcbb2b0ffd6c658"
+          "name": "bidscube-sdk-1.0.4.aar",
+          "url": "bidscube-sdk-1.0.4.aar",
+          "size": 196507,
+          "sha512": "b89180c573117ec3886ba5180e045dade027e712982f8d8f17221d4f3a5eba565b84fa506c69e2191a838ce5cb82584452e8c06827ce74fedf8ae22e668b0934",
+          "sha256": "bb552271d731ea5a6301fb230ac7793acf3744898c137311bfd708087b0aedcb",
+          "sha1": "0adadba16006e02836f5542281845dbb80d340f2",
+          "md5": "5a8d05223ff66d6d7ca706ca31bb843c"
         }
       ]
     },
@@ -118,13 +118,13 @@
       ],
       "files": [
         {
-          "name": "bidscube-sdk-1.2.2.aar",
-          "url": "bidscube-sdk-1.2.2.aar",
-          "size": 194589,
-          "sha512": "887d6b2be58f235f707ed494259a72c2a729daf32df15b32912fb164e5fc1aa8c31a80a475a419f91edcf2b9602097160e9fb78dd93247433d46bce5ad3903cd",
-          "sha256": "4c23ad382c710ebe784f884f5b2b230e4d226b0082aa458272c960034ee27972",
-          "sha1": "52b3a7c4a8feff6298444e3df7612986a9030958",
-          "md5": "9733c6469be39ad4afcbb2b0ffd6c658"
+          "name": "bidscube-sdk-1.0.4.aar",
+          "url": "bidscube-sdk-1.0.4.aar",
+          "size": 196507,
+          "sha512": "b89180c573117ec3886ba5180e045dade027e712982f8d8f17221d4f3a5eba565b84fa506c69e2191a838ce5cb82584452e8c06827ce74fedf8ae22e668b0934",
+          "sha256": "bb552271d731ea5a6301fb230ac7793acf3744898c137311bfd708087b0aedcb",
+          "sha1": "0adadba16006e02836f5542281845dbb80d340f2",
+          "md5": "5a8d05223ff66d6d7ca706ca31bb843c"
         }
       ]
     },
@@ -138,13 +138,13 @@
       },
       "files": [
         {
-          "name": "bidscube-sdk-1.2.2-sources.jar",
-          "url": "bidscube-sdk-1.2.2-sources.jar",
-          "size": 92789,
-          "sha512": "4d4989369e210c6ecca0083064d8d7d4859d83e51866cd004c529f5eb0ab7f5661aa7b8ab431c08eddd4d218dd4fe448d99e8cd91423de630ad54512239bbff0",
-          "sha256": "522716f15890644c86ed7baf621917aacb46c8cc4a72c7a15b102e7d0f6ff929",
-          "sha1": "56482384ce34f843125b1362737d733852c66491",
-          "md5": "1343e0c76a87db45b7436edcae9c733f"
+          "name": "bidscube-sdk-1.0.4-sources.jar",
+          "url": "bidscube-sdk-1.0.4-sources.jar",
+          "size": 94622,
+          "sha512": "de78eb6eabef09f71011d3b39235f4d11659aa5938ee19d18fd1a76e14dab9ccb34c36dc5e9940116814c447c9d322be2696bc1f1986fbd673c9ef5f0cc08f30",
+          "sha256": "42b928498ba0c734bc15be1d8ba5d190bffe67f1a15930fb210f0f9762fa4e1b",
+          "sha1": "bb935c67c4b951c3249d9237b0c7f43a87a8eb48",
+          "md5": "017f21e59d533d80aac229d1c4b2fdf3"
         }
       ]
     },
@@ -158,13 +158,13 @@
       },
       "files": [
         {
-          "name": "bidscube-sdk-1.2.2-javadoc.jar",
-          "url": "bidscube-sdk-1.2.2-javadoc.jar",
-          "size": 590177,
-          "sha512": "df6dedfe7097cfb4a5c85827cdd0be48d731663a3bb87465514ebac7d48c453200893b3fd74427a091468e8d1fb425b5f175f1af3498760090dcab943da47188",
-          "sha256": "6425e817d4e63f28afb5477b4bc9b70d018dc1577f04b0c6adb121900e078020",
-          "sha1": "b7c3479616a85bb426c43000d4d10c9ac346e6e6",
-          "md5": "8d8f496688618ca785d02df4e64372cb"
+          "name": "bidscube-sdk-1.0.4-javadoc.jar",
+          "url": "bidscube-sdk-1.0.4-javadoc.jar",
+          "size": 614469,
+          "sha512": "7582bf5bd8021a68f1ee49f9863631f191f173c7bd8c54934668efa6dc37260c92448d97e3c133be49e2c325ba0fd549e7b4d10faf06f17c1a217d6dad543a91",
+          "sha256": "16426f7bccbd280e77f77b3c190eccfa064ebe8b9e6994dae52ff35deba68a10",
+          "sha1": "c56caa2898d44668c0632725d857b0d5fb1b3b9e",
+          "md5": "6769897471dd6e09282cffae6d629e9e"
         }
       ]
     }
