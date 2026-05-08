@@ -1149,7 +1149,6 @@ public class AdDisplayManager {
                     adContainer.removeView(loadingText);
 
                     if (handleRenderOverride(placementId, response.getAdm(), getEffectiveAdPosition(), AdType.Type.IMAGE, callback)) {
-                        adContainer.removeView(loadingText);
                         SDKLogger.d(TAG, "Image ad view rendering overridden by host app");
                         fireAdLoadedAndDisplayed(placementId, callback);
                         return;
@@ -1227,7 +1226,6 @@ public class AdDisplayManager {
 
                     try {
                         if (handleRenderOverride(placementId, responseBody.getAdm(), getEffectiveAdPosition(), AdType.Type.VIDEO, callback)) {
-                            adContainer.removeView(loadingText);
                             SDKLogger.d(TAG, "Video ad view rendering overridden by host app");
                             fireAdLoadedAndDisplayed(placementId, callback);
                             return;
@@ -1380,7 +1378,6 @@ public class AdDisplayManager {
                         }
 
                         if (handleRenderOverride(placementId, responseBody.getAdm(), getEffectiveAdPosition(), AdType.Type.NATIVE, callback)) {
-                            adContainer.removeView(loadingText);
                             SDKLogger.d(TAG, "Native ad view rendering overridden by host app (legacy)");
                             fireAdLoadedAndDisplayed(placementId, callback);
                             return;
