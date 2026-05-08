@@ -16,15 +16,21 @@ import com.bidscube.sdk.utils.SDKLogger;
 
 public class BannerViewFactory {
 
+    /** IAB display banner default; avoids WebView measuring ~0 with WRAP_CONTENT before paint. */
+    private static int standardBannerMinHeightPx(Context context) {
+        return (int) (50f * context.getResources().getDisplayMetrics().density + 0.5f);
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     public static WebView createBanner(Context context, String adHtml) {
         WebView webView = new WebView(context);
 
-        // Default the WebView to match parent width but wrap content height so
-        // it can expand to the creative height when hosted inside a WRAP_CONTENT container
+        int minH = standardBannerMinHeightPx(context);
+        // Fixed initial slot height: embedded WebView + WRAP_CONTENT often collapses to ~0 on Android
+        // until late layout; host sees an empty strip even when the network response is valid.
         webView.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
+                minH));
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -43,10 +49,7 @@ public class BannerViewFactory {
         } catch (Throwable ignored) {}
 
         webView.setBackgroundColor(Color.TRANSPARENT);
-        // Ensure webview has a sensible minimum height so it doesn't measure to zero before content loads.
-        int minHeightDp = 250;
-        int minHeightPx = (int) (minHeightDp * context.getResources().getDisplayMetrics().density + 0.5f);
-        try { webView.setMinimumHeight(minHeightPx); } catch (Throwable ignored) {}
+        try { webView.setMinimumHeight(minH); } catch (Throwable ignored) {}
         try { webView.setVisibility(android.view.View.VISIBLE); } catch (Throwable ignored) {}
 
         // Disable scrollbars and prevent WebView fling/scroll gestures from moving the parent ScrollView
@@ -118,9 +121,10 @@ public class BannerViewFactory {
                                     if (s.isEmpty()) return;
                                     float cssPx = Float.parseFloat(s);
                                     float density = view.getContext().getResources().getDisplayMetrics().density;
-                                    int heightPx = Math.round(cssPx * density);
-                                    SDKLogger.d("BannerViewFactory", "onPageFinished: computed content cssHeight=" + cssPx + " => heightPx=" + heightPx);
-                                    if (heightPx < 1) return;
+                                    int minBanner = standardBannerMinHeightPx(view.getContext());
+                                    int rawPx = Math.round(cssPx * density);
+                                    int heightPx = Math.max(minBanner, rawPx);
+                                    SDKLogger.d("BannerViewFactory", "onPageFinished: computed content cssHeight=" + cssPx + " => rawPx=" + rawPx + " => heightPx=" + heightPx);
                                     ViewGroup.LayoutParams params = view.getLayoutParams();
                                     if (params == null)
                                         params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPx);
@@ -142,8 +146,9 @@ public class BannerViewFactory {
                                     if (s.isEmpty()) return;
                                     float cssPx = Float.parseFloat(s);
                                     float density = view.getContext().getResources().getDisplayMetrics().density;
-                                    int heightPx = Math.round(cssPx * density);
-                                    if (heightPx < 1) return;
+                                    int minBanner = standardBannerMinHeightPx(view.getContext());
+                                    int rawPx = Math.round(cssPx * density);
+                                    int heightPx = Math.max(minBanner, rawPx);
                                     ViewGroup.LayoutParams params = view.getLayoutParams();
                                     if (params == null)
                                         params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPx);
@@ -346,10 +351,8 @@ public class BannerViewFactory {
         } catch (Throwable ignored) {}
 
         webView.setBackgroundColor(Color.TRANSPARENT);
-        // Ensure webview has a sensible minimum height (250dp) matching the explicit height above.
-        int minHeightDp = 250;
-        int minHeightPx = (int) (minHeightDp * context.getResources().getDisplayMetrics().density + 0.5f);
-        try { webView.setMinimumHeight(minHeightPx); } catch (Throwable ignored) {}
+        int minSlot = Math.max(heightPx, standardBannerMinHeightPx(context));
+        try { webView.setMinimumHeight(minSlot); } catch (Throwable ignored) {}
         try { webView.setVisibility(android.view.View.VISIBLE); } catch (Throwable ignored) {}
 
         // Disable scrollbars and prevent WebView fling/scroll gestures from moving the parent ScrollView
@@ -421,9 +424,10 @@ public class BannerViewFactory {
                                     if (s.isEmpty()) return;
                                     float cssPx = Float.parseFloat(s);
                                     float density = view.getContext().getResources().getDisplayMetrics().density;
-                                    int heightPx = Math.round(cssPx * density);
-                                    SDKLogger.d("BannerViewFactory", "onPageFinished: computed content cssHeight=" + cssPx + " => heightPx=" + heightPx);
-                                    if (heightPx < 1) return;
+                                    int minBanner = standardBannerMinHeightPx(view.getContext());
+                                    int rawPx = Math.round(cssPx * density);
+                                    int heightPx = Math.max(minBanner, rawPx);
+                                    SDKLogger.d("BannerViewFactory", "onPageFinished: computed content cssHeight=" + cssPx + " => rawPx=" + rawPx + " => heightPx=" + heightPx);
                                     ViewGroup.LayoutParams params = view.getLayoutParams();
                                     if (params == null)
                                         params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPx);
@@ -445,8 +449,9 @@ public class BannerViewFactory {
                                     if (s.isEmpty()) return;
                                     float cssPx = Float.parseFloat(s);
                                     float density = view.getContext().getResources().getDisplayMetrics().density;
-                                    int heightPx = Math.round(cssPx * density);
-                                    if (heightPx < 1) return;
+                                    int minBanner = standardBannerMinHeightPx(view.getContext());
+                                    int rawPx = Math.round(cssPx * density);
+                                    int heightPx = Math.max(minBanner, rawPx);
                                     ViewGroup.LayoutParams params = view.getLayoutParams();
                                     if (params == null)
                                         params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPx);
