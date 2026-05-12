@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/values-hdpi-v4/values-hdpi-v4.xml",
+            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/values-hdpi-v4/values-hdpi-v4.xml",
             "map": [
                 {
-                    "source": "/Users/catchman/.gradle/caches/8.11.1/transforms/377c357381efbfd33584ba66158be59e/transformed/appcompat-1.6.1/res/values-hdpi-v4/values-hdpi-v4.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/cb7431d6a072112f7db99cf2a78a11db/gradle/caches/8.11.1/transforms/377c357381efbfd33584ba66158be59e/transformed/appcompat-1.6.1/res/values-hdpi-v4/values-hdpi-v4.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
@@ -17,10 +17,10 @@
             ]
         },
         {
-            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-mergeReleaseResources-40:/values-hdpi-v4/values-hdpi-v4.xml",
+            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-mergeReleaseResources-1:/values-hdpi-v4/values-hdpi-v4.xml",
             "map": [
                 {
-                    "source": "/Users/catchman/.gradle/caches/8.11.1/transforms/377c357381efbfd33584ba66158be59e/transformed/appcompat-1.6.1/res/values-hdpi-v4/values-hdpi-v4.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/cb7431d6a072112f7db99cf2a78a11db/gradle/caches/8.11.1/transforms/377c357381efbfd33584ba66158be59e/transformed/appcompat-1.6.1/res/values-hdpi-v4/values-hdpi-v4.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

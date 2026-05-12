@@ -62,7 +62,7 @@ public class BidscubeMediationAdapter
 
     @Override
     public String getAdapterVersion() {
-        return getVersionString(BidscubeMediationAdapter.class, "1.0.3.1");
+        return getVersionString(BidscubeMediationAdapter.class, "1.2.5.0");
     }
 
     @Override
@@ -302,6 +302,7 @@ public class BidscubeMediationAdapter
             final MaxRewardedAdapterListener listener) {
         final String placementId = parameters.getThirdPartyAdPlacementId();
         final String pid = placementId != null ? placementId : "";
+        final AtomicBoolean rewardGranted = new AtomicBoolean(false);
         log("Showing Bidscube rewarded ad for placement: " + pid + "...");
         diag("showRewardedAd: placement=" + pid + " (video / VAST pipeline)");
         configureReward(parameters);
@@ -342,7 +343,9 @@ public class BidscubeMediationAdapter
             @Override
             public void onVideoAdCompleted(String placementId) {
                 diag("showRewardedAd: onVideoAdCompleted " + placementId);
-                listener.onUserRewarded(getReward());
+                if (rewardGranted.compareAndSet(false, true)) {
+                    listener.onUserRewarded(getReward());
+                }
             }
 
             @Override

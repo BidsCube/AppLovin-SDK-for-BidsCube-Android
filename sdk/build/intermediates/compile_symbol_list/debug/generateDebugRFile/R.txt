@@ -1,2 +1,0 @@
-int drawable close_small_24 0x0
-int raw vast 0x0

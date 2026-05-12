@@ -2578,6 +2578,9 @@
     <string name="applovin_terms_of_service_text">Terms \u0026 Conditions</string>
     <string name="applovin_terms_of_use_text">Terms of Use</string>
     <string name="back_button_text">Close</string>
+    <string name="bidscube_cd_close_ad">Close ad</string>
+    <string name="bidscube_close_ad_button">Close ad</string>
+    <string name="bidscube_label_image_ad">Image ad</string>
     <string name="bottom_sheet_behavior" translatable="false">com.google.android.material.bottomsheet.BottomSheetBehavior</string>
     <string description="A description of an accessibility action to collapse the bottom sheet [CHAR LIMIT=NONE]" name="bottomsheet_action_collapse">Collapse the bottom sheet</string>
     <string description="A description of an accessibility action to expand the bottom sheet [CHAR LIMIT=NONE]" name="bottomsheet_action_expand">Expand the bottom sheet</string>

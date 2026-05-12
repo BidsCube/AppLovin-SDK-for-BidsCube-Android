@@ -31,6 +31,18 @@ public abstract class BidscubeVastVideoPlayer extends FrameLayout {
 
     public abstract void skipVideo();
 
+    public boolean isVideoSupported() {
+        return true;
+    }
+
+    public int getUnsupportedErrorCode() {
+        return -1;
+    }
+
+    public String getUnsupportedErrorMessage() {
+        return "Video playback is not supported in this build.";
+    }
+
     public interface OnVideoCompletionListener {
         void onVideoCompleted();
 

@@ -3,9 +3,6 @@ package com.bidscube.sdk;
 import android.content.Context;
 import android.view.View;
 
-import androidx.annotation.OptIn;
-import androidx.media3.common.util.UnstableApi;
-
 import com.bidscube.sdk.config.SDKConfig;
 import com.bidscube.sdk.interfaces.AdCallback;
 import com.bidscube.sdk.interfaces.ConsentCallback;
@@ -27,7 +24,6 @@ public class BidscubeSDK {
      * Minimal integration: default production SSP host, auto-detected app id/name/version/UA from the host app.
      * For custom SSP host, logging, or consent overrides use {@link #initialize(Context, SDKConfig)}.
      */
-    @OptIn(markerClass = UnstableApi.class)
     public static void initialize(Context context) {
         initialize(context, new SDKConfig.Builder(context.getApplicationContext()).build());
     }
@@ -38,7 +34,6 @@ public class BidscubeSDK {
      * @param context Application context
      * @param config  SDK configuration object
      */
-    @OptIn(markerClass = UnstableApi.class)
     public static void initialize(Context context, SDKConfig config) {
         if (sdkInstance != null) {
             SDKLogger.w(TAG, "SDK already initialized");

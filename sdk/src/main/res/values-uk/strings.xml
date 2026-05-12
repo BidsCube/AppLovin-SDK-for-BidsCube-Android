@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bidscube_cd_close_ad">Закрити рекламу</string>
+    <string name="bidscube_label_image_ad">Реклама зображення</string>
+    <string name="bidscube_close_ad_button">Закрити</string>
+</resources>

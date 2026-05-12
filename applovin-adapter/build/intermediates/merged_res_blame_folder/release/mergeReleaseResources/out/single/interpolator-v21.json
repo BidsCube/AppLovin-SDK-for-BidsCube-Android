@@ -1,42 +1,42 @@
 [
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/interpolator-v21/mtrl_fast_out_linear_in.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/interpolator-v21/mtrl_fast_out_linear_in.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/interpolator-v21/m3_sys_motion_easing_emphasized.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-45:/interpolator-v21/m3_sys_motion_easing_emphasized.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/interpolator-v21/m3_sys_motion_easing_standard_accelerate.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/interpolator-v21/m3_sys_motion_easing_standard_accelerate.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/interpolator-v21/m3_sys_motion_easing_standard_accelerate.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-45:/interpolator-v21/m3_sys_motion_easing_standard_accelerate.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/interpolator-v21/m3_sys_motion_easing_standard.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/interpolator-v21/m3_sys_motion_easing_standard.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/interpolator-v21/m3_sys_motion_easing_standard_decelerate.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-45:/interpolator-v21/m3_sys_motion_easing_standard_decelerate.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/interpolator-v21/m3_sys_motion_easing_emphasized_decelerate.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/interpolator-v21/m3_sys_motion_easing_emphasized_decelerate.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/interpolator-v21/mtrl_linear_out_slow_in.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-45:/interpolator-v21/mtrl_linear_out_slow_in.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/interpolator-v21/m3_sys_motion_easing_emphasized.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/interpolator-v21/m3_sys_motion_easing_emphasized.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/interpolator-v21/m3_sys_motion_easing_standard.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-45:/interpolator-v21/m3_sys_motion_easing_standard.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/interpolator-v21/m3_sys_motion_easing_emphasized_accelerate.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/interpolator-v21/m3_sys_motion_easing_emphasized_accelerate.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/interpolator-v21/m3_sys_motion_easing_emphasized_accelerate.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-45:/interpolator-v21/m3_sys_motion_easing_emphasized_accelerate.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/interpolator-v21/m3_sys_motion_easing_linear.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/interpolator-v21/m3_sys_motion_easing_linear.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/interpolator-v21/mtrl_fast_out_slow_in.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-45:/interpolator-v21/mtrl_fast_out_slow_in.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/interpolator-v21/mtrl_fast_out_slow_in.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/interpolator-v21/mtrl_fast_out_slow_in.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/interpolator-v21/m3_sys_motion_easing_emphasized_decelerate.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-45:/interpolator-v21/m3_sys_motion_easing_emphasized_decelerate.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/interpolator-v21/m3_sys_motion_easing_standard_decelerate.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/interpolator-v21/m3_sys_motion_easing_standard_decelerate.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/interpolator-v21/mtrl_fast_out_linear_in.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-45:/interpolator-v21/mtrl_fast_out_linear_in.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/interpolator-v21/mtrl_linear_out_slow_in.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-38:/interpolator-v21/mtrl_linear_out_slow_in.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/interpolator-v21/m3_sys_motion_easing_linear.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-material-1.12.0-45:/interpolator-v21/m3_sys_motion_easing_linear.xml"
     }
 ]

@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-mergeReleaseResources-40:/values-zh/values-zh.xml",
+            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-mergeReleaseResources-1:/values-zh/values-zh.xml",
             "map": [
                 {
-                    "source": "/Users/catchman/.gradle/caches/8.11.1/transforms/95d5972477051e15030a1b2d1e97f7de/transformed/applovin-sdk-13.0.0/res/values-zh/values-zh.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/cb7431d6a072112f7db99cf2a78a11db/gradle/caches/8.11.1/transforms/95d5972477051e15030a1b2d1e97f7de/transformed/applovin-sdk-13.0.0/res/values-zh/values-zh.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -16,10 +16,10 @@
             ]
         },
         {
-            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/values-zh/values-zh.xml",
+            "outputFile": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/values-zh/values-zh.xml",
             "map": [
                 {
-                    "source": "/Users/catchman/.gradle/caches/8.11.1/transforms/95d5972477051e15030a1b2d1e97f7de/transformed/applovin-sdk-13.0.0/res/values-zh/values-zh.xml",
+                    "source": "/private/var/folders/xg/lgpqwprj56db97wlbxmmbrqh0000gn/T/cursor-sandbox-cache/cb7431d6a072112f7db99cf2a78a11db/gradle/caches/8.11.1/transforms/95d5972477051e15030a1b2d1e97f7de/transformed/applovin-sdk-13.0.0/res/values-zh/values-zh.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",

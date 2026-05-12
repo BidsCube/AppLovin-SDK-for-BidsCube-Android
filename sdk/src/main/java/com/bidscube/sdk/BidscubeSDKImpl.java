@@ -7,8 +7,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.media3.common.util.UnstableApi;
-
 import com.bidscube.sdk.config.SDKConfig;
 import com.bidscube.sdk.consent.ConsentManager;
 import com.bidscube.sdk.device.providers.DeviceInfoProvider;
@@ -28,7 +26,6 @@ import com.bidscube.sdk.utils.SDKLogger;
  * This class handles all ad operations and provides a clean interface for
  * external applications
  */
-@UnstableApi
 public class BidscubeSDKImpl implements IBidscubeSDK {
 
     private static final String TAG = "BidscubeSDKImpl";

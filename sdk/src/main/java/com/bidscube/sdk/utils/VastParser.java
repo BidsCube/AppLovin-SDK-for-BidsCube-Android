@@ -2,281 +2,276 @@ package com.bidscube.sdk.utils;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.xml.parsers.*;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
-import java.io.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
-public class VastParser {
+public final class VastParser {
 
-    /**
-     * Get ClickThrough URL from VAST XML
-     * @param vastXml The VAST XML string to parse
-     * @return ClickThrough URL if found, null otherwise
-     */
+    private VastParser() {
+    }
+
     public static String getClickThroughUrl(String vastXml) {
-        if (vastXml == null || vastXml.trim().isEmpty()) {
-            System.err.println("VAST XML is null or empty");
+        Document doc = parseDocument(vastXml);
+        if (doc == null) {
             return null;
         }
-
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            InputStream is = new ByteArrayInputStream(vastXml.getBytes("UTF-8"));
-            Document doc = builder.parse(is);
-            doc.getDocumentElement().normalize();
-
-            NodeList videoClicksNodes = doc.getElementsByTagName("VideoClicks");
-            if (videoClicksNodes.getLength() > 0) {
-                Element videoClicks = (Element) videoClicksNodes.item(0);
-                NodeList clickThroughInVideoClicks = videoClicks.getElementsByTagName("ClickThrough");
-                if (clickThroughInVideoClicks.getLength() > 0) {
-                    String url = clickThroughInVideoClicks.item(0).getTextContent();
-                    if (url != null && !url.trim().isEmpty()) {
-                        System.out.println("Found ClickThrough URL in VideoClicks: " + url.trim());
-                        return url.trim();
-                    }
-                }
-            }
-
-            NodeList clickThroughNodes = doc.getElementsByTagName("ClickThrough");
-            if (clickThroughNodes.getLength() > 0) {
-                String url = clickThroughNodes.item(0).getTextContent();
-                if (url != null && !url.trim().isEmpty()) {
-                    System.out.println("Found ClickThrough URL: " + url.trim());
-                    return url.trim();
-                }
-            }
-
-            NodeList clickTrackingNodes = doc.getElementsByTagName("ClickTracking");
-            if (clickTrackingNodes.getLength() > 0) {
-                String url = clickTrackingNodes.item(0).getTextContent();
-                if (url != null && !url.trim().isEmpty()) {
-                    System.out.println("Found ClickTracking URL: " + url.trim());
-                    return url.trim();
-                }
-            }
-
-            System.out.println("No ClickThrough tag found. Available tags:");
-            printAvailableTags(doc);
-
-        } catch (Exception e) {
-            System.err.println("Error parsing VAST XML: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
-        System.err.println("No ClickThrough tag found");
-        return null;
+        String fromVideoClicks = getNestedTagText(doc, "VideoClicks", "ClickThrough");
+        return !isBlank(fromVideoClicks) ? fromVideoClicks : getFirstTagText(doc, "ClickThrough");
     }
 
-    /**
-     * Get Video ClickThrough URL from VAST XML (specifically for video ads)
-     * @param vastXml The VAST XML string to parse
-     * @return Video ClickThrough URL if found, null otherwise
-     */
     public static String getVideoClickThroughUrl(String vastXml) {
-        if (vastXml == null || vastXml.trim().isEmpty()) {
-            System.err.println("VAST XML is null or empty");
-            return null;
-        }
-
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            InputStream is = new ByteArrayInputStream(vastXml.getBytes("UTF-8"));
-            Document doc = builder.parse(is);
-            doc.getDocumentElement().normalize();
-
-            NodeList videoClicksNodes = doc.getElementsByTagName("VideoClicks");
-            if (videoClicksNodes.getLength() > 0) {
-                Element videoClicks = (Element) videoClicksNodes.item(0);
-                NodeList clickThroughNodes = videoClicks.getElementsByTagName("ClickThrough");
-                if (clickThroughNodes.getLength() > 0) {
-                    String url = clickThroughNodes.item(0).getTextContent();
-                    if (url != null && !url.trim().isEmpty()) {
-                        System.out.println("Found Video ClickThrough URL: " + url.trim());
-                        return url.trim();
-                    }
-                }
-            }
-
-            NodeList clickThroughNodes = doc.getElementsByTagName("ClickThrough");
-            if (clickThroughNodes.getLength() > 0) {
-                String url = clickThroughNodes.item(0).getTextContent();
-                if (url != null && !url.trim().isEmpty()) {
-                    System.out.println("Found general ClickThrough URL: " + url.trim());
-                    return url.trim();
-                }
-            }
-
-            System.err.println("No Video ClickThrough URL found");
-            return null;
-
-        } catch (Exception e) {
-            System.err.println("Error parsing VAST XML for video click-through: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
+        return getClickThroughUrl(vastXml);
     }
 
-    /**
-     * Validate VAST XML structure
-     * @param vastXml The VAST XML string to validate
-     * @return true if valid, false otherwise
-     */
     public static boolean validateVastStructure(String vastXml) {
-        if (vastXml == null || vastXml.trim().isEmpty()) {
+        Document doc = parseDocument(vastXml);
+        if (doc == null || doc.getDocumentElement() == null) {
             return false;
         }
-
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            InputStream is = new ByteArrayInputStream(vastXml.getBytes("UTF-8"));
-            Document doc = builder.parse(is);
-            doc.getDocumentElement().normalize();
-
-            if (!"VAST".equals(doc.getDocumentElement().getTagName())) {
-                System.err.println("Root element is not VAST");
-                return false;
-            }
-
-            NodeList adNodes = doc.getElementsByTagName("Ad");
-            if (adNodes.getLength() == 0) {
-                System.err.println("No Ad element found");
-                return false;
-            }
-
-            NodeList creativeNodes = doc.getElementsByTagName("Creative");
-            if (creativeNodes.getLength() == 0) {
-                System.err.println("No Creative element found");
-                return false;
-            }
-
-            NodeList mediaFileNodes = doc.getElementsByTagName("MediaFile");
-            if (mediaFileNodes.getLength() == 0) {
-                System.err.println("No MediaFile element found");
-                return false;
-            }
-
-            System.out.println("VAST structure validation passed");
-            return true;
-
-        } catch (Exception e) {
-            System.err.println("Error validating VAST structure: " + e.getMessage());
+        if (!"VAST".equalsIgnoreCase(doc.getDocumentElement().getTagName())) {
             return false;
         }
+        return !isBlank(getMediaFileUrl(vastXml));
     }
 
-    /**
-     * Get MediaFile URL from VAST XML
-     * @param vastXml The VAST XML string to parse
-     * @return MediaFile URL if found, null otherwise
-     */
     public static String getMediaFileUrl(String vastXml) {
-        if (vastXml == null || vastXml.trim().isEmpty()) {
+        Document doc = parseDocument(vastXml);
+        if (doc == null) {
             return null;
         }
-
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            InputStream is = new ByteArrayInputStream(vastXml.getBytes("UTF-8"));
-            Document doc = builder.parse(is);
-            doc.getDocumentElement().normalize();
-
-            NodeList mediaFileNodes = doc.getElementsByTagName("MediaFile");
-            if (mediaFileNodes.getLength() > 0) {
-                String url = mediaFileNodes.item(0).getTextContent();
-                if (url != null && !url.trim().isEmpty()) {
-                    System.out.println("Found MediaFile URL: " + url.trim());
-                    return url.trim();
-                }
+        NodeList mediaFileNodes = doc.getElementsByTagName("MediaFile");
+        for (int i = 0; i < mediaFileNodes.getLength(); i++) {
+            String url = normalizeText(mediaFileNodes.item(i));
+            if (!isBlank(url)) {
+                return url;
             }
-
-        } catch (Exception e) {
-            System.err.println("Error getting MediaFile URL: " + e.getMessage());
         }
-        
         return null;
     }
 
-    /**
-     * Print all available tags in the VAST XML for debugging
-     * @param doc The parsed XML document
-     */
-    private static void printAvailableTags(Document doc) {
-        try {
-            NodeList allElements = doc.getElementsByTagName("*");
-            System.out.println("Available tags in VAST:");
-            for (int i = 0; i < allElements.getLength(); i++) {
-                Element element = (Element) allElements.item(i);
-                String tagName = element.getTagName();
-                String content = element.getTextContent();
-                if (content != null && !content.trim().isEmpty() && content.length() < 100) {
-                    System.out.println("  " + tagName + ": " + content.trim());
-                } else {
-                    System.out.println("  " + tagName + ": [content too long or empty]");
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error printing available tags: " + e.getMessage());
+    public static List<String> getTrackingUrls(String vastXml, String eventName) {
+        Document doc = parseDocument(vastXml);
+        if (doc == null || isBlank(eventName)) {
+            return Collections.emptyList();
         }
+
+        List<String> urls = new ArrayList<>();
+        NodeList trackingNodes = doc.getElementsByTagName("Tracking");
+        for (int i = 0; i < trackingNodes.getLength(); i++) {
+            Node node = trackingNodes.item(i);
+            if (!(node instanceof Element)) {
+                continue;
+            }
+            Element element = (Element) node;
+            String event = element.getAttribute("event");
+            if (!eventName.equalsIgnoreCase(event)) {
+                continue;
+            }
+            String url = normalizeText(element);
+            if (!isBlank(url)) {
+                urls.add(url);
+            }
+        }
+        return urls;
     }
 
-    /**
-     * Parse and display VAST structure information
-     * @param vastXml The VAST XML string to analyze
-     */
+    public static List<String> getImpressionUrls(String vastXml) {
+        return getTagTextList(parseDocument(vastXml), "Impression");
+    }
+
+    public static List<String> getClickTrackingUrls(String vastXml) {
+        Document doc = parseDocument(vastXml);
+        if (doc == null) {
+            return Collections.emptyList();
+        }
+        List<String> urls = getTagTextList(doc, "ClickTracking");
+        if (!urls.isEmpty()) {
+            return urls;
+        }
+        String clickThrough = getClickThroughUrl(vastXml);
+        if (isBlank(clickThrough)) {
+            return Collections.emptyList();
+        }
+        List<String> fallback = new ArrayList<>();
+        fallback.add(clickThrough);
+        return fallback;
+    }
+
+    public static List<String> getErrorUrls(String vastXml) {
+        return getTagTextList(parseDocument(vastXml), "Error");
+    }
+
+    public static long getDurationMs(String vastXml) {
+        Document doc = parseDocument(vastXml);
+        if (doc == null) {
+            return -1L;
+        }
+        return parseTimeToMs(getFirstTagText(doc, "Duration"));
+    }
+
+    public static long getSkipOffsetMs(String vastXml) {
+        Document doc = parseDocument(vastXml);
+        if (doc == null) {
+            return -1L;
+        }
+        NodeList linearNodes = doc.getElementsByTagName("Linear");
+        if (linearNodes == null || linearNodes.getLength() == 0) {
+            return -1L;
+        }
+        Node first = linearNodes.item(0);
+        if (!(first instanceof Element)) {
+            return -1L;
+        }
+        String skipOffset = ((Element) first).getAttribute("skipoffset");
+        if (isBlank(skipOffset)) {
+            return -1L;
+        }
+        skipOffset = skipOffset.trim();
+        if (skipOffset.endsWith("%")) {
+            try {
+                double percent = Double.parseDouble(skipOffset.substring(0, skipOffset.length() - 1));
+                long durationMs = getDurationMs(vastXml);
+                if (durationMs <= 0L) {
+                    return -1L;
+                }
+                return Math.round(durationMs * (percent / 100d));
+            } catch (Exception ignored) {
+                return -1L;
+            }
+        }
+        return parseTimeToMs(skipOffset);
+    }
+
     public static void analyzeVast(String vastXml) {
         System.out.println("=== VAST Analysis ===");
-        
         if (!validateVastStructure(vastXml)) {
             System.err.println("VAST structure validation failed");
             return;
         }
 
-        String clickThroughUrl = getClickThroughUrl(vastXml);
-        String videoClickThroughUrl = getVideoClickThroughUrl(vastXml);
-        String mediaFileUrl = getMediaFileUrl(vastXml);
-
-        System.out.println("General ClickThrough URL: " + (clickThroughUrl != null ? clickThroughUrl : "NOT FOUND"));
-        System.out.println("Video ClickThrough URL: " + (videoClickThroughUrl != null ? videoClickThroughUrl : "NOT FOUND"));
-        System.out.println("MediaFile URL: " + (mediaFileUrl != null ? mediaFileUrl : "NOT FOUND"));
-
-        if (videoClickThroughUrl != null) {
-            System.out.println("✅ RECOMMENDED: Use Video ClickThrough URL for video ads");
-        } else if (clickThroughUrl != null) {
-            System.out.println("⚠️  FALLBACK: Use general ClickThrough URL");
-        } else {
-            System.out.println("❌ ERROR: No click-through URL found");
-        }
-        
+        System.out.println("General ClickThrough URL: " + valueOrMissing(getClickThroughUrl(vastXml)));
+        System.out.println("Video ClickThrough URL: " + valueOrMissing(getVideoClickThroughUrl(vastXml)));
+        System.out.println("MediaFile URL: " + valueOrMissing(getMediaFileUrl(vastXml)));
+        System.out.println("Impression trackers: " + getImpressionUrls(vastXml).size());
+        System.out.println("Start trackers: " + getTrackingUrls(vastXml, "start").size());
+        System.out.println("Complete trackers: " + getTrackingUrls(vastXml, "complete").size());
         System.out.println("=== End Analysis ===");
     }
 
     public static String getCompanionImageUrl(String vastXml) {
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            InputSource is = new InputSource(new StringReader(vastXml));
-            Document doc = builder.parse(is);
+        Document doc = parseDocument(vastXml);
+        if (doc == null) {
+            return null;
+        }
 
-            NodeList companionList = doc.getElementsByTagName("Companion");
-            if (companionList != null && companionList.getLength() > 0) {
-                Element companion = (Element) companionList.item(0);
-                NodeList staticResources = companion.getElementsByTagName("StaticResource");
-                if (staticResources != null && staticResources.getLength() > 0) {
-                    return staticResources.item(0).getTextContent().trim();
-                }
+        NodeList companionList = doc.getElementsByTagName("Companion");
+        if (companionList != null && companionList.getLength() > 0) {
+            Element companion = (Element) companionList.item(0);
+            NodeList staticResources = companion.getElementsByTagName("StaticResource");
+            if (staticResources != null && staticResources.getLength() > 0) {
+                return normalizeText(staticResources.item(0));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return null;
     }
 
+    private static Document parseDocument(String vastXml) {
+        if (isBlank(vastXml)) {
+            return null;
+        }
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(false);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new StringReader(vastXml)));
+            doc.getDocumentElement().normalize();
+            return doc;
+        } catch (Exception e) {
+            System.err.println("Error parsing VAST XML: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private static String getNestedTagText(Document doc, String parentTag, String childTag) {
+        NodeList parents = doc.getElementsByTagName(parentTag);
+        for (int i = 0; i < parents.getLength(); i++) {
+            Node parent = parents.item(i);
+            if (!(parent instanceof Element)) {
+                continue;
+            }
+            NodeList children = ((Element) parent).getElementsByTagName(childTag);
+            for (int j = 0; j < children.getLength(); j++) {
+                String text = normalizeText(children.item(j));
+                if (!isBlank(text)) {
+                    return text;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String getFirstTagText(Document doc, String tagName) {
+        List<String> texts = getTagTextList(doc, tagName);
+        return texts.isEmpty() ? null : texts.get(0);
+    }
+
+    private static List<String> getTagTextList(Document doc, String tagName) {
+        if (doc == null || isBlank(tagName)) {
+            return Collections.emptyList();
+        }
+        List<String> urls = new ArrayList<>();
+        NodeList nodes = doc.getElementsByTagName(tagName);
+        for (int i = 0; i < nodes.getLength(); i++) {
+            String text = normalizeText(nodes.item(i));
+            if (!isBlank(text)) {
+                urls.add(text);
+            }
+        }
+        return urls;
+    }
+
+    private static String normalizeText(Node node) {
+        if (node == null) {
+            return null;
+        }
+        String text = node.getTextContent();
+        return isBlank(text) ? null : text.trim();
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private static String valueOrMissing(String value) {
+        return isBlank(value) ? "NOT FOUND" : value;
+    }
+
+    private static long parseTimeToMs(String raw) {
+        if (isBlank(raw)) {
+            return -1L;
+        }
+        try {
+            String[] parts = raw.trim().split(":");
+            if (parts.length != 3) {
+                return -1L;
+            }
+            int hours = Integer.parseInt(parts[0]);
+            int minutes = Integer.parseInt(parts[1]);
+            double seconds = Double.parseDouble(parts[2]);
+            double totalSeconds = (hours * 3600d) + (minutes * 60d) + seconds;
+            return Math.round(totalSeconds * 1000d);
+        } catch (Exception ignored) {
+            return -1L;
+        }
+    }
 }
