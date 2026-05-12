@@ -166,7 +166,7 @@ Full tables and wire details: previous sections of this file are condensed here;
 
 ### Local AAR / modules
 
-- Build SDK: `./gradlew :sdk:assembleRelease` → `sdk/build/outputs/aar/sdk-release.aar`
+- Build SDK: `./gradlew :sdk:stageReleaseAars` → `sdk/build/staged-aars/bidscube-sdk-*-<version>.aar`
 - Include `:sdk` as a Gradle module, or `files("libs/...")` with `flatDir` if needed.
 
 ---
@@ -190,8 +190,11 @@ Implement **`onAdRenderOverride(AdRenderContext)`** in **`AdCallback`** and retu
 **Local release AARs:**
 
 ```bash
-./gradlew clean :sdk:assembleRelease :applovin-adapter:assembleRelease --no-daemon
-# sdk/build/outputs/aar/sdk-release.aar
+./gradlew clean :sdk:stageReleaseAars :applovin-adapter:assembleRelease --no-daemon
+# sdk/build/staged-aars/bidscube-sdk-lite-no-video-<version>.aar
+# sdk/build/staged-aars/bidscube-sdk-webview-video-<version>.aar
+# sdk/build/staged-aars/bidscube-sdk-legacy-media-video-<version>.aar
+# sdk/build/staged-aars/bidscube-sdk-full-video-<version>.aar
 # applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
 ```
 

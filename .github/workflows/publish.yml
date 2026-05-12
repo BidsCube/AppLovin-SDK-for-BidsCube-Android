@@ -65,16 +65,24 @@ jobs:
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
       - name: Build SDK and AppLovin adapter AARs
-        run: ./gradlew clean :sdk:assembleRelease :applovin-adapter:assembleRelease --no-daemon --stacktrace
+        run: ./gradlew clean :sdk:stageReleaseAars :applovin-adapter:assembleRelease --no-daemon --stacktrace
 
       - name: Verify AARs
         run: |
-          if [ ! -f "sdk/build/outputs/aar/sdk-release.aar" ]; then
-            echo "sdk-release.aar missing"; exit 1
-          fi
           if [ ! -f "applovin-adapter/build/outputs/aar/applovin-adapter-release.aar" ]; then
             echo "applovin-adapter-release.aar missing"; exit 1
           fi
+          for core in \
+            sdk/build/staged-aars/bidscube-sdk-lite-no-video-*.aar \
+            sdk/build/staged-aars/bidscube-sdk-webview-video-*.aar \
+            sdk/build/staged-aars/bidscube-sdk-legacy-media-video-*.aar \
+            sdk/build/staged-aars/bidscube-sdk-full-video-*.aar; do
+            if ! compgen -G "$core" > /dev/null; then
+              echo "Missing staged core AAR pattern: $core"
+              ls -la sdk/build/staged-aars/ 2>/dev/null || true
+              exit 1
+            fi
+          done
 
       - name: Create GitHub Release and upload AARs
         uses: softprops/action-gh-release@v2
@@ -84,11 +92,14 @@ jobs:
           body: |
             **Bidscube** ${{ github.ref_name }}
 
-            - **Direct SDK:** `sdk-release.aar` → Maven coord `com.bidscube:bidscube-sdk` (publish separately with `BidscubeVersion`).
-            - **AppLovin MAX:** Maven — додайте лише `com.bidscube:applovin-bidscube-adapter` (транзитивно підтягується `bidscube-sdk`). Копія з GitHub: потрібні **обидва** AAR, якщо не використовуєте Maven.
+            - **Direct SDK:** core Android AAR-и публікуються як чотири mode-specific артефакти в `sdk/build/staged-aars/`.
+            - **AppLovin MAX:** Maven — додайте лише `com.bidscube:applovin-bidscube-adapter` (транзитивно підтягується `sdk-full-video`). Для GitHub AAR install беріть `applovin-adapter-release.aar` і потрібний core AAR під ваш Android mode.
           files: |
-            sdk/build/outputs/aar/sdk-release.aar
             applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
+            sdk/build/staged-aars/bidscube-sdk-lite-no-video-*.aar
+            sdk/build/staged-aars/bidscube-sdk-webview-video-*.aar
+            sdk/build/staged-aars/bidscube-sdk-legacy-media-video-*.aar
+            sdk/build/staged-aars/bidscube-sdk-full-video-*.aar
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
