@@ -16,6 +16,7 @@ android {
     defaultConfig {
         minSdk = 24
         consumerProguardFiles("consumer-rules.pro")
+        missingDimensionStrategy("videoMode", "fullVideo")
     }
 
     buildTypes {
@@ -45,7 +46,7 @@ dependencies {
     implementation("androidx.annotation:annotation:1.8.2")
 }
 
-val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.4"
+val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.5"
 
 afterEvaluate {
     val releaseComponent = components.findByName("release")
@@ -107,7 +108,7 @@ afterEvaluate {
                                         if (aidRaw.isNotEmpty()) (aidRaw[0] as Node).text() else null
                                     else -> null
                                 }
-                                if (artifactIdText == "bidscube-sdk") {
+                                if (artifactIdText == "sdk-full-video") {
                                     hasBidscubeSdk = true
                                     break
                                 }
@@ -115,7 +116,7 @@ afterEvaluate {
                             if (!hasBidscubeSdk) {
                                 val d = deps.appendNode("dependency")
                                 d.appendNode("groupId", "com.bidscube")
-                                d.appendNode("artifactId", "bidscube-sdk")
+                                d.appendNode("artifactId", "sdk-full-video")
                                 d.appendNode("version", sdkVer)
                                 d.appendNode("type", "aar")
                                 d.appendNode("scope", "compile")

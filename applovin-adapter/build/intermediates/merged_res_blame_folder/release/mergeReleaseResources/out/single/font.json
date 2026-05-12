@@ -1,6 +1,6 @@
 [
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/font/roboto_medium_numbers.ttf",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-applovin-sdk-13.0.0-17:/font/roboto_medium_numbers.ttf"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/font/roboto_medium_numbers.ttf",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-applovin-sdk-13.0.0-24:/font/roboto_medium_numbers.ttf"
     }
 ]

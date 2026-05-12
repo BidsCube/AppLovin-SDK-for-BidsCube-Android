@@ -1,10 +1,10 @@
 [
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/layout-watch-v20/abc_alert_dialog_title_material.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-appcompat-1.6.1-10:/layout-watch-v20/abc_alert_dialog_title_material.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/layout-watch-v20/abc_alert_dialog_button_bar_material.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-appcompat-1.6.1-17:/layout-watch-v20/abc_alert_dialog_button_bar_material.xml"
     },
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/layout-watch-v20/abc_alert_dialog_button_bar_material.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-appcompat-1.6.1-10:/layout-watch-v20/abc_alert_dialog_button_bar_material.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/layout-watch-v20/abc_alert_dialog_title_material.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-appcompat-1.6.1-17:/layout-watch-v20/abc_alert_dialog_title_material.xml"
     }
 ]

@@ -28,7 +28,7 @@ Add **AppLovin MAX** and **one** Bidscube line (runtime + adapter). **Do not** a
 ```kotlin
 dependencies {
     implementation("com.applovin:applovin-sdk:13.0.0@aar")
-    implementation("com.bidscube:applovin-bidscube-adapter:1.2.4@aar")
+    implementation("com.bidscube:applovin-bidscube-adapter:1.2.5@aar")
 }
 ```
 
@@ -37,7 +37,7 @@ dependencies {
 ```groovy
 dependencies {
     implementation 'com.applovin:applovin-sdk:13.0.0@aar'
-    implementation 'com.bidscube:applovin-bidscube-adapter:1.2.4@aar'
+    implementation 'com.bidscube:applovin-bidscube-adapter:1.2.5@aar'
 }
 ```
 
@@ -114,11 +114,11 @@ Use this when you **do not** use AppLovin MAX.
 
 ### Maven
 
-Artifact **`com.bidscube:bidscube-sdk`** (version from `sdk/build.gradle.kts` / env `BidscubeVersion`, e.g. **1.2.4**):
+Artifact **`com.bidscube:bidscube-sdk`** (version from `sdk/build.gradle.kts` / env `BidscubeVersion`, e.g. **1.2.5**):
 
 ```kotlin
 dependencies {
-    implementation("com.bidscube:bidscube-sdk:1.2.4@aar")
+    implementation("com.bidscube:bidscube-sdk:1.2.5@aar")
 }
 ```
 
@@ -198,8 +198,8 @@ Implement **`onAdRenderOverride(AdRenderContext)`** in **`AdCallback`** and retu
 **Maven Central:** publish **`bidscube-sdk`** first, then **`applovin-bidscube-adapter`** (adapter POM depends on the SDK version used at publish time). Env: `BidscubeVersion`, `BidscubeAdapterVersion`; credentials and GPG per `gradle.properties`.
 
 ```bash
-export BidscubeVersion=1.2.4
-export BidscubeAdapterVersion=1.2.4
+export BidscubeVersion=1.2.5
+export BidscubeAdapterVersion=1.2.5
 ./gradlew :sdk:publishReleasePublicationToCentralRepository :applovin-adapter:publishReleasePublicationToCentralRepository --no-daemon
 ```
 

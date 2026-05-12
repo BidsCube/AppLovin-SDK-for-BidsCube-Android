@@ -1,6 +1,6 @@
 [
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/xml/image_share_filepaths.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-browser-1.8.0-36:/xml/image_share_filepaths.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/xml/image_share_filepaths.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-browser-1.8.0-43:/xml/image_share_filepaths.xml"
     }
 ]

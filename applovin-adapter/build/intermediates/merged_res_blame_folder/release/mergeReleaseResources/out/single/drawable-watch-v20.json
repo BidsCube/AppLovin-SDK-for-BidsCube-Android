@@ -1,6 +1,6 @@
 [
     {
-        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-42:/drawable-watch-v20/abc_dialog_material_background.xml",
-        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-appcompat-1.6.1-10:/drawable-watch-v20/abc_dialog_material_background.xml"
+        "merged": "com.applovin.mediation.adapters.bidscube.applovin-adapter-release-3:/drawable-watch-v20/abc_dialog_material_background.xml",
+        "source": "com.applovin.mediation.adapters.bidscube.applovin-adapter-appcompat-1.6.1-17:/drawable-watch-v20/abc_dialog_material_background.xml"
     }
 ]
