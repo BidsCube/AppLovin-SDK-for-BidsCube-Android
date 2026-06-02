@@ -1,20 +1,39 @@
 # Bidscube + AppLovin MAX Integration
 
+**Adapter version 1.2.6** · Maven group `com.bidscube`
+
 AppLovin MAX mediation adapter for Bidscube SDK. Use Bidscube as a custom network in AppLovin MAX.
+
+**Related docs:** [Main README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [RELEASE](../RELEASE.md)
 
 ## Requirements
 
 - **Android** minSdk 24+
 - **AppLovin MAX SDK** 13.0.0+
-- **Bidscube adapter** 1.2.5+ with Bidscube SDK pulled transitively
+- **One** Bidscube adapter artifact at **1.2.6** for your video mode (see [Android AAR modes](#android-aar-modes))
 - AppLovin **SDK Key** and **Ad Units**
 - Bidscube init value **`app_id`** and a MAX **Placement ID** per ad unit
+
+## Android AAR modes
+
+Pick **one** adapter artifact. Each bundles the matching Bidscube SDK runtime transitively via Maven POM.
+
+| Mode | Maven artifact | Video support |
+|------|----------------|---------------|
+| **LiteNoVideo** | `com.bidscube:applovin-bidscube-max-adapter-lite-no-video:1.2.6` | None (image/banner/native only) |
+| **WebViewVideoNoDesugar** | `com.bidscube:applovin-bidscube-max-adapter-webview-video:1.2.6` | WebView / HTML5 |
+| **LegacyMediaVideoNoDesugar** | `com.bidscube:applovin-bidscube-max-adapter-legacy-media-video:1.2.6` | VideoView / MediaPlayer |
+| **FullWithVideo** | `com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.6` | Media3 / Google IMA |
+
+The first three modes should **not** require `coreLibraryDesugaring` in the host app. **FullWithVideo** may require it.
+
+**MAX Dashboard adapter class** (all modes): `com.applovin.mediation.adapters.BidscubeMediationAdapter`
 
 ## Add the Adapter
 
 **Option A — Maven (recommended)**
 
-Add the AppLovin MAX SDK and the Bidscube adapter. The adapter brings in the Bidscube SDK automatically.
+Add the AppLovin MAX SDK and **one** Bidscube adapter for your video mode:
 
 **`app/build.gradle`** or **`app/build.gradle.kts`**:
 
@@ -26,37 +45,35 @@ repositories {
 
 dependencies {
     implementation 'com.applovin:applovin-sdk:13.0.0@aar'
-    implementation 'com.bidscube:applovin-bidscube-adapter:1.2.5@aar'
+    implementation 'com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.6@aar'
 }
 ```
 
-**Option B — Copy the adapter module**
+**Option B — Local AAR**
 
-Copy the `applovin-adapter` module from this repository (or the `Bidscube` folder from the AppLovin MAX SDK repo) into your project, then include it in **`settings.gradle`**:
+Build from this repository:
 
-```groovy
-include ':app'
-include ':Bidscube'
+```bash
+export BidscubeVersion=1.2.6
+export BidscubeAdapterVersion=1.2.6
+./gradlew :applovin-adapter:stageReleaseAars -PskipSigning=true
+# applovin-adapter/build/staged-aars/applovin-bidscube-max-adapter-*-1.2.6.aar
 ```
 
-If the adapter folder is not at the project root, set the path:
-
-```groovy
-include ':Bidscube'
-project(':Bidscube').projectDir = new File('path/to/Bidscube')
-```
-
-Add dependencies in **`app/build.gradle`**:
+Copy the AAR for your mode into `app/libs/` and add:
 
 ```groovy
 dependencies {
     implementation 'com.applovin:applovin-sdk:13.0.0@aar'
-    implementation 'androidx.browser:browser:1.6.0'
-    implementation project(':Bidscube')
+    implementation files('libs/applovin-bidscube-max-adapter-full-video-1.2.6.aar')
 }
 ```
 
-Sync the project and build.
+When using local AARs without Maven, also add the matching SDK AAR from `sdk/build/staged-aars/` unless you resolve it from Maven Central.
+
+**Option C — Gradle module**
+
+Copy the `applovin-adapter` and `sdk` modules from this repository into your project. Select the **same** `videoMode` flavor in both modules. Do **not** use `missingDimensionStrategy` to force `fullVideo`.
 
 ## AppLovin MAX Dashboard Setup
 
@@ -75,16 +92,19 @@ Use [AppLovin’s guide for custom SDK networks](https://support.axon.ai/en/max/
 - **Android Adapter Class Name**: `com.applovin.mediation.adapters.BidscubeMediationAdapter`
 - **`app_id`**: Bidscube init identifier used by the adapter during SDK initialization
 - **Placement ID**: the Bidscube placement used for the specific MAX ad unit request
-- **`request_authority`** (optional, **Server Parameters**): value passed to `SDKConfig.Builder.adRequestAuthority(...)`. Use **host** only (`my.trycloudflare.com`), **`host:port`** (`127.0.0.1:8787`), or a pasted prefix **`https://host/`** (scheme/path/query stripped by the SDK). Percent-encoded characters (e.g. `%3A`) are decoded. The SDK always requests **`https://<authority>/sdk?…`**; do not paste the full ad URL with query params here. If omitted, the SDK default host is used.
+- **`request_authority`** (optional, **Server Parameters**): value passed to `SDKConfig.Builder.adRequestAuthority(...)`. Use **host** only (`my.trycloudflare.com`), **`host:port`** (`127.0.0.1:8787`), or a pasted prefix **`https://host/`** (scheme/path/query stripped by the SDK). If omitted, the SDK default host is used.
 - **`ssp_host`** (optional): alias for `request_authority` if `request_authority` is empty
 
 The adapter reads `app_id` from **Server Parameters** and the ad-specific value from the MAX **Placement ID** field.
 
-### Endpoint / domain (traffic)
+## Adapter behavior (1.2.6)
 
-- **AppLovin MAX** does not define a dedicated “traffic domain” field for custom SDK networks. You configure **App ID**, **Placement ID**, and optional **Server Parameters** / **Custom Parameters** per placement (see [Integrating custom SDK networks](https://support.axon.ai/en/max/mediated-network-guides/integrating-custom-sdk-networks/) and [Building a custom adapter](https://developers.axon.ai/en/max/demand-partners/building-a-custom-adapter)).
-- **This adapter** passes optional **`request_authority`** (or **`ssp_host`**) from **Server Parameters** into `SDKConfig.Builder.adRequestAuthority(...)`. The Bidscube SDK uses that value when building HTTPS URLs (`/sdk` path) for image, video, and native ads. Default host if unset: `ssp-bcc-ads.com`.
-- For direct SDK integration (without MAX), use `new SDKConfig.Builder(context).adRequestAuthority("your.host")` the same way.
+| MAX API | Bidscube SDK call | Reward |
+|---------|-------------------|--------|
+| Interstitial show | `showInterstitialVideoAd` or `showImageAd` | Never |
+| Rewarded show | `showRewardedVideoAd` | Only on `onUserRewarded` |
+
+Show failures are reported as MAX **display failed**, not load failed.
 
 ## Consent (GDPR/CCPA)
 
@@ -99,23 +119,19 @@ Banner, MREC, Interstitial, Rewarded, Native.
 - If the network initializes but ads do not load, verify both **`app_id`** and the MAX **Placement ID**.
 - If MAX does not recognize the custom network, verify the Android adapter class name is `com.applovin.mediation.adapters.BidscubeMediationAdapter`.
 - Run consent before initializing AppLovin MAX and loading ads.
+- For **LiteNoVideo**, rewarded and interstitial video requests fail gracefully (unsupported / no fill) — use a video-capable adapter artifact if you need video.
+- If reward never fires, confirm you are on **1.2.6+** — reward is only forwarded from `onUserRewarded`.
 
 ## Release
 
-- **Artifact:** `com.bidscube:applovin-bidscube-adapter:1.2.5`
-- **Version source:** `BidscubeAdapterVersion` env var, default `1.2.5`
-- **GitHub release:** push a tag such as `applovin-adapter-v1.2.5`
+- **Artifacts:** `com.bidscube:applovin-bidscube-max-adapter-*` (four variants at **1.2.6**)
+- **Version source:** `BidscubeAdapterVersion` env var, default `1.2.6`
+- **Full maintainer guide:** [RELEASE.md](../RELEASE.md)
 
 ```bash
-git tag applovin-adapter-v1.2.5
-git push origin applovin-adapter-v1.2.5
-```
-
-- **Local publish:**
-
-```bash
-export BidscubeAdapterVersion=1.2.5
-./gradlew :applovin-adapter:assembleRelease :applovin-adapter:publishReleasePublicationToCentralRepository
+export BidscubeVersion=1.2.6
+export BidscubeAdapterVersion=1.2.6
+./gradlew clean stageAllReleaseAars -PskipSigning=true
 ```
 
 For Maven publishing, provide `mavenCentralUsername` and `mavenCentralPassword`; signing uses GPG (`useGpgCmd()`).

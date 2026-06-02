@@ -13,10 +13,26 @@ android {
     namespace = "com.applovin.mediation.adapters.bidscube"
     compileSdk = 36
 
+    flavorDimensions += "videoMode"
+
     defaultConfig {
         minSdk = 24
         consumerProguardFiles("consumer-rules.pro")
-        missingDimensionStrategy("videoMode", "fullVideo")
+    }
+
+    productFlavors {
+        create("liteNoVideo") {
+            dimension = "videoMode"
+        }
+        create("webViewVideo") {
+            dimension = "videoMode"
+        }
+        create("legacyMediaVideo") {
+            dimension = "videoMode"
+        }
+        create("fullVideo") {
+            dimension = "videoMode"
+        }
     }
 
     buildTypes {
@@ -35,40 +51,64 @@ android {
     }
 
     publishing {
-        singleVariant("release")
+        singleVariant("liteNoVideoRelease") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+        singleVariant("webViewVideoRelease") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+        singleVariant("legacyMediaVideoRelease") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+        singleVariant("fullVideoRelease") {
+            withSourcesJar()
+            withJavadocJar()
+        }
     }
 }
 
 dependencies {
-    api(project(":sdk"))
+    add("liteNoVideoApi", project(":sdk"))
+    add("webViewVideoApi", project(":sdk"))
+    add("legacyMediaVideoApi", project(":sdk"))
+    add("fullVideoApi", project(":sdk"))
     // 13.0.x uses com.applovin.mediation.adapter (+ .parameters / .listeners). Newer SDKs use com.applovin.mediation.adapters — see BidscubeMediationAdapter imports when bumping.
     implementation("com.applovin:applovin-sdk:13.0.0@aar")
     implementation("androidx.annotation:annotation:1.8.2")
 }
 
-val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.5"
+val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.6"
 
 afterEvaluate {
-    val releaseComponent = components.findByName("release")
-    if (releaseComponent != null) {
-        publishing {
-            publications {
-                create<MavenPublication>("release") {
-                    groupId = "com.bidscube"
-                    artifactId = "applovin-bidscube-adapter"
-                    version = adapterVersion
+    val flavorPublicationConfig = linkedMapOf(
+        "liteNoVideoRelease" to Triple("applovin-bidscube-max-adapter-lite-no-video", "sdk-lite-no-video", "LiteNoVideo"),
+        "webViewVideoRelease" to Triple("applovin-bidscube-max-adapter-webview-video", "sdk-webview-video", "WebViewVideo"),
+        "legacyMediaVideoRelease" to Triple("applovin-bidscube-max-adapter-legacy-media-video", "sdk-legacy-media-video", "LegacyMediaVideo"),
+        "fullVideoRelease" to Triple("applovin-bidscube-max-adapter-full-video", "sdk-full-video", "FullVideo")
+    )
 
-                    from(releaseComponent)
+    publishing {
+        publications {
+            flavorPublicationConfig.forEach { (componentName, config) ->
+                val (adapterArtifactId, sdkArtifactId, flavorTaskPrefix) = config
+                create<MavenPublication>(componentName) {
+                    groupId = "com.bidscube"
+                    artifactId = adapterArtifactId
+                    version = adapterVersion
+                    artifact(tasks.named("bundle${flavorTaskPrefix}ReleaseAar"))
 
                     pom {
-                        name.set("AppLovin Bidscube Adapter")
-                        description.set("AppLovin MAX mediation adapter for Bidscube SDK. Includes Bidscube SDK transitively.")
-                        url.set("https://github.com/BidsCube/bidscube-sdk")
+                        name.set("AppLovin Bidscube MAX Adapter")
+                        description.set("AppLovin MAX mediation adapter for Bidscube SDK. Includes matching Bidscube SDK artifact transitively.")
+                        url.set("https://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android")
 
                         licenses {
                             license {
                                 name.set("MIT License")
-                                url.set("https://github.com/BidsCube/bidscube-sdk/blob/main/LICENSE")
+                                url.set("https://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android/blob/main/LICENSE")
                             }
                         }
 
@@ -83,9 +123,9 @@ afterEvaluate {
                         }
 
                         scm {
-                            connection.set("scm:git:git://github.com/BidsCube/bidscube-sdk.git")
-                            developerConnection.set("scm:git:ssh://github.com/BidsCube/bidscube-sdk.git")
-                            url.set("https://github.com/BidsCube/bidscube-sdk")
+                            connection.set("scm:git:git://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android.git")
+                            developerConnection.set("scm:git:ssh://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android.git")
+                            url.set("https://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android")
                         }
 
                         withXml {
@@ -98,7 +138,8 @@ afterEvaluate {
                                     else root.appendNode("dependencies")
                                 else -> root.appendNode("dependencies")
                             }
-                            var hasBidscubeSdk = false
+
+                            val toRemove = mutableListOf<Node>()
                             for (c in deps.children()) {
                                 val n = c as? Node ?: continue
                                 if (n.name().toString() != "dependency") continue
@@ -108,32 +149,56 @@ afterEvaluate {
                                         if (aidRaw.isNotEmpty()) (aidRaw[0] as Node).text() else null
                                     else -> null
                                 }
-                                if (artifactIdText == "sdk-full-video") {
-                                    hasBidscubeSdk = true
-                                    break
+                                if (artifactIdText?.startsWith("sdk-") == true || artifactIdText == "bidscube-sdk") {
+                                    toRemove.add(n)
                                 }
                             }
-                            if (!hasBidscubeSdk) {
-                                val d = deps.appendNode("dependency")
-                                d.appendNode("groupId", "com.bidscube")
-                                d.appendNode("artifactId", "sdk-full-video")
-                                d.appendNode("version", sdkVer)
-                                d.appendNode("type", "aar")
-                                d.appendNode("scope", "compile")
-                            }
+                            toRemove.forEach { deps.remove(it) }
+
+                            val d = deps.appendNode("dependency")
+                            d.appendNode("groupId", "com.bidscube")
+                            d.appendNode("artifactId", sdkArtifactId)
+                            d.appendNode("version", sdkVer)
+                            d.appendNode("type", "aar")
+                            d.appendNode("scope", "compile")
                         }
                     }
                 }
             }
+        }
 
-            repositories {
-                maven {
-                    name = "central"
-                    url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                    credentials {
-                        username = project.findProperty("mavenCentralUsername") as String? ?: ""
-                        password = project.findProperty("mavenCentralPassword") as String? ?: ""
-                    }
+        repositories {
+            maven {
+                name = "central"
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = project.findProperty("mavenCentralUsername") as String? ?: ""
+                    password = project.findProperty("mavenCentralPassword") as String? ?: ""
+                }
+            }
+        }
+    }
+
+    tasks.register("stageReleaseAars") {
+        dependsOn(
+            "assembleLiteNoVideoRelease",
+            "assembleWebViewVideoRelease",
+            "assembleLegacyMediaVideoRelease",
+            "assembleFullVideoRelease"
+        )
+        doLast {
+            val outputDir = layout.buildDirectory.dir("staged-aars").get().asFile
+            outputDir.mkdirs()
+            val mappings = linkedMapOf(
+                "liteNoVideo" to "applovin-bidscube-max-adapter-lite-no-video-$adapterVersion.aar",
+                "webViewVideo" to "applovin-bidscube-max-adapter-webview-video-$adapterVersion.aar",
+                "legacyMediaVideo" to "applovin-bidscube-max-adapter-legacy-media-video-$adapterVersion.aar",
+                "fullVideo" to "applovin-bidscube-max-adapter-full-video-$adapterVersion.aar"
+            )
+            mappings.forEach { (flavor, outName) ->
+                val src = layout.buildDirectory.file("outputs/aar/applovin-adapter-$flavor-release.aar").get().asFile
+                if (src.exists()) {
+                    src.copyTo(outputDir.resolve(outName), overwrite = true)
                 }
             }
         }
@@ -146,7 +211,11 @@ extensions.configure<SigningExtension>("signing") {
 
 afterEvaluate {
     if (!skipSigning) {
-        val pub = publishing.publications.findByName("release") ?: return@afterEvaluate
-        extensions.getByType(SigningExtension::class.java).sign(pub)
+        publishing.publications.forEach { publication ->
+            extensions.getByType(SigningExtension::class.java).sign(publication)
+        }
+    }
+    tasks.matching { it.name.startsWith("publish", ignoreCase = true) }.configureEach {
+        dependsOn("stageReleaseAars")
     }
 }

@@ -8,7 +8,7 @@ plugins {
 }
 
 // Published Maven version; also BuildConfig.SDK_VERSION_NAME at runtime.
-val sdkVersionString = System.getenv("BidscubeVersion") ?: "1.2.5"
+val sdkVersionString = System.getenv("BidscubeVersion") ?: "1.2.6"
 val sdkVersion by extra(sdkVersionString)
 
 val skipSigning = (project.findProperty("skipSigning") as String?) == "true"
@@ -112,12 +112,12 @@ afterEvaluate {
                     pom {
                         name.set("Bidscube SDK")
                         description.set("The official Bidscube SDK for Android advertising platform")
-                        url.set("https://github.com/BidsCube/bidscube-sdk")
+                        url.set("https://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android")
 
                         licenses {
                             license {
                                 name.set("MIT License")
-                                url.set("https://github.com/BidsCube/bidscube-sdk/blob/main/LICENSE")
+                                url.set("https://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android/blob/main/LICENSE")
                             }
                         }
 
@@ -132,9 +132,9 @@ afterEvaluate {
                         }
 
                         scm {
-                            connection.set("scm:git:git://github.com/BidsCube/bidscube-sdk.git")
-                            developerConnection.set("scm:git:ssh://github.com/BidsCube/bidscube-sdk.git")
-                            url.set("https://github.com/BidsCube/bidscube-sdk")
+                            connection.set("scm:git:git://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android.git")
+                            developerConnection.set("scm:git:ssh://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android.git")
+                            url.set("https://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android")
                         }
                     }
                 }

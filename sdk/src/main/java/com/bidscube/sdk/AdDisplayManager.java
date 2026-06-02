@@ -26,6 +26,7 @@ import android.widget.TextView;
 
 import com.bidscube.sdk.R;
 import com.bidscube.sdk.ads.AdType;
+import com.bidscube.sdk.ads.VideoAdFormat;
 import com.bidscube.sdk.ads.VideoAdType;
 import com.bidscube.sdk.interfaces.AdCallback;
 import com.bidscube.sdk.models.AdRenderContext;
@@ -140,7 +141,7 @@ public class AdDisplayManager {
     }
 
     private static void fireVideoAdCompleted(String placementId, AdCallback callback, AtomicBoolean completed,
-            AtomicBoolean skipped) {
+            AtomicBoolean skipped, VideoAdFormat format) {
         if (callback == null || placementId == null || skipped.get()) {
             return;
         }
@@ -149,6 +150,9 @@ public class AdDisplayManager {
         }
         try {
             callback.onVideoAdCompleted(placementId);
+            if (format == VideoAdFormat.REWARDED) {
+                callback.onUserRewarded(placementId);
+            }
         } catch (Throwable ignored) {
         }
     }
@@ -185,14 +189,14 @@ public class AdDisplayManager {
     }
 
     private static void attachVideoLifecycleCallbacks(BidscubeVastVideoPlayer videoPlayer, String placementId,
-            AdCallback callback, AtomicBoolean completed, AtomicBoolean skipped) {
+            AdCallback callback, AtomicBoolean completed, AtomicBoolean skipped, VideoAdFormat format) {
         if (videoPlayer == null) {
             return;
         }
         videoPlayer.setOnVideoCompletionListener(new BidscubeVastVideoPlayer.OnVideoCompletionListener() {
             @Override
             public void onVideoCompleted() {
-                fireVideoAdCompleted(placementId, callback, completed, skipped);
+                fireVideoAdCompleted(placementId, callback, completed, skipped, format);
             }
 
             @Override
@@ -894,6 +898,10 @@ public class AdDisplayManager {
      * This method respects the position value from the ad response
      */
     void showVideoAdWithResponsePosition(String placementId, String url, AdCallback callback) {
+        showVideoAdWithResponsePosition(placementId, url, VideoAdFormat.INTERSTITIAL, callback);
+    }
+
+    void showVideoAdWithResponsePosition(String placementId, String url, VideoAdFormat format, AdCallback callback) {
         HttpProvider.sendGetRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse responseBody) {
@@ -942,7 +950,7 @@ public class AdDisplayManager {
                         AtomicBoolean completed = new AtomicBoolean(false);
                         AtomicBoolean skipped = new AtomicBoolean(false);
                         AtomicBoolean closed = new AtomicBoolean(false);
-                        attachVideoLifecycleCallbacks(videoPlayer, placementId, callback, completed, skipped);
+                        attachVideoLifecycleCallbacks(videoPlayer, placementId, callback, completed, skipped, format);
                         videoPlayer.setLayoutParams(new FrameLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -1019,7 +1027,7 @@ public class AdDisplayManager {
                         AtomicBoolean completed = new AtomicBoolean(false);
                         AtomicBoolean skipped = new AtomicBoolean(false);
                         AtomicBoolean closed = new AtomicBoolean(false);
-                        attachVideoLifecycleCallbacks(videoPlayer, placementId, callback, completed, skipped);
+                        attachVideoLifecycleCallbacks(videoPlayer, placementId, callback, completed, skipped, format);
                         int heightPx = (int) TypedValue.applyDimension(
                                 TypedValue.COMPLEX_UNIT_DIP, 300, context.getResources().getDisplayMetrics());
                         videoPlayer.setLayoutParams(new FrameLayout.LayoutParams(
@@ -1600,7 +1608,8 @@ public class AdDisplayManager {
                         }
                         AtomicBoolean completed = new AtomicBoolean(false);
                         AtomicBoolean skipped = new AtomicBoolean(false);
-                        attachVideoLifecycleCallbacks(videoPlayer, placementId, callback, completed, skipped);
+                        attachVideoLifecycleCallbacks(videoPlayer, placementId, callback, completed, skipped,
+                                VideoAdFormat.INTERSTITIAL);
                         playerHolder[0] = videoPlayer;
                         int heightPx = (int) TypedValue.applyDimension(
                                 TypedValue.COMPLEX_UNIT_DIP, 300, context.getResources().getDisplayMetrics());

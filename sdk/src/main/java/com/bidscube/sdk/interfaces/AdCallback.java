@@ -89,4 +89,10 @@ public interface AdCallback {
      * @param buttonText The text of the button that was clicked
      */
     default void onInstallButtonClicked(String placementId, String buttonText) {}
+
+    /**
+     * Called only for rewarded video, after the creative has fully completed playback.
+     * Never invoked for interstitial video, dismiss, skip, or errors.
+     */
+    default void onUserRewarded(String placementId) {}
 }

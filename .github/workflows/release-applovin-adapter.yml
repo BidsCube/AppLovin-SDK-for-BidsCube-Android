@@ -23,7 +23,7 @@ jobs:
       - name: Require tag ref for manual runs
         if: github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/')
         run: |
-          echo "::error::Select a tag under \"Use workflow from\" (e.g. applovin-adapter-v1.2.5), not branch '${{ github.ref_name }}'. Or push a tag to trigger: git push origin applovin-adapter-vX.Y.Z"
+          echo "::error::Select a tag under \"Use workflow from\" (e.g. applovin-adapter-v1.2.6), not branch '${{ github.ref_name }}'. Or push a tag: git push origin applovin-adapter-vX.Y.Z"
           exit 1
 
       - name: Set up JDK 17
@@ -95,27 +95,25 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Build SDK and adapter AARs
+      - name: Build all SDK and adapter AAR variants
         env:
           BidscubeVersion: ${{ steps.version.outputs.version }}
           BidscubeAdapterVersion: ${{ steps.version.outputs.version }}
-        run: ./gradlew :sdk:stageReleaseAars :applovin-adapter:assembleRelease --no-daemon --stacktrace
+        run: ./gradlew clean stageAllReleaseAars -PskipSigning=true --no-daemon --stacktrace
 
-      - name: Verify AARs
+      - name: Verify staged AARs
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          if [ ! -f "applovin-adapter/build/outputs/aar/applovin-adapter-release.aar" ]; then
-            echo "Adapter AAR not found"
-            ls -la applovin-adapter/build/outputs/aar/ 2>/dev/null || true
-            exit 1
-          fi
-          for core in \
-            "sdk/build/staged-aars/bidscube-sdk-lite-no-video-${{ steps.version.outputs.version }}.aar" \
-            "sdk/build/staged-aars/bidscube-sdk-webview-video-${{ steps.version.outputs.version }}.aar" \
-            "sdk/build/staged-aars/bidscube-sdk-legacy-media-video-${{ steps.version.outputs.version }}.aar" \
-            "sdk/build/staged-aars/bidscube-sdk-full-video-${{ steps.version.outputs.version }}.aar"; do
-            if [ ! -f "$core" ]; then
-              echo "Core AAR not found: $core"
-              ls -la sdk/build/staged-aars/ 2>/dev/null || true
+          DIR="build/staged-aars"
+          for f in \
+            "applovin-bidscube-max-adapter-lite-no-video-${VERSION}.aar" \
+            "applovin-bidscube-max-adapter-webview-video-${VERSION}.aar" \
+            "applovin-bidscube-max-adapter-legacy-media-video-${VERSION}.aar" \
+            "applovin-bidscube-max-adapter-full-video-${VERSION}.aar"; do
+            if [ ! -f "$DIR/$f" ]; then
+              echo "Missing adapter AAR: $DIR/$f"
+              ls -la "$DIR" 2>/dev/null || true
               exit 1
             fi
           done
@@ -125,18 +123,33 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: AppLovin Bidscube Adapter ${{ steps.version.outputs.version }}
+          name: AppLovin Bidscube MAX Adapter ${{ steps.version.outputs.version }}
           body: |
-            **AppLovin Bidscube Adapter** ${{ steps.version.outputs.version }}
+            **AppLovin Bidscube MAX adapter** ${{ steps.version.outputs.version }}
 
-            - Maven: `com.bidscube:applovin-bidscube-adapter:${{ steps.version.outputs.version }}` — **окремо `bidscube-sdk` не додавайте**, підтягнеться з POM.
-            - GitHub AAR: для збірки без Maven додайте `applovin-adapter-release.aar` і **один із** core AAR-ів зі `sdk/build/staged-aars/` під ваш Android mode (`lite-no-video`, `webview-video`, `legacy-media-video`, `full-video`).
+            Four adapter AAR modes. Pick **one** Maven coordinate — the matching SDK artifact is pulled transitively.
+
+            | Mode | Maven coordinate |
+            |------|------------------|
+            | LiteNoVideo | `com.bidscube:applovin-bidscube-max-adapter-lite-no-video:${{ steps.version.outputs.version }}` |
+            | WebViewVideoNoDesugar | `com.bidscube:applovin-bidscube-max-adapter-webview-video:${{ steps.version.outputs.version }}` |
+            | LegacyMediaVideoNoDesugar | `com.bidscube:applovin-bidscube-max-adapter-legacy-media-video:${{ steps.version.outputs.version }}` |
+            | FullWithVideo | `com.bidscube:applovin-bidscube-max-adapter-full-video:${{ steps.version.outputs.version }}` |
+
+            MAX Dashboard class: `com.applovin.mediation.adapters.BidscubeMediationAdapter`
+
+            Do **not** add a separate `bidscube-sdk` dependency when using Maven — the adapter POM includes the matching SDK artifact.
+
+            See [CHANGELOG.md](CHANGELOG.md) and [applovin-adapter/README.md](applovin-adapter/README.md).
           files: |
-            applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
-            sdk/build/staged-aars/bidscube-sdk-lite-no-video-${{ steps.version.outputs.version }}.aar
-            sdk/build/staged-aars/bidscube-sdk-webview-video-${{ steps.version.outputs.version }}.aar
-            sdk/build/staged-aars/bidscube-sdk-legacy-media-video-${{ steps.version.outputs.version }}.aar
-            sdk/build/staged-aars/bidscube-sdk-full-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/applovin-bidscube-max-adapter-lite-no-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/applovin-bidscube-max-adapter-webview-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/applovin-bidscube-max-adapter-legacy-media-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/applovin-bidscube-max-adapter-full-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/bidscube-sdk-lite-no-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/bidscube-sdk-webview-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/bidscube-sdk-legacy-media-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/bidscube-sdk-full-video-${{ steps.version.outputs.version }}.aar
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
