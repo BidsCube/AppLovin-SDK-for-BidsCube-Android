@@ -16,8 +16,9 @@ import com.bidscube.sdk.interfaces.IBidscubeSDK;
 import com.bidscube.sdk.models.DeviceInfo;
 import com.bidscube.sdk.models.enums.AdPosition;
 import com.bidscube.sdk.ads.ImageAdType;
-import com.bidscube.sdk.ads.VideoAdType;
 import com.bidscube.sdk.ads.NativeAdType;
+import com.bidscube.sdk.ads.VideoAdFormat;
+import com.bidscube.sdk.ads.VideoAdType;
 import com.bidscube.sdk.stats.SdkStatsReporter;
 import com.bidscube.sdk.utils.SDKLogger;
 
@@ -115,6 +116,11 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
 
     @Override
     public void showVideoAd(String placementId, AdCallback callback) {
+        showInterstitialVideoAd(placementId, callback);
+    }
+
+    @Override
+    public void showInterstitialVideoAd(String placementId, AdCallback callback) {
         checkInitialization();
         if (callback != null)
             callback.onAdLoading(placementId);
@@ -122,14 +128,35 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         try {
             VideoAdType videoAdType = new VideoAdType(placementId);
             String url = videoAdType.buildRequestUrl(deviceInfo).toString();
-            Log.i(INTEGRATION, "showVideoAd: placement=" + placementId + " requestUrl=" + url);
+            Log.i(INTEGRATION, "showInterstitialVideoAd: placement=" + placementId + " requestUrl=" + url);
 
-            adDisplayManager.showVideoAdWithResponsePosition(placementId, url, callback);
+            adDisplayManager.showVideoAdWithResponsePosition(placementId, url, VideoAdFormat.INTERSTITIAL, callback);
 
         } catch (Exception e) {
-            SDKLogger.e(TAG, "Failed to show video ad: " + e.getMessage(), e);
+            SDKLogger.e(TAG, "Failed to show interstitial video ad: " + e.getMessage(), e);
             if (callback != null) {
-                callback.onAdFailed(placementId, -1, "Failed to show video ad: " + e.getMessage());
+                callback.onAdFailed(placementId, -1, "Failed to show interstitial video ad: " + e.getMessage());
+            }
+        }
+    }
+
+    @Override
+    public void showRewardedVideoAd(String placementId, AdCallback callback) {
+        checkInitialization();
+        if (callback != null)
+            callback.onAdLoading(placementId);
+
+        try {
+            VideoAdType videoAdType = new VideoAdType(placementId);
+            String url = videoAdType.buildRequestUrl(deviceInfo).toString();
+            Log.i(INTEGRATION, "showRewardedVideoAd: placement=" + placementId + " requestUrl=" + url);
+
+            adDisplayManager.showVideoAdWithResponsePosition(placementId, url, VideoAdFormat.REWARDED, callback);
+
+        } catch (Exception e) {
+            SDKLogger.e(TAG, "Failed to show rewarded video ad: " + e.getMessage(), e);
+            if (callback != null) {
+                callback.onAdFailed(placementId, -1, "Failed to show rewarded video ad: " + e.getMessage());
             }
         }
     }

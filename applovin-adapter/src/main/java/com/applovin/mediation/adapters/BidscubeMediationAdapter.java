@@ -62,7 +62,7 @@ public class BidscubeMediationAdapter
 
     @Override
     public String getAdapterVersion() {
-        return getVersionString(BidscubeMediationAdapter.class, "1.2.5.0");
+        return getVersionString(BidscubeMediationAdapter.class, "1.2.6");
     }
 
     @Override
@@ -144,6 +144,25 @@ public class BidscubeMediationAdapter
                     + " BidscubeSDK.isInitialized()=" + BidscubeSDK.isInitialized());
             onCompletionListener.onCompletion(status, null);
         }
+    }
+
+    /**
+     * Returns true when MAX/server params explicitly request a static/image interstitial.
+     * TODO: improve creative type detection when MAX exposes a reliable format parameter.
+     */
+    private static boolean isStaticImageInterstitial(final MaxAdapterResponseParameters parameters) {
+        final String[] keys = {"creative_type", "ad_format", "format", "bidscube_creative_type"};
+        for (final String key : keys) {
+            final String value = parameters.getServerParameters().getString(key);
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
+            final String normalized = value.trim().toLowerCase();
+            if ("image".equals(normalized) || "static".equals(normalized) || "banner".equals(normalized)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -239,10 +258,11 @@ public class BidscubeMediationAdapter
             final MaxInterstitialAdapterListener listener) {
         final String placementId = parameters.getThirdPartyAdPlacementId();
         final String pid = placementId != null ? placementId : "";
+        final boolean staticImage = isStaticImageInterstitial(parameters);
         log("Showing Bidscube interstitial ad for placement: " + pid + "...");
-        diag("showInterstitialAd: placement=" + pid);
+        diag("showInterstitialAd: placement=" + pid + " staticImage=" + staticImage);
 
-        BidscubeSDK.showImageAd(pid, new com.bidscube.sdk.interfaces.AdCallback() {
+        final com.bidscube.sdk.interfaces.AdCallback callback = new com.bidscube.sdk.interfaces.AdCallback() {
             @Override
             public void onAdLoading(String placementId) {
                 diag("showInterstitialAd: onAdLoading " + placementId);
@@ -271,11 +291,22 @@ public class BidscubeMediationAdapter
             }
 
             @Override
+            public void onUserRewarded(String placementId) {
+                // Interstitial must never reward.
+            }
+
+            @Override
             public void onAdFailed(String placementId, int errorCode, String errorMessage) {
                 diag("showInterstitialAd: onAdFailed " + placementId + " code=" + errorCode + " " + errorMessage);
-                listener.onInterstitialAdLoadFailed(new MaxAdapterError(errorCode, errorMessage));
+                listener.onInterstitialAdDisplayFailed(new MaxAdapterError(errorCode, errorMessage));
             }
-        });
+        };
+
+        if (staticImage) {
+            BidscubeSDK.showImageAd(pid, callback);
+        } else {
+            BidscubeSDK.showInterstitialVideoAd(pid, callback);
+        }
     }
 
     @Override
@@ -302,12 +333,12 @@ public class BidscubeMediationAdapter
             final MaxRewardedAdapterListener listener) {
         final String placementId = parameters.getThirdPartyAdPlacementId();
         final String pid = placementId != null ? placementId : "";
-        final AtomicBoolean rewardGranted = new AtomicBoolean(false);
+        final AtomicBoolean rewarded = new AtomicBoolean(false);
         log("Showing Bidscube rewarded ad for placement: " + pid + "...");
-        diag("showRewardedAd: placement=" + pid + " (video / VAST pipeline)");
+        diag("showRewardedAd: placement=" + pid + " (rewarded video / VAST pipeline)");
         configureReward(parameters);
 
-        BidscubeSDK.showVideoAd(pid, new com.bidscube.sdk.interfaces.AdCallback() {
+        BidscubeSDK.showRewardedVideoAd(pid, new com.bidscube.sdk.interfaces.AdCallback() {
             @Override
             public void onAdLoading(String placementId) {
                 diag("showRewardedAd: onAdLoading " + placementId);
@@ -330,33 +361,35 @@ public class BidscubeMediationAdapter
             }
 
             @Override
+            public void onUserRewarded(String placementId) {
+                diag("showRewardedAd: onUserRewarded " + placementId);
+                if (rewarded.compareAndSet(false, true)) {
+                    listener.onUserRewarded(getReward());
+                }
+            }
+
+            @Override
+            public void onVideoAdCompleted(String placementId) {
+                diag("showRewardedAd: onVideoAdCompleted " + placementId);
+                // Reward only from onUserRewarded.
+            }
+
+            @Override
+            public void onVideoAdSkipped(String placementId) {
+                diag("showRewardedAd: onVideoAdSkipped " + placementId);
+                // Do not reward on skip.
+            }
+
+            @Override
             public void onAdClosed(String placementId) {
                 diag("showRewardedAd: onAdClosed " + placementId);
                 listener.onRewardedAdHidden();
             }
 
             @Override
-            public void onVideoAdStarted(String placementId) {
-                diag("showRewardedAd: onVideoAdStarted " + placementId);
-            }
-
-            @Override
-            public void onVideoAdCompleted(String placementId) {
-                diag("showRewardedAd: onVideoAdCompleted " + placementId);
-                if (rewardGranted.compareAndSet(false, true)) {
-                    listener.onUserRewarded(getReward());
-                }
-            }
-
-            @Override
-            public void onVideoAdSkipped(String placementId) {
-                diag("showRewardedAd: onVideoAdSkipped " + placementId);
-            }
-
-            @Override
             public void onAdFailed(String placementId, int errorCode, String errorMessage) {
                 diag("showRewardedAd: onAdFailed " + placementId + " code=" + errorCode + " " + errorMessage);
-                listener.onRewardedAdLoadFailed(new MaxAdapterError(errorCode, errorMessage));
+                listener.onRewardedAdDisplayFailed(new MaxAdapterError(errorCode, errorMessage));
             }
         });
     }

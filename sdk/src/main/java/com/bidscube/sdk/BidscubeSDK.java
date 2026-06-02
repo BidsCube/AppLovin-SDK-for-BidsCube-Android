@@ -73,6 +73,22 @@ public class BidscubeSDK {
     }
 
     /**
+     * Interstitial VAST (no reward).
+     */
+    public static void showInterstitialVideoAd(String placementId, AdCallback callback) {
+        checkInitialization();
+        sdkInstance.showInterstitialVideoAd(placementId, callback);
+    }
+
+    /**
+     * Rewarded VAST; reward only after full completion.
+     */
+    public static void showRewardedVideoAd(String placementId, AdCallback callback) {
+        checkInitialization();
+        sdkInstance.showRewardedVideoAd(placementId, callback);
+    }
+
+    /**
      * Show skippable video ad - display mode determined by response position
      *
      * @param placementId       Ad placement ID

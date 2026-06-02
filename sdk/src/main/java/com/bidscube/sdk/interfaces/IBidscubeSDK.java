@@ -38,6 +38,16 @@ public interface IBidscubeSDK {
      */
     void showVideoAd(String placementId, AdCallback callback);
 
+    /**
+     * Full-screen or windowed interstitial VAST; never invokes {@link AdCallback#onUserRewarded(String)}.
+     */
+    void showInterstitialVideoAd(String placementId, AdCallback callback);
+
+    /**
+     * Rewarded VAST; {@link AdCallback#onUserRewarded(String)} only after full playback completion.
+     */
+    void showRewardedVideoAd(String placementId, AdCallback callback);
+
     void showSkippableVideoAd(String placementId, AdCallback callback);
 
     /**
