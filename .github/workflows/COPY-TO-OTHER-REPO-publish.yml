@@ -1,8 +1,8 @@
 # ---------------------------------------------------------------------------
 # COPY THIS FILE to your repo (e.g. AppLovin-SDK-for-BidsCube-Android) as:
 #   .github/workflows/publish.yml
-# Replace the existing publish.yml so CI builds `:sdk:stageReleaseAars`
-# (the SDK now ships four staged flavor AARs, not a single sdk-release.aar).
+# Replace the existing publish.yml so CI runs only :sdk:assembleRelease
+# (no sourcesJar/javadocJar — those tasks do not exist in the sdk module).
 # ---------------------------------------------------------------------------
 
 name: Fast Release
@@ -92,34 +92,24 @@ jobs:
           "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0" || true
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Build staged SDK AARs
-        run: ./gradlew clean :sdk:stageReleaseAars --no-daemon --stacktrace
+      - name: Build AAR (only assembleRelease — no sourcesJar/javadocJar)
+        run: ./gradlew clean :sdk:assembleRelease --no-daemon --stacktrace
 
-      - name: Verify AARs
+      - name: Verify AAR
         run: |
-          for core in \
-            sdk/build/staged-aars/bidscube-sdk-lite-no-video-*.aar \
-            sdk/build/staged-aars/bidscube-sdk-webview-video-*.aar \
-            sdk/build/staged-aars/bidscube-sdk-legacy-media-video-*.aar \
-            sdk/build/staged-aars/bidscube-sdk-full-video-*.aar; do
-            if ! compgen -G "$core" > /dev/null; then
-              echo "Missing staged core AAR pattern: $core"
-              ls -la sdk/build/staged-aars 2>/dev/null || true
-              exit 1
-            fi
-          done
+          if ! compgen -G "sdk/build/outputs/aar/*.aar" > /dev/null; then
+            echo "AAR not found"
+            ls -la sdk/build/outputs/aar 2>/dev/null || true
+            exit 1
+          fi
 
-      - name: Create GitHub Release and upload AARs
+      - name: Create GitHub Release and upload AAR
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          body: "Bidscube Android SDK ${{ github.ref_name }} (lite-no-video, webview-video, legacy-media-video, full-video)"
-          files: |
-            sdk/build/staged-aars/bidscube-sdk-lite-no-video-*.aar
-            sdk/build/staged-aars/bidscube-sdk-webview-video-*.aar
-            sdk/build/staged-aars/bidscube-sdk-legacy-media-video-*.aar
-            sdk/build/staged-aars/bidscube-sdk-full-video-*.aar
+          body: "AppLovin Bidscube SDK ${{ github.ref_name }}"
+          files: sdk/build/outputs/aar/sdk-release.aar
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

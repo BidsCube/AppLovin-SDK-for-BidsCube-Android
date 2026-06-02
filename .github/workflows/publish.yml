@@ -18,6 +18,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set version from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -64,42 +73,65 @@ jobs:
           "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0" || true
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Build SDK and AppLovin adapter AARs
-        run: ./gradlew clean :sdk:stageReleaseAars :applovin-adapter:assembleRelease --no-daemon --stacktrace
+      - name: Build all SDK and adapter AAR variants
+        env:
+          BidscubeVersion: ${{ steps.version.outputs.version }}
+          BidscubeAdapterVersion: ${{ steps.version.outputs.version }}
+        run: ./gradlew clean stageAllReleaseAars -PskipSigning=true --no-daemon --stacktrace
 
-      - name: Verify AARs
+      - name: Verify staged AARs
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          if [ ! -f "applovin-adapter/build/outputs/aar/applovin-adapter-release.aar" ]; then
-            echo "applovin-adapter-release.aar missing"; exit 1
-          fi
-          for core in \
-            sdk/build/staged-aars/bidscube-sdk-lite-no-video-*.aar \
-            sdk/build/staged-aars/bidscube-sdk-webview-video-*.aar \
-            sdk/build/staged-aars/bidscube-sdk-legacy-media-video-*.aar \
-            sdk/build/staged-aars/bidscube-sdk-full-video-*.aar; do
-            if ! compgen -G "$core" > /dev/null; then
-              echo "Missing staged core AAR pattern: $core"
-              ls -la sdk/build/staged-aars/ 2>/dev/null || true
+          DIR="build/staged-aars"
+          EXPECTED=(
+            "bidscube-sdk-lite-no-video-${VERSION}.aar"
+            "bidscube-sdk-webview-video-${VERSION}.aar"
+            "bidscube-sdk-legacy-media-video-${VERSION}.aar"
+            "bidscube-sdk-full-video-${VERSION}.aar"
+            "applovin-bidscube-max-adapter-lite-no-video-${VERSION}.aar"
+            "applovin-bidscube-max-adapter-webview-video-${VERSION}.aar"
+            "applovin-bidscube-max-adapter-legacy-media-video-${VERSION}.aar"
+            "applovin-bidscube-max-adapter-full-video-${VERSION}.aar"
+          )
+          for f in "${EXPECTED[@]}"; do
+            if [ ! -f "$DIR/$f" ]; then
+              echo "Missing $DIR/$f"
+              ls -la "$DIR" 2>/dev/null || true
               exit 1
             fi
           done
+          echo "All 8 AAR files present."
 
       - name: Create GitHub Release and upload AARs
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          name: Bidscube Android ${{ steps.version.outputs.version }}
           body: |
-            **Bidscube** ${{ github.ref_name }}
+            **Bidscube Android SDK + AppLovin MAX adapter** ${{ steps.version.outputs.version }}
 
-            - **Direct SDK:** core Android AAR-и публікуються як чотири mode-specific артефакти в `sdk/build/staged-aars/`.
-            - **AppLovin MAX:** Maven — додайте лише `com.bidscube:applovin-bidscube-adapter` (транзитивно підтягується `sdk-full-video`). Для GitHub AAR install беріть `applovin-adapter-release.aar` і потрібний core AAR під ваш Android mode.
+            Four Android AAR modes (SDK + adapter). Pick **one** adapter artifact for your video stack.
+
+            | Mode | Adapter Maven coordinate |
+            |------|------------------------|
+            | LiteNoVideo | `com.bidscube:applovin-bidscube-max-adapter-lite-no-video:${{ steps.version.outputs.version }}` |
+            | WebViewVideoNoDesugar | `com.bidscube:applovin-bidscube-max-adapter-webview-video:${{ steps.version.outputs.version }}` |
+            | LegacyMediaVideoNoDesugar | `com.bidscube:applovin-bidscube-max-adapter-legacy-media-video:${{ steps.version.outputs.version }}` |
+            | FullWithVideo | `com.bidscube:applovin-bidscube-max-adapter-full-video:${{ steps.version.outputs.version }}` |
+
+            MAX Dashboard class: `com.applovin.mediation.adapters.BidscubeMediationAdapter`
+
+            See [CHANGELOG.md](CHANGELOG.md) and [README.md](README.md#android-aar-modes).
           files: |
-            applovin-adapter/build/outputs/aar/applovin-adapter-release.aar
-            sdk/build/staged-aars/bidscube-sdk-lite-no-video-*.aar
-            sdk/build/staged-aars/bidscube-sdk-webview-video-*.aar
-            sdk/build/staged-aars/bidscube-sdk-legacy-media-video-*.aar
-            sdk/build/staged-aars/bidscube-sdk-full-video-*.aar
+            build/staged-aars/bidscube-sdk-lite-no-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/bidscube-sdk-webview-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/bidscube-sdk-legacy-media-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/bidscube-sdk-full-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/applovin-bidscube-max-adapter-lite-no-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/applovin-bidscube-max-adapter-webview-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/applovin-bidscube-max-adapter-legacy-media-video-${{ steps.version.outputs.version }}.aar
+            build/staged-aars/applovin-bidscube-max-adapter-full-video-${{ steps.version.outputs.version }}.aar
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
