@@ -1,6 +1,6 @@
 # Bidscube SDK — error codes
 
-**SDK 1.2.7+**
+**SDK 1.2.8+**
 
 When an ad request or display fails, the SDK invokes `AdCallback.onAdFailed(placementId, errorCode, errorMessage)`.  
 All `errorMessage` strings are **English** and safe to log or forward to mediation adapters.
@@ -46,6 +46,7 @@ Common MAX integration notes:
 
 - **`204` / NO_FILL** — not a crash; Bidscube had no ad for the placement. Verify placement ID, app registration, and bundle ID on the Bidscube side.
 - **`1004` / NO_ACTIVITY_CONTEXT** — should not occur on **1.2.7+** when using the official adapter (Activity is bound on show). Upgrade if you see this on an older SDK build.
+- **`1006` / display error with `VideoAdPlayer` not found** — host app missing Google IMA; upgrade to **1.2.8+** for progressive MP4 VAST without IMA on the classpath.
 
 ---
 

@@ -1,6 +1,6 @@
 # Custom Ad Rendering Guide
 
-**Bidscube SDK 1.2.7+**
+**Bidscube SDK 1.2.8+**
 
 This guide shows how to intercept Bidscube SDK rendering and plug in your own UI using the `onAdRenderOverride` callback.
 
