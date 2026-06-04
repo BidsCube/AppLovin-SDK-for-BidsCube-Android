@@ -6,6 +6,28 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 ---
 
+## [1.2.7] - 2026-06-04
+
+### Added
+
+- Structured ad error codes in `com.bidscube.sdk.errors.AdErrorCode` (delivered via `AdCallback.onAdFailed`).
+- `BidscubeSDK.setDisplayActivity(Activity)` for MAX / Application-context integrations.
+- [docs/errors.md](docs/errors.md) — error code reference for integrators and support.
+
+### Fixed
+
+- **Crash:** `ClassCastException` (`Application` cannot be cast to `Activity`) when an ad HTTP request failed after MAX init with Application context.
+- **Crash:** unhandled failures on background HTTP threads no longer terminate the process; errors are reported through `onAdFailed` on the main thread.
+- HTTP **204 No Content** mapped to `AdErrorCode.NO_FILL` (204) with a clear English message instead of a generic HTTP error.
+
+### Changed
+
+- `HttpProvider` returns `BidscubeRequestException` with stable codes for HTTP, parse, and network failures.
+- `AdDisplayManager` uses safe main-thread dispatch (`Activity` or main `Handler`) for all success/error UI paths.
+- AppLovin MAX adapter binds the show `Activity` via `BidscubeSDK.setDisplayActivity` before interstitial, rewarded, banner, and native calls.
+
+---
+
 ## [1.2.6] - 2026-06-02
 
 ### Added

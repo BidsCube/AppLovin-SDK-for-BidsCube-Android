@@ -2,6 +2,8 @@ package com.bidscube.sdk.httpProvider;
 
 import android.util.Log;
 
+import com.bidscube.sdk.errors.AdErrorCode;
+import com.bidscube.sdk.errors.BidscubeRequestException;
 import com.bidscube.sdk.network.BidscubeCallback;
 import com.bidscube.sdk.utils.SDKLogger;
 import com.bidscube.sdk.network.BidscubeResponse;
@@ -19,15 +21,25 @@ public class HttpProvider {
         logFormattedUrl("Sending GET request to:", urlString);
 
         new Thread(() -> {
+            HttpURLConnection connection = null;
             try {
                 URL url = new URL(urlString);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(10000);
                 connection.setReadTimeout(10000);
 
                 int responseCode = connection.getResponseCode();
                 SDKLogger.d("HttpProvider", "Response code: " + responseCode);
+
+                if (responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+                    SDKLogger.w("HttpProvider", "No ad fill (HTTP 204) for URL: " + urlString);
+                    callback.onFail(new BidscubeRequestException(
+                            AdErrorCode.NO_FILL,
+                            204,
+                            "No ad fill: ad server returned HTTP 204 (No Content)"));
+                    return;
+                }
 
                 String responseBody = "";
                 if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -38,7 +50,6 @@ public class HttpProvider {
                     SDKLogger.d("HttpProvider", "Response body length: " + responseBody.length());
                     SDKLogger.v("HttpProvider", "Response body: " + responseBody);
                 } else {
-
                     java.io.InputStream is = connection.getErrorStream();
                     if (is != null) {
                         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
@@ -46,11 +57,13 @@ public class HttpProvider {
                         is.close();
                         SDKLogger.e("HttpProvider", "Error response: " + responseBody);
                     }
-                    callback.onFail(new Exception("HTTP error: " + responseCode));
-                    connection.disconnect();
+                    callback.onFail(new BidscubeRequestException(
+                            AdErrorCode.HTTP_ERROR,
+                            responseCode,
+                            "HTTP error: " + responseCode
+                                    + (responseBody.isEmpty() ? "" : " — " + truncate(responseBody, 200))));
                     return;
                 }
-                connection.disconnect();
 
                 BidscubeResponse response = BidscubeResponseParser.parse(responseBody);
                 if (response != null) {
@@ -58,14 +71,33 @@ public class HttpProvider {
                     callback.onSuccess(responseCode, response);
                 } else {
                     SDKLogger.e("HttpProvider", "Failed to parse response body");
-                    callback.onFail(new Exception("Failed to parse response"));
+                    callback.onFail(new BidscubeRequestException(
+                            AdErrorCode.INVALID_RESPONSE,
+                            "Failed to parse ad server response"));
                 }
 
             } catch (Exception e) {
                 SDKLogger.e("HttpProvider", "Request failed: " + e.getMessage(), e);
-                callback.onFail(e);
+                if (e instanceof BidscubeRequestException) {
+                    callback.onFail(e);
+                } else {
+                    callback.onFail(new BidscubeRequestException(
+                            AdErrorCode.NETWORK_ERROR,
+                            "Network error: " + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName())));
+                }
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
             }
         }).start();
+    }
+
+    private static String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength) + "...";
     }
 
     /**
@@ -98,7 +130,7 @@ public class HttpProvider {
                     try {
                         value = java.net.URLDecoder.decode(value, "UTF-8");
                     } catch (Exception e) {
-
+                        // ignore decode errors for logging
                     }
 
                     formattedUrl.append("\n  ").append(key).append(" = ").append(value);
@@ -108,7 +140,6 @@ public class HttpProvider {
             SDKLogger.v("HttpProvider", formattedUrl.toString());
 
         } catch (Exception e) {
-
             SDKLogger.v("HttpProvider", prefix + " " + urlString);
         }
     }

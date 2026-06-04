@@ -39,10 +39,12 @@ public interface AdCallback {
     void onAdClosed(String placementId);
     
     /**
-     * Called when ad fails to load
+     * Called when ad fails to load or display.
+     *
      * @param placementId The placement ID of the ad that failed
-     * @param errorCode Error code indicating the type of failure
-     * @param errorMessage Human-readable error message
+     * @param errorCode Stable error code — see {@link com.bidscube.sdk.errors.AdErrorCode}
+     *                  (for example {@link com.bidscube.sdk.errors.AdErrorCode#NO_FILL} for HTTP 204)
+     * @param errorMessage Human-readable English error message
      */
     void onAdFailed(String placementId, int errorCode, String errorMessage);
     

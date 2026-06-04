@@ -3,6 +3,8 @@ package com.bidscube.sdk;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -32,6 +34,8 @@ import com.bidscube.sdk.interfaces.AdCallback;
 import com.bidscube.sdk.models.AdRenderContext;
 import com.bidscube.sdk.models.enums.AdPosition;
 import com.bidscube.sdk.config.SDKConfig;
+import com.bidscube.sdk.errors.AdErrorCode;
+import com.bidscube.sdk.errors.BidscubeRequestException;
 import com.bidscube.sdk.httpProvider.HttpProvider;
 
 import com.bidscube.sdk.models.DeviceInfo;
@@ -92,6 +96,8 @@ public class AdDisplayManager {
 
     private AdPosition currentAdPosition = AdPosition.UNKNOWN;
     private AdPosition responseAdPosition = AdPosition.UNKNOWN;
+    private volatile Activity displayActivity;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public AdDisplayManager(Context context, DeviceInfo deviceInfo, SDKConfig sdkConfig) {
         this.context = context;
@@ -242,17 +248,84 @@ public class AdDisplayManager {
         close.bringToFront();
     }
 
-    // Try to resolve an Activity from the provided Context by unwrapping ContextWrappers.
+    /**
+     * Optional Activity supplied before show/load (e.g. from MAX adapter show callbacks).
+     */
+    void setDisplayActivity(Activity activity) {
+        this.displayActivity = activity;
+    }
+
+    // Try to resolve an Activity from display override or the stored Context.
     private Activity resolveActivityContext() {
-        if (context == null) return null;
-        if (context instanceof Activity) return (Activity) context;
+        Activity display = displayActivity;
+        if (display != null && !display.isFinishing()) {
+            return display;
+        }
+        if (context == null) {
+            return null;
+        }
+        if (context instanceof Activity) {
+            Activity activity = (Activity) context;
+            return activity.isFinishing() ? null : activity;
+        }
         android.content.Context ctx = context;
         while (ctx instanceof android.content.ContextWrapper) {
-            if (ctx instanceof Activity) return (Activity) ctx;
+            if (ctx instanceof Activity) {
+                Activity activity = (Activity) ctx;
+                return activity.isFinishing() ? null : activity;
+            }
             ctx = ((android.content.ContextWrapper) ctx).getBaseContext();
-            if (ctx == null) break;
+            if (ctx == null) {
+                break;
+            }
         }
         return null;
+    }
+
+    private void runOnUiThread(Runnable action) {
+        if (action == null) {
+            return;
+        }
+        Activity activity = resolveActivityContext();
+        if (activity != null) {
+            activity.runOnUiThread(action);
+            return;
+        }
+        mainHandler.post(action);
+    }
+
+    private static void invokeAdFailed(AdCallback callback, String placementId, int errorCode, String message) {
+        if (callback == null) {
+            return;
+        }
+        try {
+            callback.onAdFailed(placementId, errorCode, message);
+        } catch (Throwable callbackError) {
+            SDKLogger.e(TAG, "AdCallback.onAdFailed threw: " + callbackError.getMessage(), callbackError);
+        }
+    }
+
+    private void deliverAdFailure(String placementId, String format, AdCallback callback, Throwable error) {
+        final int code = AdErrorCode.fromException(error);
+        final String message = AdErrorCode.messageFor(error);
+        SDKLogger.e(TAG, "Ad request failed (" + format + ") placement=" + placementId
+                + " code=" + code + " (" + AdErrorCode.describe(code) + "): " + message, error);
+        Log.e(INTEGRATION, format + " ad: request failed placement=" + placementId
+                + " code=" + code + " error=" + message, error);
+        reportAdStatFail(placementId, format, message);
+        runOnUiThread(() -> invokeAdFailed(callback, placementId, code, message));
+    }
+
+    private Activity requireActivityForDialog(String placementId, String format, AdCallback callback) {
+        Activity activity = resolveActivityContext();
+        if (activity == null) {
+            deliverAdFailure(placementId, format, callback, new BidscubeRequestException(
+                    AdErrorCode.NO_ACTIVITY_CONTEXT,
+                    "Activity context is required to display ads. Pass an Activity when showing ads "
+                            + "(for example from the MAX adapter show callback)."));
+            return null;
+        }
+        return activity;
     }
 
     /**
@@ -534,7 +607,7 @@ public class AdDisplayManager {
         sendAdRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse response) {
-                ((Activity) context).runOnUiThread(() -> {
+                runOnUiThread(() -> {
                     try {
                         setResponseAdPosition(response.getPosition());
                         AdPosition effectivePosition = getEffectiveAdPosition();
@@ -748,12 +821,7 @@ public class AdDisplayManager {
 
             @Override
             public void onFail(Exception e) {
-                SDKLogger.e(TAG, "Error loading image ad: " + e.getMessage());
-                String msg = e != null ? e.getMessage() : "unknown";
-                reportAdStatFail(placementId, "image", msg);
-                ((Activity) context).runOnUiThread(() -> {
-                    if (callback != null) callback.onAdFailed(placementId, -1, msg);
-                });
+                deliverAdFailure(placementId, "image", callback, e);
             }
         });
     }
@@ -905,7 +973,12 @@ public class AdDisplayManager {
         HttpProvider.sendGetRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse responseBody) {
-                ((Activity) context).runOnUiThread(() -> {
+                runOnUiThread(() -> {
+                    Activity dialogActivity = requireActivityForDialog(placementId, "video", callback);
+                    if (dialogActivity == null) {
+                        return;
+                    }
+                    try {
                     setResponseAdPosition(responseBody.getPosition());
                     AdPosition effectivePosition = getEffectiveAdPosition();
 
@@ -932,9 +1005,9 @@ public class AdDisplayManager {
                         SDKLogger.d(TAG, "Response indicates full screen display for video ad");
 
 
-                        Dialog dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                        Dialog dialog = new Dialog(dialogActivity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
 
-                        FrameLayout frameContainer = new FrameLayout(context);
+                        FrameLayout frameContainer = new FrameLayout(dialogActivity);
                         frameContainer.setLayoutParams(new LinearLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -1007,11 +1080,11 @@ public class AdDisplayManager {
                         SDKLogger.d(TAG, "Response indicates windowed display for video ad");
 
 
-                        Dialog dialog = new Dialog(context);
+                        Dialog dialog = new Dialog(dialogActivity);
                         String positionName = getPositionDisplayName();
                         dialog.setTitle("Video Ad - " + positionName);
 
-                        FrameLayout frameContainer = new FrameLayout(context);
+                        FrameLayout frameContainer = new FrameLayout(dialogActivity);
                         frameContainer.setLayoutParams(new LinearLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -1088,18 +1161,17 @@ public class AdDisplayManager {
                         SDKLogger.d(TAG, "Video ad displayed windowed with position: " + responseBody.getPosition()
                                 + " -> " + effectivePosition);
                     }
+                    } catch (Throwable displayError) {
+                        deliverAdFailure(placementId, "video", callback, displayError instanceof Exception
+                                ? (Exception) displayError
+                                : new BidscubeRequestException(AdErrorCode.DISPLAY_ERROR, displayError.getMessage()));
+                    }
                 });
             }
 
             @Override
             public void onFail(Exception e) {
-                SDKLogger.e(TAG, "Error loading video ad: " + e.getMessage());
-                String msg = e != null ? e.getMessage() : "unknown";
-                Log.e(INTEGRATION, "video ad: request failed placement=" + placementId + " error=" + msg, e);
-                reportAdStatFail(placementId, "video", msg);
-                ((Activity) context).runOnUiThread(() -> {
-                    if (callback != null) callback.onAdFailed(placementId, -1, msg);
-                });
+                deliverAdFailure(placementId, "video", callback, e);
             }
         });
     }
@@ -1122,7 +1194,12 @@ public class AdDisplayManager {
         HttpProvider.sendGetRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse responseBody) {
-                ((Activity) context).runOnUiThread(() -> {
+                runOnUiThread(() -> {
+                    Activity dialogActivity = resolveActivityContext();
+                    if (dialogActivity == null) {
+                        SDKLogger.e(TAG, "Cannot show native ad: Activity context required");
+                        return;
+                    }
 
                     setResponseAdPosition(responseBody.getPosition());
 
@@ -1132,7 +1209,7 @@ public class AdDisplayManager {
 
                     SDKLogger.d(TAG, "Native ad response received: " + responseBody);
 
-                    Dialog dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                    Dialog dialog = new Dialog(dialogActivity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
 
                     NativeAd nativeAd = NativeAdParser.parseFromAdm(responseBody.getAdm());
                     if (nativeAd != null) {
@@ -1180,13 +1257,18 @@ public class AdDisplayManager {
 
             @Override
             public void onFail(Exception e) {
-                SDKLogger.e(TAG, "Error loading native ad: " + e.getMessage());
-                String msg = e != null ? e.getMessage() : "unknown";
-                reportAdStatFail("", "native", msg);
-                ((Activity) context).runOnUiThread(() -> {
-
-                    Dialog errorDialog = new Dialog(context);
-                    showNativeAdErrorDialog(errorDialog, "Error loading native ad: " + msg);
+                SDKLogger.e(TAG, "Error loading native ad: " + AdErrorCode.messageFor(e), e);
+                reportAdStatFail("", "native", AdErrorCode.messageFor(e));
+                runOnUiThread(() -> {
+                    try {
+                        Activity activity = resolveActivityContext();
+                        if (activity != null) {
+                            showNativeAdErrorDialog(new Dialog(activity),
+                                    "Error loading native ad: " + AdErrorCode.messageFor(e));
+                        }
+                    } catch (Throwable dialogError) {
+                        SDKLogger.e(TAG, "Could not show native ad error dialog: " + dialogError.getMessage());
+                    }
                 });
             }
         });
@@ -1245,7 +1327,7 @@ public class AdDisplayManager {
         HttpProvider.sendGetRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse responseBody) {
-                ((Activity) context).runOnUiThread(() -> {
+                runOnUiThread(() -> {
                     Log.d(TAG, "Native ad response received from URL: " + responseBody);
                     setResponseAdPosition(responseBody.getPosition());
                     AdPosition effectivePosition = getEffectiveAdPosition();
@@ -1302,16 +1384,7 @@ public class AdDisplayManager {
 
             @Override
             public void onFail(Exception e) {
-                Log.e(TAG, "Error loading native ad from URL: " + e.getMessage());
-                String msg = e != null ? e.getMessage() : "unknown";
-                reportAdStatFail(placementId, "native", msg);
-                ((Activity) context).runOnUiThread(() -> {
-                    if (callback != null) {
-                        callback.onAdFailed(placementId, -1, msg);
-                    }
-                    Dialog errorDialog = new Dialog(context);
-                    showNativeAdErrorDialog(errorDialog, "Error loading native ad from URL: " + msg);
-                });
+                deliverAdFailure(placementId, "native", callback, e);
             }
         });
     }
@@ -1325,7 +1398,7 @@ public class AdDisplayManager {
         HttpProvider.sendGetRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse responseBody) {
-                ((Activity) context).runOnUiThread(() -> {
+                runOnUiThread(() -> {
                     Log.d(TAG, "Native ad response received from URL (windowed): " + responseBody);
                     setResponseAdPosition(responseBody.getPosition());
                     AdPosition effectivePosition = getEffectiveAdPosition();
@@ -1380,16 +1453,7 @@ public class AdDisplayManager {
 
             @Override
             public void onFail(Exception e) {
-                Log.e(TAG, "Error loading native ad from URL (windowed): " + e.getMessage());
-                String msg = e != null ? e.getMessage() : "unknown";
-                reportAdStatFail(placementId, "native", msg);
-                ((Activity) context).runOnUiThread(() -> {
-                    if (callback != null) {
-                        callback.onAdFailed(placementId, -1, msg);
-                    }
-                    Dialog errorDialog = new Dialog(context);
-                    showNativeAdErrorDialog(errorDialog, "Error loading native ad from URL (windowed): " + msg);
-                });
+                deliverAdFailure(placementId, "native", callback, e);
             }
         });
     }
@@ -1425,7 +1489,7 @@ public class AdDisplayManager {
         sendAdRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse response) {
-                ((Activity) context).runOnUiThread(() -> {
+                runOnUiThread(() -> {
 
                     setResponseAdPosition(response.getPosition());
 
@@ -1514,28 +1578,24 @@ public class AdDisplayManager {
 
             @Override
             public void onFail(Exception e) {
-                String msg = e != null ? e.getMessage() : "unknown";
-                reportAdStatFail(placementId, "image", msg);
-                ((Activity) context).runOnUiThread(() -> {
-
-                    root.removeView(loadingText);
-
-                    TextView errorText = new TextView(context);
-                    errorText.setText("Failed to load ad: " + msg);
-                    errorText.setTextColor(Color.WHITE);
-                    errorText.setTextSize(14);
-                    errorText.setGravity(Gravity.CENTER);
-                    RelativeLayout.LayoutParams errLp = new RelativeLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT);
-                    errLp.addRule(RelativeLayout.CENTER_IN_PARENT);
-                    root.addView(errorText, errLp);
-
-                    if (callback != null) {
-                        callback.onAdFailed(placementId, -1, msg);
+                deliverAdFailure(placementId, "image", callback, e);
+                final String msg = AdErrorCode.messageFor(e);
+                runOnUiThread(() -> {
+                    try {
+                        root.removeView(loadingText);
+                        TextView errorText = new TextView(context);
+                        errorText.setText("Failed to load ad: " + msg);
+                        errorText.setTextColor(Color.WHITE);
+                        errorText.setTextSize(14);
+                        errorText.setGravity(Gravity.CENTER);
+                        RelativeLayout.LayoutParams errLp = new RelativeLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT);
+                        errLp.addRule(RelativeLayout.CENTER_IN_PARENT);
+                        root.addView(errorText, errLp);
+                    } catch (Throwable uiError) {
+                        SDKLogger.e(TAG, "Failed to update image ad view error UI: " + uiError.getMessage());
                     }
-
-                    SDKLogger.e(TAG, "Failed to get image ad view: " + msg);
                 });
             }
         });
@@ -1577,7 +1637,7 @@ public class AdDisplayManager {
         sendAdRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse responseBody) {
-                ((Activity) context).runOnUiThread(() -> {
+                runOnUiThread(() -> {
 
                     setResponseAdPosition(responseBody.getPosition());
 
@@ -1687,25 +1747,20 @@ public class AdDisplayManager {
 
             @Override
             public void onFail(Exception e) {
-                String msg = e != null ? e.getMessage() : "unknown";
-                Log.e(INTEGRATION, "getVideoAdView: HTTP failed placement=" + placementId + " error=" + msg, e);
-                reportAdStatFail(placementId, "video", msg);
-                ((Activity) context).runOnUiThread(() -> {
-
-                    adInner.removeView(loadingText);
-
-                    TextView errorText = new TextView(context);
-                    errorText.setText("Failed to load ad: " + msg);
-                    errorText.setTextColor(Color.WHITE);
-                    errorText.setTextSize(14);
-                    errorText.setGravity(Gravity.CENTER);
-                    adInner.addView(errorText);
-
-                    if (callback != null) {
-                        callback.onAdFailed(placementId, -1, msg);
+                deliverAdFailure(placementId, "video", callback, e);
+                final String msg = AdErrorCode.messageFor(e);
+                runOnUiThread(() -> {
+                    try {
+                        adInner.removeView(loadingText);
+                        TextView errorText = new TextView(context);
+                        errorText.setText("Failed to load ad: " + msg);
+                        errorText.setTextColor(Color.WHITE);
+                        errorText.setTextSize(14);
+                        errorText.setGravity(Gravity.CENTER);
+                        adInner.addView(errorText);
+                    } catch (Throwable uiError) {
+                        SDKLogger.e(TAG, "Failed to update video ad view error UI: " + uiError.getMessage());
                     }
-
-                    SDKLogger.e(TAG, "Failed to get video ad view: " + msg);
                 });
             }
         });
@@ -1747,7 +1802,7 @@ public class AdDisplayManager {
         sendAdRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse responseBody) {
-                ((Activity) context).runOnUiThread(() -> {
+                runOnUiThread(() -> {
 
                     setResponseAdPosition(responseBody.getPosition());
 
@@ -1832,24 +1887,20 @@ public class AdDisplayManager {
 
             @Override
             public void onFail(Exception e) {
-                String msg = e != null ? e.getMessage() : "unknown";
-                reportAdStatFail(placementId, "native", msg);
-                ((Activity) context).runOnUiThread(() -> {
-
-                    adInner.removeView(loadingText);
-
-                    TextView errorText = new TextView(context);
-                    errorText.setText("Failed to load ad: " + msg);
-                    errorText.setTextColor(Color.WHITE);
-                    errorText.setTextSize(14);
-                    errorText.setGravity(Gravity.CENTER);
-                    adInner.addView(errorText);
-
-                    if (callback != null) {
-                        callback.onAdFailed(placementId, -1, msg);
+                deliverAdFailure(placementId, "native", callback, e);
+                final String msg = AdErrorCode.messageFor(e);
+                runOnUiThread(() -> {
+                    try {
+                        adInner.removeView(loadingText);
+                        TextView errorText = new TextView(context);
+                        errorText.setText("Failed to load ad: " + msg);
+                        errorText.setTextColor(Color.WHITE);
+                        errorText.setTextSize(14);
+                        errorText.setGravity(Gravity.CENTER);
+                        adInner.addView(errorText);
+                    } catch (Throwable uiError) {
+                        SDKLogger.e(TAG, "Failed to update native ad view error UI: " + uiError.getMessage());
                     }
-
-                    SDKLogger.e(TAG, "Failed to get native ad view: " + msg);
                 });
             }
         });
@@ -1943,6 +1994,10 @@ public class AdDisplayManager {
      */
     private void showNativeAdInDialog(String jsonData, boolean isFullScreen, String source,
                                       String placementId, AdCallback callback) {
+        Activity dialogActivity = requireActivityForDialog(placementId, "native", callback);
+        if (dialogActivity == null) {
+            return;
+        }
         try {
 
             NativeAd nativeAd = NativeAdParser.parseFromAdm(jsonData);
@@ -1954,9 +2009,9 @@ public class AdDisplayManager {
 
                 Dialog dialog;
                 if (isFullScreen) {
-                    dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                    dialog = new Dialog(dialogActivity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
                 } else {
-                    dialog = new Dialog(context);
+                    dialog = new Dialog(dialogActivity);
                 }
 
                 if (isFullScreen) {
@@ -2005,19 +2060,18 @@ public class AdDisplayManager {
 
             } else {
                 SDKLogger.e(TAG, "Failed to parse native ad from " + source);
-                if (callback != null) {
-                    callback.onAdFailed(placementId, -1, "Failed to parse native ad from " + source);
-                }
-                Dialog errorDialog = new Dialog(context);
-                showNativeAdErrorDialog(errorDialog, "Failed to parse native ad from " + source);
+                invokeAdFailed(callback, placementId, AdErrorCode.INVALID_RESPONSE,
+                        "Failed to parse native ad from " + source);
+                showNativeAdErrorDialog(new Dialog(dialogActivity),
+                        "Failed to parse native ad from " + source);
             }
         } catch (Exception e) {
             SDKLogger.e(TAG, "Error showing native ad from " + source + ": " + e.getMessage());
-            if (callback != null) {
-                callback.onAdFailed(placementId, -1, e.getMessage());
-            }
-            Dialog errorDialog = new Dialog(context);
-            showNativeAdErrorDialog(errorDialog, "Error showing native ad from " + source + ": " + e.getMessage());
+            deliverAdFailure(placementId, "native", callback, e instanceof Exception
+                    ? (Exception) e
+                    : new BidscubeRequestException(AdErrorCode.DISPLAY_ERROR, e.getMessage()));
+            showNativeAdErrorDialog(new Dialog(dialogActivity),
+                    "Error showing native ad from " + source + ": " + e.getMessage());
         }
     }
 
