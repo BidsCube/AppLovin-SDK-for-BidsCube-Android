@@ -12,6 +12,7 @@ import android.webkit.WebViewClient;
 import android.webkit.WebChromeClient;
 import android.view.ViewGroup;
 import android.view.MotionEvent;
+import com.bidscube.sdk.utils.AdmSanitizer;
 import com.bidscube.sdk.utils.SDKLogger;
 
 public class BannerViewFactory {
@@ -207,47 +208,11 @@ public class BannerViewFactory {
         } catch (Throwable ignored) {}
 
         webView.post(() -> {
-             // Preprocess adHtml: if it contains a document.write(...) wrapper, try to extract inner HTML
-             String content = adHtml != null ? adHtml : "";
-            SDKLogger.d("BannerViewFactory", "createBanner called, admLen=" + (adHtml != null ? adHtml.length() : 0));
-
-            String lower = content.toLowerCase();
-            if (lower.contains("document.write") || lower.contains("document.writeln")) {
-                int docIdx = lower.indexOf("document.write");
-                if (docIdx == -1) docIdx = lower.indexOf("document.writeln");
-                int openIdx = content.indexOf('(', docIdx);
-                if (openIdx >= 0) {
-                    int depth = 0;
-                    int closeIdx = -1;
-                    for (int i = openIdx; i < content.length(); i++) {
-                        char c = content.charAt(i);
-                        if (c == '(') depth++;
-                        else if (c == ')') {
-                            depth--;
-                            if (depth == 0) {
-                                closeIdx = i;
-                                break;
-                            }
-                        }
-                    }
-                    if (closeIdx > openIdx) {
-                        content = content.substring(openIdx + 1, closeIdx).trim();
-                        // strip surrounding quotes/backticks if present
-                        if (content.length() >= 2) {
-                            char s = content.charAt(0);
-                            char e = content.charAt(content.length() - 1);
-                            if ((s == '\'' && e == '\'') || (s == '"' && e == '"') || (s == '`' && e == '`')) {
-                                content = content.substring(1, content.length() - 1);
-                            }
-                        }
-                        // simple unescape
-                        content = content.replace("\\'", "'")
-                                .replace("\\\"", "\"")
-                                .replace("\\\\", "\\")
-                                .replace("\\/", "/");
-                    }
-                }
+             String content = AdmSanitizer.sanitize(adHtml);
+            if (content == null) {
+                content = "";
             }
+            SDKLogger.d("BannerViewFactory", "createBanner called, admLen=" + content.length());
 
             // Remove inline style attributes so our CSS and JS can normalize sizing and positioning.
             // This helps with creatives that embed fixed pixel widths/heights or negative margins.
@@ -258,6 +223,9 @@ public class BannerViewFactory {
                 // Remove obvious 1x1 tracking images and absolutely positioned 1px beacons
                 content = content.replaceAll("(?i)<img[^>]*(?:width\\s*=\\s*['\"]?1['\"]?|height\\s*=\\s*['\"]?1['\"]?)[^>]*>", "");
                 content = content.replaceAll("(?i)<img[^>]*style=['\"][^'\"]*(?:position\\s*:\\s*absolute|width\\s*:\\s*1px|height\\s*:\\s*1px)[^'\"]*['\"][^>]*>", "");
+                // Fixed pixel width/height on the main image prevents full-bleed scaling in WebView.
+                content = content.replaceAll("(?i)(<img[^>]*?)\\s+width\\s*=\\s*['\"][^'\"]*['\"]", "$1");
+                content = content.replaceAll("(?i)(<img[^>]*?)\\s+height\\s*=\\s*['\"][^'\"]*['\"]", "$1");
             } catch (Throwable ignored) {
             }
 
@@ -267,25 +235,27 @@ public class BannerViewFactory {
             sb.append("<style>");
             // Responsive wrapper: force no scrolling inside webview (we want static banner) and make width 100%
             sb.append("html,body,#ad-root{height:auto;min-height:0;width:100%;margin:0;padding:0;overflow:hidden;}");
-            // Allow overflow visible so creatives that position elements slightly outside are still visible
-            // while keeping box-sizing reset.
-            sb.append("#ad-root{display:block;overflow:visible;box-sizing:border-box;position:relative;}");
-            /* Ensure ad elements scale properly */
-            sb.append("#ad-root, #ad-root * {"
-                    + "box-sizing:border-box !important;"
-                    + "max-width:100% !important;"
+            sb.append("#ad-root{display:block;overflow:hidden;box-sizing:border-box;position:relative;width:100%;}");
+            sb.append("#ad-root, #ad-root div, #ad-root a {"
                     + "width:100% !important;"
+                    + "max-width:100% !important;"
                     + "margin:0 !important;"
                     + "padding:0 !important;"
+                    + "box-sizing:border-box !important;"
                     + "}");
+            sb.append("#ad-root a { display:block !important; }");
 
-            /* Media */
-            sb.append("img, iframe, video {"
+            /* Main creative — full width of the banner slot */
+            sb.append("#ad-root img, #ad-root iframe, #ad-root video {"
                     + "width:100% !important;"
+                    + "max-width:100% !important;"
                     + "height:auto !important;"
                     + "object-fit:contain !important;"
                     + "display:block !important;"
-                    + "max-width:100% !important;"
+                    + "}");
+            sb.append("#ad-root img[width=\"1\"], #ad-root img[height=\"1\"],"
+                    + "#ad-root img[width='1'], #ad-root img[height='1'] {"
+                    + "display:none !important;width:0 !important;height:0 !important;"
                     + "}");
 
 
@@ -303,7 +273,7 @@ public class BannerViewFactory {
 
 
             /* Inline style overrides */
-            sb.append("*[style] { max-width:100% !important; height:auto !important; }");
+            sb.append("*[style] { width:100% !important; max-width:100% !important; height:auto !important; }");
 
             sb.append("</style></head>");
             sb.append("<body><div id=\"ad-root\">");
@@ -510,47 +480,11 @@ public class BannerViewFactory {
         } catch (Throwable ignored) {}
 
         webView.post(() -> {
-             // Preprocess adHtml: if it contains a document.write(...) wrapper, try to extract inner HTML
-             String content = adHtml != null ? adHtml : "";
-            SDKLogger.d("BannerViewFactory", "createBanner called, admLen=" + (adHtml != null ? adHtml.length() : 0));
-
-            String lower = content.toLowerCase();
-            if (lower.contains("document.write") || lower.contains("document.writeln")) {
-                int docIdx = lower.indexOf("document.write");
-                if (docIdx == -1) docIdx = lower.indexOf("document.writeln");
-                int openIdx = content.indexOf('(', docIdx);
-                if (openIdx >= 0) {
-                    int depth = 0;
-                    int closeIdx = -1;
-                    for (int i = openIdx; i < content.length(); i++) {
-                        char c = content.charAt(i);
-                        if (c == '(') depth++;
-                        else if (c == ')') {
-                            depth--;
-                            if (depth == 0) {
-                                closeIdx = i;
-                                break;
-                            }
-                        }
-                    }
-                    if (closeIdx > openIdx) {
-                        content = content.substring(openIdx + 1, closeIdx).trim();
-                        // strip surrounding quotes/backticks if present
-                        if (content.length() >= 2) {
-                            char s = content.charAt(0);
-                            char e = content.charAt(content.length() - 1);
-                            if ((s == '\'' && e == '\'') || (s == '"' && e == '"') || (s == '`' && e == '`')) {
-                                content = content.substring(1, content.length() - 1);
-                            }
-                        }
-                        // simple unescape
-                        content = content.replace("\\'", "'")
-                                .replace("\\\"", "\"")
-                                .replace("\\\\", "\\")
-                                .replace("\\/", "/");
-                    }
-                }
+             String content = AdmSanitizer.sanitize(adHtml);
+            if (content == null) {
+                content = "";
             }
+            SDKLogger.d("BannerViewFactory", "createBanner called, admLen=" + content.length());
 
             // Remove inline style attributes so our CSS and JS can normalize sizing and positioning.
             // This helps with creatives that embed fixed pixel widths/heights or negative margins.
@@ -561,6 +495,9 @@ public class BannerViewFactory {
                 // Remove obvious 1x1 tracking images and absolutely positioned 1px beacons
                 content = content.replaceAll("(?i)<img[^>]*(?:width\\s*=\\s*['\"]?1['\"]?|height\\s*=\\s*['\"]?1['\"]?)[^>]*>", "");
                 content = content.replaceAll("(?i)<img[^>]*style=['\"][^'\"]*(?:position\\s*:\\s*absolute|width\\s*:\\s*1px|height\\s*:\\s*1px)[^'\"]*['\"][^>]*>", "");
+                // Fixed pixel width/height on the main image prevents full-bleed scaling in WebView.
+                content = content.replaceAll("(?i)(<img[^>]*?)\\s+width\\s*=\\s*['\"][^'\"]*['\"]", "$1");
+                content = content.replaceAll("(?i)(<img[^>]*?)\\s+height\\s*=\\s*['\"][^'\"]*['\"]", "$1");
             } catch (Throwable ignored) {
             }
 
@@ -570,25 +507,27 @@ public class BannerViewFactory {
             sb.append("<style>");
             // Responsive wrapper: force no scrolling inside webview (we want static banner) and make width 100%
             sb.append("html,body,#ad-root{height:auto;min-height:0;width:100%;margin:0;padding:0;overflow:hidden;}");
-            // Allow overflow visible so creatives that position elements slightly outside are still visible
-            // while keeping box-sizing reset.
-            sb.append("#ad-root{display:block;overflow:visible;box-sizing:border-box;position:relative;}");
-            /* Ensure ad elements scale properly */
-            sb.append("#ad-root, #ad-root * {"
-                    + "box-sizing:border-box !important;"
-                    + "max-width:100% !important;"
+            sb.append("#ad-root{display:block;overflow:hidden;box-sizing:border-box;position:relative;width:100%;}");
+            sb.append("#ad-root, #ad-root div, #ad-root a {"
                     + "width:100% !important;"
+                    + "max-width:100% !important;"
                     + "margin:0 !important;"
                     + "padding:0 !important;"
+                    + "box-sizing:border-box !important;"
                     + "}");
+            sb.append("#ad-root a { display:block !important; }");
 
-            /* Media */
-            sb.append("img, iframe, video {"
+            /* Main creative — full width of the banner slot */
+            sb.append("#ad-root img, #ad-root iframe, #ad-root video {"
                     + "width:100% !important;"
+                    + "max-width:100% !important;"
                     + "height:auto !important;"
                     + "object-fit:contain !important;"
                     + "display:block !important;"
-                    + "max-width:100% !important;"
+                    + "}");
+            sb.append("#ad-root img[width=\"1\"], #ad-root img[height=\"1\"],"
+                    + "#ad-root img[width='1'], #ad-root img[height='1'] {"
+                    + "display:none !important;width:0 !important;height:0 !important;"
                     + "}");
 
 
@@ -606,7 +545,7 @@ public class BannerViewFactory {
 
 
             /* Inline style overrides */
-            sb.append("*[style] { max-width:100% !important; height:auto !important; }");
+            sb.append("*[style] { width:100% !important; max-width:100% !important; height:auto !important; }");
 
             sb.append("</style></head>");
             sb.append("<body><div id=\"ad-root\">");

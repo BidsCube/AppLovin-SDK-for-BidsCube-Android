@@ -2,6 +2,7 @@ package com.bidscube.sdk.network;
 
 import android.util.Log;
 
+import com.bidscube.sdk.utils.AdmSanitizer;
 import com.bidscube.sdk.utils.SDKLogger;
 
 import org.json.JSONException;
@@ -20,14 +21,21 @@ public class BidscubeResponseParser {
      * @return BidscubeResponse object or null if parsing fails
      */
     public static BidscubeResponse parse(String jsonString) {
+        if (jsonString == null || jsonString.trim().isEmpty()) {
+            return null;
+        }
         try {
-            JSONObject json = new JSONObject(jsonString);
-            String adm = json.optString("adm", "");
-            int position = json.optInt("position", 0);
-            
+            String adm = AdmSanitizer.extractMarkupFromResponseBody(jsonString);
+            if (adm != null) {
+                adm = AdmSanitizer.sanitize(adm);
+            }
+            if (adm == null || adm.isEmpty()) {
+                SDKLogger.e(TAG, "Failed to parse JSON response: empty adm");
+                return null;
+            }
+            int position = AdmSanitizer.extractPositionFromResponseBody(jsonString, 0);
             return new BidscubeResponse(adm, position);
-            
-        } catch (JSONException e) {
+        } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to parse JSON response: " + e.getMessage());
             return null;
         }
@@ -41,6 +49,7 @@ public class BidscubeResponseParser {
     public static BidscubeResponse parse(JSONObject json) {
         try {
             String adm = json.optString("adm", "");
+            adm = AdmSanitizer.sanitize(adm);
             int position = json.optInt("position", 0);
             
             return new BidscubeResponse(adm, position);

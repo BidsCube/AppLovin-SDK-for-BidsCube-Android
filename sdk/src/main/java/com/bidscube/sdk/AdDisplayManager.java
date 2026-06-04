@@ -44,6 +44,7 @@ import com.bidscube.sdk.models.natives.NativeAd;
 import com.bidscube.sdk.network.BidscubeCallback;
 import com.bidscube.sdk.network.BidscubeResponse;
 import com.bidscube.sdk.network.NativeAdParser;
+import com.bidscube.sdk.utils.AdmSanitizer;
 import com.bidscube.sdk.utils.VastParser;
 import com.bidscube.sdk.utils.SDKLogger;
 import com.bidscube.sdk.video.BidscubeVastVideoPlayer;
@@ -56,12 +57,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.shape.CornerFamily;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Manages the display of different ad types in both full screen and windowed
@@ -395,119 +391,8 @@ public class AdDisplayManager {
         }
     }
 
-    // Helper to remove common JS wrappers around ADM responses, e.g. document.write('...');
     private String sanitizeAdm(String adm) {
-        if (adm == null) return null;
-
-        String current = adm;
-        // Try up to a few iterations to peel nested document.write wrappers
-        for (int iter = 0; iter < 5; iter++) {
-            String trimmed = current.trim();
-
-            // Quick check
-            String lower = trimmed.toLowerCase();
-            if (!lower.contains("document.write") && !lower.contains("document.writeln")) {
-                break;
-            }
-
-            // First attempt: regex match (handles many common cases)
-            Pattern p = Pattern.compile("(?is).*document\\.writeln?\\s*\\((.*)\\)\\s*;?\\s*$");
-            Matcher m = p.matcher(trimmed);
-            String extracted = null;
-            if (m.matches()) {
-                extracted = m.group(1);
-            } else {
-                // Fallback: find the first document.write/writeln and extract balanced parentheses
-                int docIdx = lower.indexOf("document.write");
-                if (docIdx == -1) docIdx = lower.indexOf("document.writeln");
-                if (docIdx != -1) {
-                    int openIdx = trimmed.indexOf('(', docIdx);
-                    if (openIdx >= 0) {
-                        int depth = 0;
-                        int closeIdx = -1;
-                        for (int i = openIdx; i < trimmed.length(); i++) {
-                            char c = trimmed.charAt(i);
-                            if (c == '(') depth++;
-                            else if (c == ')') {
-                                depth--;
-                                if (depth == 0) {
-                                    closeIdx = i;
-                                    break;
-                                }
-                            }
-                        }
-                        if (closeIdx > openIdx) {
-                            extracted = trimmed.substring(openIdx + 1, closeIdx);
-                        }
-                    }
-                }
-            }
-
-            if (extracted == null) {
-                // nothing we can extract this iteration
-                break;
-            }
-
-            String inner = extracted.trim();
-            inner = unwrapFunctionWrapping(inner);
-
-            // strip surrounding quotes/backticks if present
-            if (inner.length() >= 2) {
-                char start = inner.charAt(0);
-                char end = inner.charAt(inner.length() - 1);
-                if ((start == '\'' && end == '\'') || (start == '"' && end == '"') || (start == '`' && end == '`')) {
-                    inner = inner.substring(1, inner.length() - 1);
-                }
-            }
-
-            // Unescape common JS escape sequences
-            inner = inner.replace("\\'", "'")
-                    .replace("\\\"", "\"")
-                    .replace("\\\\", "\\")
-                    .replace("\\n", "\n")
-                    .replace("\\r", "\r")
-                    .replace("\\/", "/");
-
-            // Try to URL-decode if it looks percent-encoded
-            if (inner.contains("%3C") || inner.contains("%3c") || inner.contains("%22") || inner.contains("%7B")) {
-                try {
-                    inner = URLDecoder.decode(inner, StandardCharsets.UTF_8.name());
-                } catch (Exception ignored) {
-                }
-            }
-
-            // If we've extracted something different, assign and loop to remove further wrappers
-            if (!inner.equals(current)) {
-                current = inner;
-                continue; // try another iteration
-            } else {
-                break;
-            }
-        }
-
-        return current;
-    }
-
-    // Peel off common function wrappers like unescape(...), decodeURIComponent(...)
-    private String unwrapFunctionWrapping(String s) {
-        if (s == null) return null;
-        String out = s.trim();
-        Pattern pf = Pattern.compile("(?is)^(\\\\w+)\\\\s*\\\\((.*)\\\\)\\\\s*$");
-        boolean peeled = true;
-        while (peeled) {
-            peeled = false;
-            Matcher mf = pf.matcher(out);
-            if (mf.matches()) {
-                String fn = mf.group(1);
-                String inner = Objects.requireNonNull(mf.group(2)).trim();
-                assert fn != null;
-                if (fn.equalsIgnoreCase("unescape") || fn.equalsIgnoreCase("decodeURIComponent") || fn.equalsIgnoreCase("decodeURI")) {
-                    out = inner;
-                    peeled = true;
-                }
-            }
-        }
-        return out;
+        return AdmSanitizer.sanitize(adm);
     }
 
 
@@ -1495,7 +1380,8 @@ public class AdDisplayManager {
 
                     root.removeView(loadingText);
 
-                    if (handleRenderOverride(placementId, response.getAdm(), getEffectiveAdPosition(), AdType.Type.IMAGE, callback)) {
+                    if (handleRenderOverride(placementId, sanitizeAdm(response.getAdm()),
+                            getEffectiveAdPosition(), AdType.Type.IMAGE, callback)) {
                         SDKLogger.d(TAG, "Image ad view rendering overridden by host app");
                         fireAdLoadedAndDisplayed(placementId, callback);
                         return;
@@ -1558,7 +1444,7 @@ public class AdDisplayManager {
                     stripLp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
                     root.addView(strip, stripLp);
 
-                    View adView = createImageAdView(response.getAdm());
+                    View adView = createImageAdView(sanitizeAdm(response.getAdm()));
                     ScrollView creativeScroll = new ScrollView(context);
                     creativeScroll.setFillViewport(true);
                     creativeScroll.addView(adView, new ViewGroup.LayoutParams(
@@ -1671,8 +1557,20 @@ public class AdDisplayManager {
                         attachVideoLifecycleCallbacks(videoPlayer, placementId, callback, completed, skipped,
                                 VideoAdFormat.INTERSTITIAL);
                         playerHolder[0] = videoPlayer;
-                        int heightPx = (int) TypedValue.applyDimension(
-                                TypedValue.COMPLEX_UNIT_DIP, 300, context.getResources().getDisplayMetrics());
+                        AdPosition embedPosition = getEffectiveAdPosition();
+                        int heightPx;
+                        if (embedPosition == AdPosition.FULL_SCREEN) {
+                            heightPx = ViewGroup.LayoutParams.MATCH_PARENT;
+                            root.setLayoutParams(new ViewGroup.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.MATCH_PARENT));
+                            adInner.setLayoutParams(new FrameLayout.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.MATCH_PARENT));
+                        } else {
+                            heightPx = (int) TypedValue.applyDimension(
+                                    TypedValue.COMPLEX_UNIT_DIP, 300, context.getResources().getDisplayMetrics());
+                        }
                         videoPlayer.setLayoutParams(new FrameLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT, heightPx));
 
