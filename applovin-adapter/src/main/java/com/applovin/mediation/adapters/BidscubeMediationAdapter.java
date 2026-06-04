@@ -62,7 +62,7 @@ public class BidscubeMediationAdapter
 
     @Override
     public String getAdapterVersion() {
-        return getVersionString(BidscubeMediationAdapter.class, "1.2.7");
+        return getVersionString(BidscubeMediationAdapter.class, "1.2.8");
     }
 
     @Override

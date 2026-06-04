@@ -6,6 +6,25 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 ---
 
+## [1.2.8] - 2026-06-04
+
+### Added
+
+- `ProgressiveMp4VastVideoPlayer` — plays inline VAST with progressive `MediaFile` (MP4) via `VideoView` without requiring Google IMA on the host app classpath.
+- `AdmSanitizer` — unwraps Bidscube JSON/`document.write` HTML envelopes so image banners render real creative instead of raw `{ "adm":` text.
+
+### Fixed
+
+- **Video (fullVideo):** `Failed resolution of: VideoAdPlayer` when the host app does not bundle Google IMA — progressive MP4 VAST (e.g. Remerge/DoorDash creatives) now uses `ProgressiveMp4VastVideoPlayer` first.
+- **Image/banner:** malformed `adm` parsing (`admLen=8`), broken images, and narrow banner width in WebView (`BannerViewFactory`, `BidscubeResponseParser`).
+- **Video embed:** `getVideoAdView` uses `MATCH_PARENT` when effective position is `FULL_SCREEN`.
+
+### Changed
+
+- `fullVideo` `DefaultVastVideoPlayerProvider` prefers progressive MP4 when VAST contains a `MediaFile` URL; falls back to IMA only when IMA is on the classpath and inline media is absent.
+
+---
+
 ## [1.2.7] - 2026-06-04
 
 ### Added

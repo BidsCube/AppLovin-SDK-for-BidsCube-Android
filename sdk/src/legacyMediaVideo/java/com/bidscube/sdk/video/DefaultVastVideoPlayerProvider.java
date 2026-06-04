@@ -8,6 +8,6 @@ public final class DefaultVastVideoPlayerProvider {
     }
 
     public static BidscubeVastVideoPlayer create(Context context, String vastAdMarkup, String clickThroughRedirectUrl) {
-        return new LegacyMediaVastVideoPlayer(context, vastAdMarkup, clickThroughRedirectUrl);
+        return new ProgressiveMp4VastVideoPlayer(context, vastAdMarkup, clickThroughRedirectUrl);
     }
 }
