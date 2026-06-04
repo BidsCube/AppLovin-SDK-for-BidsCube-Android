@@ -53,6 +53,7 @@ import com.bidscube.sdk.video.BidscubeVastVideoPlayerFactory;
 import com.bidscube.sdk.view.BannerViewFactory;
 import com.bidscube.sdk.view.NativeAdView;
 import com.bidscube.sdk.view.NativeAdBinder;
+import com.bidscube.sdk.view.VideoSkipCloseOverlay;
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.shape.CornerFamily;
@@ -103,6 +104,39 @@ public class AdDisplayManager {
 
     private void reportAdStatFail(String placementId, String format, String message) {
         SdkStatsReporter.reportAdFailure(sdkConfig, placementId, format, message);
+    }
+
+    private VideoSkipCloseOverlay attachVideoSkipCloseOverlay(
+            FrameLayout frameContainer,
+            String vastXml,
+            BidscubeVastVideoPlayer videoPlayer,
+            String placementId,
+            AdCallback callback,
+            AtomicBoolean completed,
+            AtomicBoolean skipped,
+            AtomicBoolean closed,
+            Dialog dialog) {
+        VideoSkipCloseOverlay overlay = new VideoSkipCloseOverlay(context, vastXml, () -> {
+            try {
+                if (!completed.get()) {
+                    videoPlayer.skipVideo();
+                }
+            } catch (Throwable ignored) {
+                fireVideoAdSkipped(placementId, callback, completed, skipped);
+            }
+            try {
+                videoPlayer.release();
+            } catch (Throwable ignored) {
+            }
+            if (currentVideoPlayer == videoPlayer) {
+                currentVideoPlayer = null;
+            }
+            dialog.dismiss();
+            fireAdClosedOnce(placementId, callback, closed);
+        });
+        overlay.attach(frameContainer);
+        dialog.setOnDismissListener(d -> overlay.destroy());
+        return overlay;
     }
 
     private BidscubeVastVideoPlayer createVastVideoPlayer(String adm, String vastRedirectUrl) {
@@ -913,41 +947,9 @@ public class AdDisplayManager {
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT));
 
-                        Button closeBtn = new Button(context);
-                        closeBtn.setText("✕");
-                        closeBtn.setTextSize(16);
-                        closeBtn.setBackgroundColor(0xCCF44336);
-                        closeBtn.setTextColor(Color.WHITE);
-                        closeBtn.setPadding(12, 6, 12, 6);
-                        final BidscubeVastVideoPlayer playerRef = videoPlayer;
-                        closeBtn.setOnClickListener(v -> {
-                            try {
-                                if (!completed.get()) {
-                                    playerRef.skipVideo();
-                                }
-                            } catch (Throwable ignored) {
-                                fireVideoAdSkipped(placementId, callback, completed, skipped);
-                            }
-                            try {
-                                playerRef.release();
-                            } catch (Throwable ignored) {
-                            }
-                            if (currentVideoPlayer == playerRef) {
-                                currentVideoPlayer = null;
-                            }
-                            dialog.dismiss();
-                            fireAdClosedOnce(placementId, callback, closed);
-                        });
-
-                        FrameLayout.LayoutParams closeBtnParams = new FrameLayout.LayoutParams(
-                                ViewGroup.LayoutParams.WRAP_CONTENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT);
-                        closeBtnParams.gravity = Gravity.TOP | Gravity.END;
-                        closeBtnParams.setMargins(0, 20, 20, 0);
-                        closeBtn.setLayoutParams(closeBtnParams);
-
                         frameContainer.addView(videoPlayer);
-                        frameContainer.addView(closeBtn);
+                        attachVideoSkipCloseOverlay(frameContainer, adm, videoPlayer, placementId,
+                                callback, completed, skipped, closed, dialog);
                         dialog.setContentView(frameContainer);
                         centerFullScreenDialog(dialog, frameContainer);
                         dialog.show();
@@ -991,41 +993,9 @@ public class AdDisplayManager {
                         videoPlayer.setLayoutParams(new FrameLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT, heightPx));
 
-                        Button closeBtn = new Button(context);
-                        closeBtn.setText("✕");
-                        closeBtn.setTextSize(16);
-                        closeBtn.setBackgroundColor(0xCCF44336);
-                        closeBtn.setTextColor(Color.WHITE);
-                        closeBtn.setPadding(12, 6, 12, 6);
-                        final BidscubeVastVideoPlayer playerRefWindowed = videoPlayer;
-                        closeBtn.setOnClickListener(v -> {
-                            try {
-                                if (!completed.get()) {
-                                    playerRefWindowed.skipVideo();
-                                }
-                            } catch (Throwable ignored) {
-                                fireVideoAdSkipped(placementId, callback, completed, skipped);
-                            }
-                            try {
-                                playerRefWindowed.release();
-                            } catch (Throwable ignored) {
-                            }
-                            if (currentVideoPlayer == playerRefWindowed) {
-                                currentVideoPlayer = null;
-                            }
-                            dialog.dismiss();
-                            fireAdClosedOnce(placementId, callback, closed);
-                        });
-
-                        FrameLayout.LayoutParams closeBtnParams = new FrameLayout.LayoutParams(
-                                ViewGroup.LayoutParams.WRAP_CONTENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT);
-                        closeBtnParams.gravity = Gravity.TOP | Gravity.END;
-                        closeBtnParams.setMargins(0, 20, 20, 0);
-                        closeBtn.setLayoutParams(closeBtnParams);
-
                         frameContainer.addView(videoPlayer);
-                        frameContainer.addView(closeBtn);
+                        attachVideoSkipCloseOverlay(frameContainer, adm, videoPlayer, placementId,
+                                callback, completed, skipped, closed, dialog);
                         dialog.setContentView(frameContainer);
 
                         Window window = dialog.getWindow();

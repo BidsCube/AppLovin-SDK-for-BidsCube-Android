@@ -12,6 +12,7 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 - `ProgressiveMp4VastVideoPlayer` — plays inline VAST with progressive `MediaFile` (MP4) via `VideoView` without requiring Google IMA on the host app classpath.
 - `AdmSanitizer` — unwraps Bidscube JSON/`document.write` HTML envelopes so image banners render real creative instead of raw `{ "adm":` text.
+- `VideoSkipCloseOverlay` — video close control with countdown (default **15** s, or VAST `skipoffset`) then small semi-transparent ✕.
 
 ### Fixed
 
