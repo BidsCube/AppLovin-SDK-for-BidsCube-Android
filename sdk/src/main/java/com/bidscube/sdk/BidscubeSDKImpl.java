@@ -2,12 +2,14 @@
 package com.bidscube.sdk;
 
 import android.app.Activity;
+import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import com.bidscube.sdk.config.SDKConfig;
+import com.bidscube.sdk.errors.AdErrorCode;
 import com.bidscube.sdk.consent.ConsentManager;
 import com.bidscube.sdk.device.providers.DeviceInfoProvider;
 import com.bidscube.sdk.interfaces.AdCallback;
@@ -94,6 +96,13 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     }
 
     @Override
+    public void setDisplayActivity(Activity activity) {
+        if (adDisplayManager != null) {
+            adDisplayManager.setDisplayActivity(activity);
+        }
+    }
+
+    @Override
     public void showImageAd(String placementId, AdCallback callback) {
         checkInitialization();
         if (callback != null)
@@ -109,7 +118,8 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to show image ad: " + e.getMessage(), e);
             if (callback != null) {
-                callback.onAdFailed(placementId, -1, "Failed to show image ad: " + e.getMessage());
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to show image ad: " + AdErrorCode.messageFor(e));
             }
         }
     }
@@ -135,7 +145,8 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to show interstitial video ad: " + e.getMessage(), e);
             if (callback != null) {
-                callback.onAdFailed(placementId, -1, "Failed to show interstitial video ad: " + e.getMessage());
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to show interstitial video ad: " + AdErrorCode.messageFor(e));
             }
         }
     }
@@ -156,7 +167,8 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to show rewarded video ad: " + e.getMessage(), e);
             if (callback != null) {
-                callback.onAdFailed(placementId, -1, "Failed to show rewarded video ad: " + e.getMessage());
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to show rewarded video ad: " + AdErrorCode.messageFor(e));
             }
         }
     }
@@ -191,7 +203,8 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to show native ad: " + e.getMessage(), e);
             if (callback != null) {
-                callback.onAdFailed(placementId, -1, "Failed to show native ad: " + e.getMessage());
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to show native ad: " + AdErrorCode.messageFor(e));
             }
         }
     }
@@ -233,7 +246,8 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to get image ad view: " + e.getMessage(), e);
             if (callback != null) {
-                callback.onAdFailed(placementId, -1, "Failed to get image ad view: " + e.getMessage());
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to get image ad view: " + AdErrorCode.messageFor(e));
             }
             return createErrorView("Failed to load image ad: " + e.getMessage());
         }
@@ -254,7 +268,8 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to get video ad view: " + e.getMessage(), e);
             if (callback != null) {
-                callback.onAdFailed(placementId, -1, "Failed to get video ad view: " + e.getMessage());
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to get video ad view: " + AdErrorCode.messageFor(e));
             }
             return createErrorView("Failed to load video ad: " + e.getMessage());
         }
@@ -275,7 +290,8 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to get native ad view: " + e.getMessage(), e);
             if (callback != null) {
-                callback.onAdFailed(placementId, -1, "Failed to get native ad view: " + e.getMessage());
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to get native ad view: " + AdErrorCode.messageFor(e));
             }
             return createErrorView("Failed to load native ad: " + e.getMessage());
         }

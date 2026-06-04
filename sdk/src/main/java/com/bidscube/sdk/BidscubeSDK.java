@@ -1,5 +1,6 @@
 package com.bidscube.sdk;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 
@@ -47,6 +48,16 @@ public class BidscubeSDK {
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to initialize SDK: " + e.getMessage(), e);
             throw new RuntimeException("SDK initialization failed", e);
+        }
+    }
+
+    /**
+     * Binds the Activity used for dialog / full-screen ad presentation.
+     * Required when init used Application context (typical for MAX mediation).
+     */
+    public static void setDisplayActivity(Activity activity) {
+        if (sdkInstance != null) {
+            sdkInstance.setDisplayActivity(activity);
         }
     }
 

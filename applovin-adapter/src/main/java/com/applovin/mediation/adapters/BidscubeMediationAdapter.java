@@ -62,7 +62,7 @@ public class BidscubeMediationAdapter
 
     @Override
     public String getAdapterVersion() {
-        return getVersionString(BidscubeMediationAdapter.class, "1.2.6");
+        return getVersionString(BidscubeMediationAdapter.class, "1.2.7");
     }
 
     @Override
@@ -188,6 +188,8 @@ public class BidscubeMediationAdapter
 
         final String pid = placementId != null ? placementId : "";
 
+        bindDisplayActivity(activity);
+
         try {
             final View[] adViewHolder = new View[1];
             adViewHolder[0] = BidscubeSDK.getImageAdView(pid, new com.bidscube.sdk.interfaces.AdCallback() {
@@ -253,6 +255,12 @@ public class BidscubeMediationAdapter
         listener.onInterstitialAdLoaded();
     }
 
+    private static void bindDisplayActivity(@Nullable final Activity activity) {
+        if (activity != null) {
+            BidscubeSDK.setDisplayActivity(activity);
+        }
+    }
+
     @Override
     public void showInterstitialAd(final MaxAdapterResponseParameters parameters, @Nullable final Activity activity,
             final MaxInterstitialAdapterListener listener) {
@@ -302,6 +310,8 @@ public class BidscubeMediationAdapter
             }
         };
 
+        bindDisplayActivity(activity);
+
         if (staticImage) {
             BidscubeSDK.showImageAd(pid, callback);
         } else {
@@ -337,6 +347,7 @@ public class BidscubeMediationAdapter
         log("Showing Bidscube rewarded ad for placement: " + pid + "...");
         diag("showRewardedAd: placement=" + pid + " (rewarded video / VAST pipeline)");
         configureReward(parameters);
+        bindDisplayActivity(activity);
 
         BidscubeSDK.showRewardedVideoAd(pid, new com.bidscube.sdk.interfaces.AdCallback() {
             @Override
@@ -409,6 +420,8 @@ public class BidscubeMediationAdapter
 
         final String placementId = parameters.getThirdPartyAdPlacementId();
         final String pid = placementId != null ? placementId : "";
+
+        bindDisplayActivity(activity);
 
         BidscubeSDK.getNativeAdView(pid, new com.bidscube.sdk.interfaces.AdCallback() {
             @Override

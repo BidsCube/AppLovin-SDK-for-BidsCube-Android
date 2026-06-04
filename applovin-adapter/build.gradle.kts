@@ -80,7 +80,7 @@ dependencies {
     implementation("androidx.annotation:annotation:1.8.2")
 }
 
-val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.6"
+val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.7"
 
 afterEvaluate {
     val flavorPublicationConfig = linkedMapOf(

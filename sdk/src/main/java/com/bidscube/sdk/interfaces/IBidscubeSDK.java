@@ -1,5 +1,6 @@
 package com.bidscube.sdk.interfaces;
 
+import android.app.Activity;
 import android.content.Context;
 
 import com.bidscube.sdk.config.SDKConfig;
@@ -21,6 +22,13 @@ public interface IBidscubeSDK {
      * @param config  SDK configuration object
      */
     void initialize(Context context, SDKConfig config);
+
+    /**
+     * Supplies the foreground Activity used to present full-screen / dialog ads.
+     * Call before show methods when the SDK was initialized with Application context
+     * (for example via MAX mediation).
+     */
+    void setDisplayActivity(Activity activity);
 
     /**
      * Show image ad - display mode determined by response position
