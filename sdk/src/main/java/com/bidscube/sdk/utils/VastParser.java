@@ -165,6 +165,9 @@ public final class VastParser {
         System.out.println("Impression trackers: " + getImpressionUrls(vastXml).size());
         System.out.println("Start trackers: " + getTrackingUrls(vastXml, "start").size());
         System.out.println("Complete trackers: " + getTrackingUrls(vastXml, "complete").size());
+        System.out.println("Companion preview URL: " + valueOrMissing(getCompanionImageUrl(vastXml)));
+        System.out.println("Companion click URL: " + valueOrMissing(getCompanionClickThroughUrl(vastXml)));
+        System.out.println("Skip offset ms: " + getSkipOffsetMs(vastXml));
         System.out.println("=== End Analysis ===");
     }
 
@@ -180,6 +183,22 @@ public final class VastParser {
             NodeList staticResources = companion.getElementsByTagName("StaticResource");
             if (staticResources != null && staticResources.getLength() > 0) {
                 return normalizeText(staticResources.item(0));
+            }
+        }
+        return null;
+    }
+
+    public static String getCompanionClickThroughUrl(String vastXml) {
+        Document doc = parseDocument(vastXml);
+        if (doc == null) {
+            return null;
+        }
+        NodeList companionList = doc.getElementsByTagName("Companion");
+        if (companionList != null && companionList.getLength() > 0) {
+            Element companion = (Element) companionList.item(0);
+            NodeList clickThroughNodes = companion.getElementsByTagName("CompanionClickThrough");
+            if (clickThroughNodes != null && clickThroughNodes.getLength() > 0) {
+                return normalizeText(clickThroughNodes.item(0));
             }
         }
         return null;

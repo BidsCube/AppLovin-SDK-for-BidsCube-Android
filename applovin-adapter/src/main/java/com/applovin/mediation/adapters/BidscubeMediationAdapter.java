@@ -62,7 +62,7 @@ public class BidscubeMediationAdapter
 
     @Override
     public String getAdapterVersion() {
-        return getVersionString(BidscubeMediationAdapter.class, "1.2.8");
+        return getVersionString(BidscubeMediationAdapter.class, "1.2.9");
     }
 
     @Override
@@ -114,6 +114,7 @@ public class BidscubeMediationAdapter
                         .enableDebugMode(false)
                         .defaultAdTimeout(30000)
                         .defaultAdPosition("UNKNOWN");
+                configBuilder.appId(appId);
                 if (requestAuthority != null && !requestAuthority.isEmpty()) {
                     configBuilder.adRequestAuthority(requestAuthority);
                 }

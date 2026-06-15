@@ -23,6 +23,7 @@ import com.bidscube.sdk.config.SDKConfig;
 import com.bidscube.sdk.interfaces.AdCallback;
 import com.bidscube.sdk.models.AdRenderContext;
 import com.bidscube.sdk.models.enums.AdPosition;
+import com.bidscube.sdk.qa.QaVastFixtures;
 import com.bidscube.sdk.utils.SDKLogger;
 import com.bidscube.sdk.view.BannerViewFactory;
 import com.bidscube.sdk.view.NativeAdBinder;
@@ -258,6 +259,19 @@ public class SDKTestActivity extends Activity {
         nativeAdButton.setOnClickListener(v -> showAd(DEFAULT_NATIVE_PLACEMENT, AdType.Type.NATIVE));
         buttonContainer.addView(nativeAdButton);
 
+        addTextView("QA VAST (no network):", buttonContainer);
+        Button qaNoPreviewButton = new Button(this);
+        qaNoPreviewButton.setText("QA: VAST without preview");
+        qaNoPreviewButton.setOnClickListener(v -> showQaVast(QaVastFixtures.PLACEMENT_NO_PREVIEW,
+                QaVastFixtures.VAST_WITHOUT_PREVIEW));
+        buttonContainer.addView(qaNoPreviewButton);
+
+        Button qaWithPreviewButton = new Button(this);
+        qaWithPreviewButton.setText("QA: VAST with preview");
+        qaWithPreviewButton.setOnClickListener(v -> showQaVast(QaVastFixtures.PLACEMENT_WITH_PREVIEW,
+                QaVastFixtures.VAST_WITH_PREVIEW));
+        buttonContainer.addView(qaWithPreviewButton);
+
         addTextView("", parent);
 
 
@@ -406,6 +420,20 @@ public class SDKTestActivity extends Activity {
                 scrollViewRef.requestDisallowInterceptTouchEvent(true);
             }
         } catch (Throwable ignored) {}
+    }
+
+    private void showQaVast(String placementId, String vastXml) {
+        if (!BidscubeSDK.isInitialized()) {
+            Toast.makeText(this, "SDK not initialized", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        BidscubeSDK.setDisplayActivity(this);
+        try {
+            BidscubeSDK.showVideoAdFromVastMarkup(placementId, vastXml, createAdCallback());
+        } catch (Exception e) {
+            SDKLogger.e(TAG, "Failed to show QA VAST: " + e.getMessage());
+            Toast.makeText(this, "Failed to show QA VAST: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     // New: accept a default placement id; if the text field has a value it takes precedence

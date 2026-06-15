@@ -22,7 +22,7 @@ tasks.register("stageAllReleaseAars") {
     dependsOn(":sdk:stageReleaseAars", ":applovin-adapter:stageReleaseAars")
     doLast {
         val sdkVersion = project(":sdk").extra["sdkVersion"] as String
-        val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.8"
+        val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.9"
         val outputDir = layout.buildDirectory.dir("staged-aars").get().asFile
         outputDir.mkdirs()
 

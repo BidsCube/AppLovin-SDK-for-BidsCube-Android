@@ -84,6 +84,14 @@ public class BidscubeSDK {
     }
 
     /**
+     * Show a fullscreen video ad directly from inline VAST markup (no network). For QA / debug use.
+     */
+    public static void showVideoAdFromVastMarkup(String placementId, String vastXml, AdCallback callback) {
+        checkInitialization();
+        sdkInstance.showVideoAdFromVastMarkup(placementId, vastXml, callback);
+    }
+
+    /**
      * Interstitial VAST (no reward).
      */
     public static void showInterstitialVideoAd(String placementId, AdCallback callback) {

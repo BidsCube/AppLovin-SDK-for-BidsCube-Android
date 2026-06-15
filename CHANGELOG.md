@@ -6,6 +6,24 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 ---
 
+## [1.2.9] - 2026-06-15
+
+### Added
+
+- VAST **companion preview** on post-video end card (`Companion` → `StaticResource`); existing fallback UI when preview is absent.
+- `VideoSkipControlOverlay` — skip countdown from VAST `skipoffset` (`Skip in N` → `Skip`).
+- `VideoEndCardOverlay` — companion image + click-through; fallback “Ad ended” + optional linear CTA.
+- `VastParser.getCompanionImageUrl`, `getCompanionClickThroughUrl`, `getSkipOffsetMs`.
+- `BidscubeSDK.showVideoAdFromVastMarkup` — inline VAST for QA (no SSP).
+- `com.bidscube.sdk.qa.QaVastFixtures` — hardcoded no-preview / with-preview VAST payloads.
+- Publisher test app: **VAST end card QA** buttons wired to the SDK path.
+
+### Fixed
+
+- AppLovin MAX adapter now passes MAX **`app_id`** server parameter into `SDKConfig.Builder.appId(...)`.
+
+---
+
 ## [1.2.8] - 2026-06-04
 
 ### Added

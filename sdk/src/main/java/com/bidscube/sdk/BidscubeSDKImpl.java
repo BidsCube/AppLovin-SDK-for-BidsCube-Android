@@ -130,6 +130,25 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     }
 
     @Override
+    public void showVideoAdFromVastMarkup(String placementId, String vastXml, AdCallback callback) {
+        checkInitialization();
+        if (callback != null) {
+            callback.onAdLoading(placementId);
+        }
+        try {
+            Log.i(INTEGRATION, "showVideoAdFromVastMarkup: placement=" + placementId
+                    + " vastChars=" + (vastXml != null ? vastXml.length() : 0));
+            adDisplayManager.showVideoAdFromVastMarkup(placementId, vastXml, callback);
+        } catch (Exception e) {
+            SDKLogger.e(TAG, "Failed to show video from VAST markup: " + e.getMessage(), e);
+            if (callback != null) {
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to show video from VAST markup: " + AdErrorCode.messageFor(e));
+            }
+        }
+    }
+
+    @Override
     public void showInterstitialVideoAd(String placementId, AdCallback callback) {
         checkInitialization();
         if (callback != null)
