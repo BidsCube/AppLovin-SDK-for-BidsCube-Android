@@ -54,6 +54,8 @@ import com.bidscube.sdk.view.BannerViewFactory;
 import com.bidscube.sdk.view.NativeAdView;
 import com.bidscube.sdk.view.NativeAdBinder;
 import com.bidscube.sdk.view.VideoSkipCloseOverlay;
+import com.bidscube.sdk.view.VideoSkipControlOverlay;
+import com.bidscube.sdk.view.VideoEndCardOverlay;
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.shape.CornerFamily;
@@ -104,6 +106,100 @@ public class AdDisplayManager {
 
     private void reportAdStatFail(String placementId, String format, String message) {
         SdkStatsReporter.reportAdFailure(sdkConfig, placementId, format, message);
+    }
+
+    private void attachFullscreenVideoControls(
+            FrameLayout frameContainer,
+            String vastXml,
+            BidscubeVastVideoPlayer videoPlayer,
+            String placementId,
+            AdCallback callback,
+            AtomicBoolean completed,
+            AtomicBoolean skipped,
+            AtomicBoolean closed,
+            AtomicBoolean endCardShown,
+            VideoAdFormat format,
+            Dialog dialog) {
+        final VideoSkipControlOverlay[] skipOverlay = new VideoSkipControlOverlay[1];
+        final VideoEndCardOverlay[] endCardOverlay = new VideoEndCardOverlay[1];
+
+        Runnable showEndCard = () -> {
+            if (!endCardShown.compareAndSet(false, true)) {
+                return;
+            }
+            runOnUiThread(() -> {
+                if (skipOverlay[0] != null) {
+                    skipOverlay[0].destroy();
+                    skipOverlay[0] = null;
+                }
+                videoPlayer.setVisibility(View.GONE);
+                try {
+                    videoPlayer.release();
+                } catch (Throwable ignored) {
+                }
+                if (currentVideoPlayer == videoPlayer) {
+                    currentVideoPlayer = null;
+                }
+
+                endCardOverlay[0] = new VideoEndCardOverlay(context, vastXml, placementId, callback, () -> {
+                    if (endCardOverlay[0] != null) {
+                        endCardOverlay[0].destroy();
+                        endCardOverlay[0] = null;
+                    }
+                    dialog.dismiss();
+                    fireAdClosedOnce(placementId, callback, closed);
+                });
+                endCardOverlay[0].attach(frameContainer);
+            });
+        };
+
+        videoPlayer.setOnVideoCompletionListener(new BidscubeVastVideoPlayer.OnVideoCompletionListener() {
+            @Override
+            public void onVideoCompleted() {
+                fireVideoAdCompleted(placementId, callback, completed, skipped, format);
+                showEndCard.run();
+            }
+
+            @Override
+            public void onVideoSkipped() {
+                fireVideoAdSkipped(placementId, callback, completed, skipped);
+                showEndCard.run();
+            }
+        });
+
+        skipOverlay[0] = new VideoSkipControlOverlay(context, vastXml, new VideoSkipControlOverlay.OnSkipListener() {
+            @Override
+            public void onSkipRequested() {
+                try {
+                    if (!completed.get() && !skipped.get()) {
+                        videoPlayer.skipVideo();
+                    }
+                } catch (Throwable ignored) {
+                    fireVideoAdSkipped(placementId, callback, completed, skipped);
+                    showEndCard.run();
+                }
+            }
+
+            @Override
+            public void onSkipAvailable() {
+                if (callback != null && placementId != null) {
+                    try {
+                        callback.onVideoAdSkippable(placementId);
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
+        });
+        skipOverlay[0].attach(frameContainer);
+
+        dialog.setOnDismissListener(d -> {
+            if (skipOverlay[0] != null) {
+                skipOverlay[0].destroy();
+            }
+            if (endCardOverlay[0] != null) {
+                endCardOverlay[0].destroy();
+            }
+        });
     }
 
     private VideoSkipCloseOverlay attachVideoSkipCloseOverlay(
@@ -888,6 +984,77 @@ public class AdDisplayManager {
         showVideoAdWithResponsePosition(placementId, url, VideoAdFormat.INTERSTITIAL, callback);
     }
 
+    /**
+     * Show a fullscreen video ad directly from inline VAST markup (no network). For QA / debug use.
+     */
+    void showVideoAdFromVastMarkup(String placementId, String vastXml, AdCallback callback) {
+        runOnUiThread(() -> {
+            Activity dialogActivity = requireActivityForDialog(placementId, "video", callback);
+            if (dialogActivity == null) {
+                return;
+            }
+            try {
+                final String adm = sanitizeAdm(vastXml);
+                Log.i(INTEGRATION, "video ad: inline VAST placement=" + placementId
+                        + " admChars=" + (adm != null ? adm.length() : 0));
+                if (!VastParser.validateVastStructure(adm)) {
+                    deliverAdFailure(placementId, "video", callback, new BidscubeRequestException(
+                            AdErrorCode.DISPLAY_ERROR, "Invalid VAST markup"));
+                    return;
+                }
+                VastParser.analyzeVast(adm);
+                displayFullscreenVideoAd(placementId, adm, VideoAdFormat.INTERSTITIAL, callback, dialogActivity);
+            } catch (Throwable displayError) {
+                deliverAdFailure(placementId, "video", callback, displayError instanceof Exception
+                        ? (Exception) displayError
+                        : new BidscubeRequestException(AdErrorCode.DISPLAY_ERROR, displayError.getMessage()));
+            }
+        });
+    }
+
+    private void displayFullscreenVideoAd(String placementId, String adm, VideoAdFormat format,
+            AdCallback callback, Activity dialogActivity) {
+        String vastRedirectUrl = VastParser.getClickThroughUrl(adm);
+
+        Dialog dialog = new Dialog(dialogActivity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+
+        FrameLayout frameContainer = new FrameLayout(dialogActivity);
+        frameContainer.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+
+        BidscubeVastVideoPlayer videoPlayer = createVastVideoPlayer(adm, vastRedirectUrl);
+        if (!videoPlayer.isVideoSupported()) {
+            if (callback != null) {
+                callback.onAdFailed(placementId, videoPlayer.getUnsupportedErrorCode(),
+                        videoPlayer.getUnsupportedErrorMessage());
+            }
+            return;
+        }
+        AtomicBoolean completed = new AtomicBoolean(false);
+        AtomicBoolean skipped = new AtomicBoolean(false);
+        AtomicBoolean closed = new AtomicBoolean(false);
+        AtomicBoolean endCardShown = new AtomicBoolean(false);
+        videoPlayer.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+
+        frameContainer.addView(videoPlayer);
+        attachFullscreenVideoControls(frameContainer, adm, videoPlayer, placementId,
+                callback, completed, skipped, closed, endCardShown, format, dialog);
+        dialog.setContentView(frameContainer);
+        centerFullScreenDialog(dialog, frameContainer);
+        dialog.show();
+
+        Log.i(INTEGRATION, "video ad: playVast (fullscreen dialog) player="
+                + videoPlayer.getClass().getSimpleName());
+        videoPlayer.playVast(adm, false);
+        currentVideoPlayer = videoPlayer;
+
+        fireVideoAdUiReady(placementId, callback);
+        SDKLogger.d(TAG, "Video ad displayed fullscreen from inline VAST");
+    }
+
     void showVideoAdWithResponsePosition(String placementId, String url, VideoAdFormat format, AdCallback callback) {
         HttpProvider.sendGetRequest(url, new BidscubeCallback() {
             @Override
@@ -923,46 +1090,8 @@ public class AdDisplayManager {
                     if (effectivePosition == AdPosition.FULL_SCREEN) {
                         SDKLogger.d(TAG, "Response indicates full screen display for video ad");
 
-
-                        Dialog dialog = new Dialog(dialogActivity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-
-                        FrameLayout frameContainer = new FrameLayout(dialogActivity);
-                        frameContainer.setLayoutParams(new LinearLayout.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT));
-
-                        BidscubeVastVideoPlayer videoPlayer = createVastVideoPlayer(adm, vastRedirectUrl);
-                        if (!videoPlayer.isVideoSupported()) {
-                            if (callback != null) {
-                                callback.onAdFailed(placementId, videoPlayer.getUnsupportedErrorCode(),
-                                        videoPlayer.getUnsupportedErrorMessage());
-                            }
-                            return;
-                        }
-                        AtomicBoolean completed = new AtomicBoolean(false);
-                        AtomicBoolean skipped = new AtomicBoolean(false);
-                        AtomicBoolean closed = new AtomicBoolean(false);
-                        attachVideoLifecycleCallbacks(videoPlayer, placementId, callback, completed, skipped, format);
-                        videoPlayer.setLayoutParams(new FrameLayout.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT));
-
-                        frameContainer.addView(videoPlayer);
-                        attachVideoSkipCloseOverlay(frameContainer, adm, videoPlayer, placementId,
-                                callback, completed, skipped, closed, dialog);
-                        dialog.setContentView(frameContainer);
-                        centerFullScreenDialog(dialog, frameContainer);
-                        dialog.show();
-
-                        Log.i(INTEGRATION, "video ad: playVast (fullscreen dialog) player="
-                                + videoPlayer.getClass().getSimpleName());
-                        videoPlayer.playVast(adm, false);
-                        currentVideoPlayer = videoPlayer;
-
-                        fireVideoAdUiReady(placementId, callback);
-                        SDKLogger.d(TAG,
-                                "Video ad displayed fullscreen with position: " + responseBody.getPosition()
-                                        + " -> " + effectivePosition);
+                        displayFullscreenVideoAd(placementId, adm, format, callback, dialogActivity);
+                        return;
                     } else {
                         SDKLogger.d(TAG, "Response indicates windowed display for video ad");
 

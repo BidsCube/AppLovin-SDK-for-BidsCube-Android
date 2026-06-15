@@ -8,7 +8,7 @@ plugins {
 }
 
 // Published Maven version; also BuildConfig.SDK_VERSION_NAME at runtime.
-val sdkVersionString = System.getenv("BidscubeVersion") ?: "1.2.8"
+val sdkVersionString = System.getenv("BidscubeVersion") ?: "1.2.9"
 val sdkVersion by extra(sdkVersionString)
 
 val skipSigning = (project.findProperty("skipSigning") as String?) == "true"

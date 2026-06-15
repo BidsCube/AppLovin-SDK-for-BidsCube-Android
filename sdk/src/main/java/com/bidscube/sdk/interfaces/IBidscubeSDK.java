@@ -47,6 +47,11 @@ public interface IBidscubeSDK {
     void showVideoAd(String placementId, AdCallback callback);
 
     /**
+     * Show a fullscreen video ad directly from inline VAST markup (no network). For QA / debug use.
+     */
+    void showVideoAdFromVastMarkup(String placementId, String vastXml, AdCallback callback);
+
+    /**
      * Full-screen or windowed interstitial VAST; never invokes {@link AdCallback#onUserRewarded(String)}.
      */
     void showInterstitialVideoAd(String placementId, AdCallback callback);
