@@ -1,0 +1,17 @@
+# Copy to gradle.properties for local Maven Central publish (do not commit gradle.properties with secrets).
+#
+# org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+# android.useAndroidX=true
+# android.nonTransitiveRClass=true
+# kotlin.code.style=official
+#
+# Maven Central (Sonatype) credentials:
+# mavenCentralUsername=your-sonatype-username
+# mavenCentralPassword=your-sonatype-password
+#
+# Optional version overrides for local builds:
+# BidscubeVersion=1.2.9
+# BidscubeAdapterVersion=1.2.9
+#
+# Signing uses GPG via useGpgCmd(). Skip for local AAR staging:
+# ./gradlew stageAllReleaseAars -PskipSigning=true

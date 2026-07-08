@@ -277,6 +277,31 @@ public class ConsentManager {
     }
 
     /**
+     * @return true when UMP reports that consent is still required from the user
+     */
+    public boolean isConsentRequired() {
+        return consentInformation.getConsentStatus() == ConsentInformation.ConsentStatus.REQUIRED;
+    }
+
+    /**
+     * @return true when the user has obtained consent via UMP or stored IAB consent strings
+     */
+    public boolean hasAdsConsent() {
+        if (consentInformation.getConsentStatus() == ConsentInformation.ConsentStatus.OBTAINED) {
+            return true;
+        }
+        String tcString = getGdprConsentString();
+        return tcString != null && !tcString.isEmpty();
+    }
+
+    /**
+     * Analytics consent follows the same UMP / IAB signals as ads in this SDK integration.
+     */
+    public boolean hasAnalyticsConsent() {
+        return hasAdsConsent();
+    }
+
+    /**
      * Get a summary of current consent status for debugging
      *
      * @return String representation of consent status

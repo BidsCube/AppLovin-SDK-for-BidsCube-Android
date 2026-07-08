@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import com.bidscube.sdk.config.SDKConfig;
+import com.bidscube.sdk.interfaces.InitializationCallback;
 import com.bidscube.sdk.models.enums.AdPosition;
 
 import android.view.View;
@@ -22,6 +23,11 @@ public interface IBidscubeSDK {
      * @param config  SDK configuration object
      */
     void initialize(Context context, SDKConfig config);
+
+    /**
+     * Initialize the SDK and report readiness after async device info collection completes.
+     */
+    void initialize(Context context, SDKConfig config, InitializationCallback callback);
 
     /**
      * Supplies the foreground Activity used to present full-screen / dialog ads.
@@ -60,6 +66,26 @@ public interface IBidscubeSDK {
      * Rewarded VAST; {@link AdCallback#onUserRewarded(String)} only after full playback completion.
      */
     void showRewardedVideoAd(String placementId, AdCallback callback);
+
+    /**
+     * Preload an interstitial video creative for later show (mediation load phase).
+     */
+    void preloadInterstitialVideoAd(String placementId, AdCallback callback);
+
+    /**
+     * Preload a rewarded video creative for later show (mediation load phase).
+     */
+    void preloadRewardedVideoAd(String placementId, AdCallback callback);
+
+    /**
+     * Preload a static image creative for later show (mediation load phase).
+     */
+    void preloadImageAd(String placementId, AdCallback callback);
+
+    /**
+     * Clears cached preload responses.
+     */
+    void clearPreloadCache();
 
     void showSkippableVideoAd(String placementId, AdCallback callback);
 
@@ -194,4 +220,9 @@ public interface IBidscubeSDK {
      * @param deviceId Device ID for debug mode
      */
     void enableConsentDebugMode(String deviceId);
+
+    /**
+     * Register a callback to be notified when async initialization completes.
+     */
+    void registerInitializationCallback(InitializationCallback callback);
 }

@@ -7,9 +7,11 @@ import android.view.View;
 import com.bidscube.sdk.config.SDKConfig;
 import com.bidscube.sdk.interfaces.AdCallback;
 import com.bidscube.sdk.interfaces.ConsentCallback;
+import com.bidscube.sdk.interfaces.InitializationCallback;
 import com.bidscube.sdk.interfaces.IBidscubeSDK;
 import com.bidscube.sdk.models.enums.AdPosition;
 import com.bidscube.sdk.utils.SDKLogger;
+import com.bidscube.sdk.utils.SignalCollector;
 
 /**
  * Main entry point for Bidscube SDK
@@ -20,6 +22,15 @@ public class BidscubeSDK {
 
     private static final String TAG = "BidscubeSDK";
     private static IBidscubeSDK sdkInstance;
+    private static volatile String mediationAdapterVersion = "";
+
+    /**
+     * Sets the mediation adapter version included in {@link #collectSignal()}.
+     * MAX adapters should call this during initialization.
+     */
+    public static void setMediationAdapterVersion(String adapterVersion) {
+        mediationAdapterVersion = adapterVersion != null ? adapterVersion : "";
+    }
 
     /**
      * Minimal integration: default production SSP host, auto-detected app id/name/version/UA from the host app.
@@ -36,17 +47,34 @@ public class BidscubeSDK {
      * @param config  SDK configuration object
      */
     public static void initialize(Context context, SDKConfig config) {
+        initialize(context, config, null);
+    }
+
+    /**
+     * Initialize the SDK with required parameters and an optional readiness callback.
+     */
+    public static void initialize(Context context, SDKConfig config, InitializationCallback callback) {
         if (sdkInstance != null) {
-            SDKLogger.w(TAG, "SDK already initialized");
+            if (sdkInstance.isInitialized()) {
+                SDKLogger.w(TAG, "SDK already initialized");
+                if (callback != null) {
+                    callback.onInitialized();
+                }
+            } else {
+                sdkInstance.registerInitializationCallback(callback);
+            }
             return;
         }
 
         try {
             sdkInstance = new BidscubeSDKImpl();
-            sdkInstance.initialize(context, config);
-            SDKLogger.d(TAG, "SDK initialized successfully");
+            sdkInstance.initialize(context, config, callback);
+            SDKLogger.d(TAG, "SDK initialize invoked");
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to initialize SDK: " + e.getMessage(), e);
+            if (callback != null) {
+                callback.onInitializationFailed(e.getMessage() != null ? e.getMessage() : "SDK initialization failed");
+            }
             throw new RuntimeException("SDK initialization failed", e);
         }
     }
@@ -105,6 +133,53 @@ public class BidscubeSDK {
     public static void showRewardedVideoAd(String placementId, AdCallback callback) {
         checkInitialization();
         sdkInstance.showRewardedVideoAd(placementId, callback);
+    }
+
+    /**
+     * Preload an interstitial video ad. Call from mediation load; show consumes the cache.
+     */
+    public static void preloadInterstitialVideoAd(String placementId, AdCallback callback) {
+        checkInitialization();
+        sdkInstance.preloadInterstitialVideoAd(placementId, callback);
+    }
+
+    /**
+     * Preload a rewarded video ad. Call from mediation load; show consumes the cache.
+     */
+    public static void preloadRewardedVideoAd(String placementId, AdCallback callback) {
+        checkInitialization();
+        sdkInstance.preloadRewardedVideoAd(placementId, callback);
+    }
+
+    /**
+     * Preload a static image ad. Call from mediation load; show consumes the cache.
+     */
+    public static void preloadImageAd(String placementId, AdCallback callback) {
+        checkInitialization();
+        sdkInstance.preloadImageAd(placementId, callback);
+    }
+
+    /**
+     * Clears cached preload responses.
+     */
+    public static void clearPreloadCache() {
+        if (sdkInstance != null) {
+            sdkInstance.clearPreloadCache();
+        }
+    }
+
+    /**
+     * Collect a structured mediation signal without PII or raw IFA.
+     */
+    public static String collectSignal() {
+        return SignalCollector.collectSignal(getSdkVersion(), mediationAdapterVersion);
+    }
+
+    /**
+     * Collect a structured mediation signal with an explicit adapter version.
+     */
+    public static String collectSignal(String adapterVersion) {
+        return SignalCollector.collectSignal(getSdkVersion(), adapterVersion);
     }
 
     /**

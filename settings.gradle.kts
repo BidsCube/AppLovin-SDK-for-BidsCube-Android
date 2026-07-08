@@ -15,5 +15,8 @@ pluginManagement {
 rootProject.name = "bidscube-sdk"
 include(":sdk")
 include(":applovin-adapter")
-include(":bidscube-testapp-android")
-project(":bidscube-testapp-android").projectDir = file("../bidscube-testapp-android")
+val testAppDir = file("../bidscube-testapp-android")
+if (testAppDir.exists()) {
+    include(":bidscube-testapp-android")
+    project(":bidscube-testapp-android").projectDir = testAppDir
+}
