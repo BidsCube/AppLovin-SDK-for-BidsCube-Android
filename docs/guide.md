@@ -1,6 +1,6 @@
 # Custom Ad Rendering Guide
 
-**Bidscube SDK 1.2.9+**
+**Bidscube SDK 1.2.10+**
 
 This guide shows how to intercept Bidscube SDK rendering and plug in your own UI using the `onAdRenderOverride` callback.
 
@@ -80,7 +80,7 @@ Custom render override works across all four SDK AAR modes. Video playback backe
 | LiteNoVideo | No video — override rarely applies to video |
 | WebViewVideoNoDesugar | WebView / HTML5 |
 | LegacyMediaVideoNoDesugar | `VideoView` / `MediaPlayer` |
-| FullWithVideo | Media3 / Google IMA |
+| FullWithVideo | Google IMA-based VAST playback (Media3 deps may be present transitively) |
 
 Returning `false` from `onAdRenderOverride` delegates to the mode-appropriate stock renderer.
 
