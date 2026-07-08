@@ -2,7 +2,6 @@
 package com.bidscube.sdk;
 
 import android.app.Activity;
-import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
@@ -15,6 +14,7 @@ import com.bidscube.sdk.device.providers.DeviceInfoProvider;
 import com.bidscube.sdk.interfaces.AdCallback;
 import com.bidscube.sdk.interfaces.ConsentCallback;
 import com.bidscube.sdk.interfaces.IBidscubeSDK;
+import com.bidscube.sdk.interfaces.InitializationCallback;
 import com.bidscube.sdk.models.DeviceInfo;
 import com.bidscube.sdk.models.enums.AdPosition;
 import com.bidscube.sdk.ads.ImageAdType;
@@ -23,6 +23,9 @@ import com.bidscube.sdk.ads.VideoAdFormat;
 import com.bidscube.sdk.ads.VideoAdType;
 import com.bidscube.sdk.stats.SdkStatsReporter;
 import com.bidscube.sdk.utils.SDKLogger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Main implementation of Bidscube SDK
@@ -42,12 +45,32 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     private DeviceInfoProvider deviceInfoProvider;
     private ConsentManager consentManager;
     private boolean isInitialized = false;
+    private final List<InitializationCallback> pendingInitCallbacks = new ArrayList<>();
 
     @Override
     public void initialize(Context context, SDKConfig config) {
+        initialize(context, config, null);
+    }
+
+    @Override
+    public void initialize(Context context, SDKConfig config, InitializationCallback callback) {
         if (isInitialized) {
             SDKLogger.w(TAG, "SDK already initialized");
             Log.i(INTEGRATION, "BidscubeSDKImpl: initialize skipped (already initialized)");
+            if (callback != null) {
+                callback.onInitialized();
+            }
+            return;
+        }
+
+        if (callback != null) {
+            synchronized (pendingInitCallbacks) {
+                pendingInitCallbacks.add(callback);
+            }
+        }
+
+        if (deviceInfoProvider != null) {
+            SDKLogger.w(TAG, "SDK initialization already in progress");
             return;
         }
 
@@ -86,12 +109,57 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
                     AdPosition position = AdPosition.fromString(config.getDefaultAdPosition());
                     setAdPosition(position);
                 }
+
+                notifyInitializationSuccess();
             });
 
         } catch (Exception e) {
             SDKLogger.e(TAG, "Failed to initialize SDK: " + e.getMessage(), e);
             Log.e(INTEGRATION, "BidscubeSDKImpl: initialize failed: " + e.getMessage(), e);
+            notifyInitializationFailure(e.getMessage() != null ? e.getMessage() : "SDK initialization failed");
             throw new RuntimeException("SDK initialization failed", e);
+        }
+    }
+
+    @Override
+    public void registerInitializationCallback(InitializationCallback callback) {
+        if (callback == null) {
+            return;
+        }
+        if (isInitialized) {
+            callback.onInitialized();
+            return;
+        }
+        synchronized (pendingInitCallbacks) {
+            pendingInitCallbacks.add(callback);
+        }
+    }
+
+    private void notifyInitializationSuccess() {
+        final List<InitializationCallback> callbacks;
+        synchronized (pendingInitCallbacks) {
+            callbacks = new ArrayList<>(pendingInitCallbacks);
+            pendingInitCallbacks.clear();
+        }
+        for (InitializationCallback callback : callbacks) {
+            try {
+                callback.onInitialized();
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
+    private void notifyInitializationFailure(String message) {
+        final List<InitializationCallback> callbacks;
+        synchronized (pendingInitCallbacks) {
+            callbacks = new ArrayList<>(pendingInitCallbacks);
+            pendingInitCallbacks.clear();
+        }
+        for (InitializationCallback callback : callbacks) {
+            try {
+                callback.onInitializationFailed(message);
+            } catch (Throwable ignored) {
+            }
         }
     }
 
@@ -105,10 +173,16 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     @Override
     public void showImageAd(String placementId, AdCallback callback) {
         checkInitialization();
-        if (callback != null)
+        if (callback != null) {
             callback.onAdLoading(placementId);
+        }
 
         try {
+            if (adDisplayManager.consumeCachedImageAd(placementId)) {
+                adDisplayManager.showCachedImageAd(placementId, callback);
+                return;
+            }
+
             ImageAdType imageAdType = new ImageAdType(placementId);
             String url = imageAdType.buildRequestUrl(deviceInfo).toString();
             Log.i(INTEGRATION, "showImageAd: placement=" + placementId + " requestUrl=" + url);
@@ -151,10 +225,16 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     @Override
     public void showInterstitialVideoAd(String placementId, AdCallback callback) {
         checkInitialization();
-        if (callback != null)
+        if (callback != null) {
             callback.onAdLoading(placementId);
+        }
 
         try {
+            if (adDisplayManager.consumeCachedVideoAd(placementId, VideoAdFormat.INTERSTITIAL)) {
+                adDisplayManager.showCachedVideoAd(placementId, VideoAdFormat.INTERSTITIAL, callback);
+                return;
+            }
+
             VideoAdType videoAdType = new VideoAdType(placementId);
             String url = videoAdType.buildRequestUrl(deviceInfo).toString();
             Log.i(INTEGRATION, "showInterstitialVideoAd: placement=" + placementId + " requestUrl=" + url);
@@ -173,10 +253,16 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     @Override
     public void showRewardedVideoAd(String placementId, AdCallback callback) {
         checkInitialization();
-        if (callback != null)
+        if (callback != null) {
             callback.onAdLoading(placementId);
+        }
 
         try {
+            if (adDisplayManager.consumeCachedVideoAd(placementId, VideoAdFormat.REWARDED)) {
+                adDisplayManager.showCachedVideoAd(placementId, VideoAdFormat.REWARDED, callback);
+                return;
+            }
+
             VideoAdType videoAdType = new VideoAdType(placementId);
             String url = videoAdType.buildRequestUrl(deviceInfo).toString();
             Log.i(INTEGRATION, "showRewardedVideoAd: placement=" + placementId + " requestUrl=" + url);
@@ -189,6 +275,70 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
                 callback.onAdFailed(placementId, AdErrorCode.fromException(e),
                         "Failed to show rewarded video ad: " + AdErrorCode.messageFor(e));
             }
+        }
+    }
+
+    @Override
+    public void preloadInterstitialVideoAd(String placementId, AdCallback callback) {
+        checkInitialization();
+        if (callback != null) {
+            callback.onAdLoading(placementId);
+        }
+        try {
+            VideoAdType videoAdType = new VideoAdType(placementId);
+            String url = videoAdType.buildRequestUrl(deviceInfo).toString();
+            adDisplayManager.preloadVideoAd(placementId, url, VideoAdFormat.INTERSTITIAL, callback);
+        } catch (Exception e) {
+            SDKLogger.e(TAG, "Failed to preload interstitial video ad: " + e.getMessage(), e);
+            if (callback != null) {
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to preload interstitial video ad: " + AdErrorCode.messageFor(e));
+            }
+        }
+    }
+
+    @Override
+    public void preloadRewardedVideoAd(String placementId, AdCallback callback) {
+        checkInitialization();
+        if (callback != null) {
+            callback.onAdLoading(placementId);
+        }
+        try {
+            VideoAdType videoAdType = new VideoAdType(placementId);
+            String url = videoAdType.buildRequestUrl(deviceInfo).toString();
+            adDisplayManager.preloadVideoAd(placementId, url, VideoAdFormat.REWARDED, callback);
+        } catch (Exception e) {
+            SDKLogger.e(TAG, "Failed to preload rewarded video ad: " + e.getMessage(), e);
+            if (callback != null) {
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to preload rewarded video ad: " + AdErrorCode.messageFor(e));
+            }
+        }
+    }
+
+    @Override
+    public void preloadImageAd(String placementId, AdCallback callback) {
+        checkInitialization();
+        if (callback != null) {
+            callback.onAdLoading(placementId);
+        }
+        try {
+            ImageAdType imageAdType = new ImageAdType(placementId);
+            String url = imageAdType.buildRequestUrl(deviceInfo).toString();
+            adDisplayManager.preloadImageAd(placementId, url, callback);
+        } catch (Exception e) {
+            SDKLogger.e(TAG, "Failed to preload image ad: " + e.getMessage(), e);
+            if (callback != null) {
+                callback.onAdFailed(placementId, AdErrorCode.fromException(e),
+                        "Failed to preload image ad: " + AdErrorCode.messageFor(e));
+            }
+        }
+    }
+
+    @Override
+    public void clearPreloadCache() {
+        if (adDisplayManager != null) {
+            adDisplayManager.clearPreloadCache();
         }
     }
 
@@ -353,9 +503,14 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     @Override
     public void cleanup() {
         if (adDisplayManager != null) {
+            adDisplayManager.clearPreloadCache();
             adDisplayManager.cleanup();
         }
         isInitialized = false;
+        deviceInfoProvider = null;
+        synchronized (pendingInitCallbacks) {
+            pendingInitCallbacks.clear();
+        }
         SDKLogger.d(TAG, "SDK cleaned up");
     }
 
@@ -367,9 +522,10 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     @Override
     public void requestConsentInfoUpdate(ConsentCallback callback) {
         checkInitialization();
-        if (context instanceof Activity) {
+        Activity activity = resolveConsentActivity();
+        if (activity != null) {
             consentManager.requestConsentInfoUpdate(
-                    (Activity) context,
+                    activity,
                     () -> deviceInfoProvider.getDeviceInfoWithCurrentConsent(newDeviceInfo -> {
                         deviceInfo = newDeviceInfo;
                         if (callback != null) {
@@ -377,9 +533,9 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
                         }
                     }));
         } else {
-            SDKLogger.e(TAG, "Context is not an Activity, cannot request consent info update");
+            SDKLogger.e(TAG, "No Activity available for consent info update");
             if (callback != null) {
-                callback.onConsentInfoUpdateFailed(new Exception("Context is not an Activity"));
+                callback.onConsentInfoUpdateFailed(new Exception("No Activity available for consent"));
             }
         }
     }
@@ -387,9 +543,10 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     @Override
     public void showConsentForm(ConsentCallback callback) {
         checkInitialization();
-        if (context instanceof Activity) {
+        Activity activity = resolveConsentActivity();
+        if (activity != null) {
             consentManager.loadAndShowConsentForm(
-                    (Activity) context,
+                    activity,
                     formError -> {
                         SDKLogger.e(TAG, "Consent form error: " + formError.getMessage());
                         if (callback != null) {
@@ -397,26 +554,39 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
                         }
                     });
         } else {
-            SDKLogger.e(TAG, "Context is not an Activity, cannot show consent form");
+            SDKLogger.e(TAG, "No Activity available for consent form");
             if (callback != null) {
-                callback.onConsentFormError(new Exception("Context is not an Activity"));
+                callback.onConsentFormError(new Exception("No Activity available for consent form"));
             }
         }
     }
 
+    private Activity resolveConsentActivity() {
+        if (adDisplayManager != null) {
+            Activity displayActivity = adDisplayManager.getDisplayActivity();
+            if (displayActivity != null) {
+                return displayActivity;
+            }
+        }
+        if (context instanceof Activity) {
+            return (Activity) context;
+        }
+        return null;
+    }
+
     @Override
     public boolean isConsentRequired() {
-        return false;
+        return consentManager != null && consentManager.isConsentRequired();
     }
 
     @Override
     public boolean hasAdsConsent() {
-        return false;
+        return consentManager != null && consentManager.hasAdsConsent();
     }
 
     @Override
     public boolean hasAnalyticsConsent() {
-        return false;
+        return consentManager != null && consentManager.hasAnalyticsConsent();
     }
 
     @Override

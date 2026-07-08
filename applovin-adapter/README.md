@@ -99,20 +99,24 @@ The adapter reads `app_id` from **Server Parameters** and the ad-specific value 
 
 ## Adapter behavior (1.2.9)
 
-| MAX API | Bidscube SDK call | Reward |
+| MAX API | Bidscube SDK call | Notes |
 |---------|-------------------|--------|
-| Interstitial show | `showInterstitialVideoAd` or `showImageAd` | Never |
-| Rewarded show | `showRewardedVideoAd` | Only on `onUserRewarded` |
+| Interstitial load | `preloadInterstitialVideoAd` or `preloadImageAd` | Network request during load; no fill fails at load |
+| Interstitial show | `showInterstitialVideoAd` or `showImageAd` | Displays cached creative from load |
+| Rewarded load | `preloadRewardedVideoAd` | Network request during load |
+| Rewarded show | `showRewardedVideoAd` | Reward only on `onUserRewarded` |
+| Native | **Not supported** | Native MAX is not implemented in this release |
+| Signal collection | `BidscubeSDK.collectSignal()` | Structured JSON; no PII |
 
-Show failures are reported as MAX **display failed**, not load failed.
+Show failures are reported as MAX **display failed** when no cached creative exists or display fails.
 
-## Consent (GDPR/CCPA)
+### Consent API
 
-Run the consent flow before initializing the AppLovin SDK and loading ads. Bidscube uses consent; without it, ads may not serve correctly.
+`isConsentRequired()`, `hasAdsConsent()`, and `hasAnalyticsConsent()` read from Google UMP / IAB consent strings. When the SDK was initialized with application context (typical for MAX), call `BidscubeSDK.setDisplayActivity(activity)` before consent UI methods.
 
-## Supported Ad Formats
+### OpenRTB 2.6
 
-Banner, MREC, Interstitial, Rewarded, Native.
+OpenRTB 2.6-style podded video response parsing is not implemented in this Android AppLovin adapter package yet.
 
 ## Troubleshooting
 

@@ -6,7 +6,7 @@ Android SDK and **AppLovin MAX** adapter for BidCube demand. Choose **one** adap
 
 **Repository:** https://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android
 
-**Docs:** [CHANGELOG.md](CHANGELOG.md) · [RELEASE.md](RELEASE.md) · [Error codes](docs/errors.md) · [applovin-adapter/README.md](applovin-adapter/README.md) · [Custom rendering guide](docs/guide.md)
+**Docs:** [CHANGELOG.md](CHANGELOG.md) · [RELEASE.md](RELEASE.md) · [Error codes](docs/errors.md) · [Mediation (MAX & LevelPlay)](docs/mediation/README.md) · [applovin-adapter/README.md](applovin-adapter/README.md) · [Custom rendering guide](docs/guide.md)
 
 ## Requirements
 
@@ -83,16 +83,20 @@ If `request_authority` or `ssp_host` is set, the adapter passes it into `SDKConf
 
 ## Supported ad formats
 
-Banner, MREC, Interstitial, Rewarded, Native.
+Banner, MREC, Interstitial, Rewarded.
 
-| MAX format | Bidscube API (adapter) | Reward |
-|------------|------------------------|--------|
-| Interstitial | `showInterstitialVideoAd` or `showImageAd` | Never |
-| Rewarded | `showRewardedVideoAd` | Only on `onUserRewarded` |
-| Banner / MREC | `getImageAdView` | — |
-| Native | `getNativeAdView` | — |
+| MAX format | Adapter behavior | Reward |
+|------------|------------------|--------|
+| Interstitial | Preload on load; show cached creative | Never |
+| Rewarded | Preload on load; show cached creative | Only on `onUserRewarded` |
+| Banner / MREC | `getImageAdView`; click forwarded to MAX | — |
+| Native | **Not supported** via MAX adapter in 1.2.9 | — |
 
-Video availability depends on the [Android AAR mode](#android-aar-modes) you ship.
+Use the standalone Bidscube SDK (`getNativeAdView`) for native outside MAX.
+
+### OpenRTB 2.6
+
+OpenRTB 2.6-style podded video response parsing is not implemented in this Android AppLovin adapter package yet.
 
 ---
 

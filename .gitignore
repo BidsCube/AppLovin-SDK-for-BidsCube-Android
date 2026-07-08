@@ -28,6 +28,12 @@ build/
 local.properties
 *.iml
 .idea/
+.DS_Store
+**/.DS_Store
+
+# Signing secrets — never commit private GPG material
+keys/private-gpg.asc
+keys/private-gpg.asc.base64
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
