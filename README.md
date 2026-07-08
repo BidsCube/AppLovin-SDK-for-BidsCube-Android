@@ -6,7 +6,7 @@ Android SDK and **AppLovin MAX** adapter for BidCube demand. Choose **one** adap
 
 **Repository:** https://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android
 
-**Docs:** [CHANGELOG.md](CHANGELOG.md) · [RELEASE.md](RELEASE.md) · [Error codes](docs/errors.md) · [Mediation (MAX & LevelPlay)](docs/mediation/README.md) · [applovin-adapter/README.md](applovin-adapter/README.md) · [Custom rendering guide](docs/guide.md)
+**Docs:** [CHANGELOG.md](CHANGELOG.md) · [RELEASE.md](RELEASE.md) · [Error codes](docs/errors.md) · [AppLovin MAX adapter](applovin-adapter/README.md) · [Custom rendering guide](docs/guide.md)
 
 ## Requirements
 
