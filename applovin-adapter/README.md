@@ -20,10 +20,10 @@ Pick **one** adapter artifact. Each bundles the matching Bidscube SDK runtime tr
 
 | Mode | Maven artifact | Video support |
 |------|----------------|---------------|
-| **LiteNoVideo** | `com.bidscube:applovin-bidscube-max-adapter-lite-no-video:1.2.9` | None (image/banner/native only) |
+| **LiteNoVideo** | `com.bidscube:applovin-bidscube-max-adapter-lite-no-video:1.2.9` | Banner / static image only; Native MAX is not supported |
 | **WebViewVideoNoDesugar** | `com.bidscube:applovin-bidscube-max-adapter-webview-video:1.2.9` | WebView / HTML5 |
 | **LegacyMediaVideoNoDesugar** | `com.bidscube:applovin-bidscube-max-adapter-legacy-media-video:1.2.9` | VideoView / MediaPlayer |
-| **FullWithVideo** | `com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.9` | Media3 / Google IMA |
+| **FullWithVideo** | `com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.9` | Google IMA-based VAST playback |
 
 The first three modes should **not** require `coreLibraryDesugaring` in the host app. **FullWithVideo** may require it.
 
