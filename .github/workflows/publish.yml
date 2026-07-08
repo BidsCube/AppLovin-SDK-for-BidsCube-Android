@@ -18,14 +18,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # workflow_dispatch defaults to a branch (e.g. main); ref_name must be a tag or version env stays empty.
+      - name: Require tag ref for manual runs
+        if: github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/')
+        run: |
+          echo "::error::Select a tag under 'Use workflow from' (e.g. v1.2.9), not branch '${{ github.ref_name }}'. Or push a tag: git push origin vX.Y.Z"
+          exit 1
+
       - name: Set version from tag
         if: startsWith(github.ref, 'refs/tags/')
         id: version
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           VERSION="${TAG#v}"
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not derive version from tag '$TAG'"
+            exit 1
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION (tag $TAG)"
+
+      - name: Verify release version is set
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [ -z "$VERSION" ]; then
+            echo "::error::BidscubeVersion / BidscubeAdapterVersion would be empty. Run this workflow from tag ref vX.Y.Z (push tag or workflow_dispatch on tag)."
+            exit 1
+          fi
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -70,7 +90,10 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
           echo "PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH" >> $GITHUB_ENV
           yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
-          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-36" "build-tools;36.0.0" || true
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-36" "build-tools;36.0.0" || {
+            echo "Failed to install Android SDK packages"
+            exit 1
+          }
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
       - name: Build all SDK and adapter AAR variants

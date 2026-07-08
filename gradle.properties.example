@@ -10,8 +10,8 @@
 # mavenCentralPassword=your-sonatype-password
 #
 # Optional version overrides for local builds:
-# BidscubeVersion=1.2.9
-# BidscubeAdapterVersion=1.2.9
+# BidscubeVersion=1.2.10
+# BidscubeAdapterVersion=1.2.10
 #
 # Signing uses GPG via useGpgCmd(). Skip for local AAR staging:
 # ./gradlew stageAllReleaseAars -PskipSigning=true
