@@ -6,7 +6,7 @@ Android SDK and **AppLovin MAX** adapter for BidCube demand. Choose **one** adap
 
 **Repository:** https://github.com/BidsCube/AppLovin-SDK-for-BidsCube-Android
 
-**Docs:** [CHANGELOG.md](CHANGELOG.md) · [RELEASE.md](RELEASE.md) · [Test app](docs/test-app.md) · [Error codes](docs/errors.md) · [AppLovin MAX adapter](applovin-adapter/README.md) · [Custom rendering guide](docs/guide.md)
+**Docs:** [CHANGELOG.md](CHANGELOG.md) · [RELEASE.md](RELEASE.md) · [SDK Doctor](docs/sdk-doctor.md) · [Test app](docs/test-app.md) · [Error codes](docs/errors.md) · [AppLovin MAX adapter](applovin-adapter/README.md) · [Custom rendering guide](docs/guide.md)
 
 ## Requirements
 
@@ -173,6 +173,31 @@ The publisher test app lives in [../bidscube-testapp-android](../bidscube-testap
 Full guide: **[docs/test-app.md](docs/test-app.md)**
 
 Optional local SSP: `python3 scripts/mock_bidscube_ssp.py` → set `bidcube.testSspAuthority` in the test app's `gradle.properties`.
+
+---
+
+## SDK Doctor
+
+Run source checks:
+
+```bash
+./gradlew sdkDoctor
+```
+
+Run release checks (builds staged AARs + validates compatibility):
+
+```bash
+./gradlew clean sdkDoctorRelease -PskipSigning=true
+```
+
+Use runtime doctor in a test app:
+
+```java
+SdkDoctorReport report = BidscubeSDK.runSdkDoctor(context);
+Log.d("BidscubeDoctor", report.toHumanReadableString());
+```
+
+Full guide: **[docs/sdk-doctor.md](docs/sdk-doctor.md)**
 
 ---
 

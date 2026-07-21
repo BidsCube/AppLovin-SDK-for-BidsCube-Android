@@ -14,6 +14,7 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 - AppLovin MAX adapter: structured **`BidscubeSDK.collectSignal()`** (replaces test placeholder).
 - SDK: `preloadInterstitialVideoAd`, `preloadRewardedVideoAd`, `preloadImageAd`, video ad cache helpers.
 - SDK: consent helpers (`isConsentRequired`, `hasAdsConsent`, `hasAnalyticsConsent`) and `InitializationCallback` for async init completion.
+- **SDK Doctor** — build/release CLI (`scripts/sdk_doctor.py`), Gradle tasks `sdkDoctor` / `sdkDoctorRelease`, runtime `BidscubeSDK.runSdkDoctor()`.
 - Release CI: tag-ref guard and hard-fail Android SDK platform 36 install in `publish.yml`.
 - Test app wired into SDK repo via `:bidscube-testapp-android` Gradle module.
 
@@ -22,10 +23,12 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 - AppLovin MAX adapter: **Native MAX removed** for this release (use standalone SDK for native).
 - AppLovin MAX adapter: async SDK init with listener queue; banner click forwarded to MAX.
 - Docs: explicit **OpenRTB 2.6 not implemented**; FullWithVideo described as Google IMA-based VAST playback.
+- **Post-video end card:** companion preview shown **only** when VAST includes `Companion` / `StaticResource`; no mandatory fallback card when preview is absent.
 
 ### Fixed
 
 - Interstitial/rewarded MAX flow: load performs network fetch; show no longer reports loaded without cached creative.
+- Removed placeholder **“Learn More”** end-card fallback (SDK Doctor / production hygiene).
 
 ---
 

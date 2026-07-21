@@ -189,6 +189,11 @@ public final class VastParser {
         return null;
     }
 
+    /** True when VAST includes a companion preview image (StaticResource under Companion). */
+    public static boolean hasCompanionPreview(String vastXml) {
+        return !isBlank(getCompanionImageUrl(vastXml));
+    }
+
     public static String getCompanionClickThroughUrl(String vastXml) {
         Document doc = parseDocument(vastXml);
         if (doc == null) {

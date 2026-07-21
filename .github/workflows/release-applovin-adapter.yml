@@ -92,31 +92,35 @@ jobs:
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           VERSION="${TAG#applovin-adapter-v}"
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not derive version from tag '$TAG'"
+            exit 1
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Build all SDK and adapter AAR variants
+      - name: Verify release version is set
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [ -z "$VERSION" ]; then
+            echo "::error::BidscubeAdapterVersion would be empty. Run from tag applovin-adapter-vX.Y.Z."
+            exit 1
+          fi
+
+      - name: Build, stage AARs, and run SDK Doctor
         env:
           BidscubeVersion: ${{ steps.version.outputs.version }}
           BidscubeAdapterVersion: ${{ steps.version.outputs.version }}
-        run: ./gradlew clean stageAllReleaseAars -PskipSigning=true --no-daemon --stacktrace
+        run: ./gradlew clean sdkDoctorRelease -PskipSigning=true --no-daemon --stacktrace
 
-      - name: Verify staged AARs
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          DIR="build/staged-aars"
-          for f in \
-            "applovin-bidscube-max-adapter-lite-no-video-${VERSION}.aar" \
-            "applovin-bidscube-max-adapter-webview-video-${VERSION}.aar" \
-            "applovin-bidscube-max-adapter-legacy-media-video-${VERSION}.aar" \
-            "applovin-bidscube-max-adapter-full-video-${VERSION}.aar"; do
-            if [ ! -f "$DIR/$f" ]; then
-              echo "Missing adapter AAR: $DIR/$f"
-              ls -la "$DIR" 2>/dev/null || true
-              exit 1
-            fi
-          done
+      - name: Upload SDK Doctor reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-doctor-reports
+          path: |
+            build/reports/sdk-doctor.json
+            build/reports/sdk-doctor.md
 
       - name: Create GitHub Release and upload AARs
         if: startsWith(github.ref, 'refs/tags/')
