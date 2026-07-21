@@ -25,6 +25,7 @@ tasks.register("stageAllReleaseAars") {
         val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.10"
         val outputDir = layout.buildDirectory.dir("staged-aars").get().asFile
         outputDir.mkdirs()
+        outputDir.listFiles()?.filter { it.extension == "aar" }?.forEach { it.delete() }
 
         val sdkFiles = linkedMapOf(
             "bidscube-sdk-lite-no-video-$sdkVersion.aar" to
@@ -90,6 +91,36 @@ tasks.register("installTestApp") {
         doLast {
             throw GradleException(
                 "Test app not found. See docs/test-app.md"
+            )
+        }
+    }
+}
+
+tasks.register("sdkDoctor") {
+    group = "verification"
+    description = "Runs Bidscube SDK Doctor source checks"
+    doLast {
+        exec {
+            commandLine("python3", "scripts/sdk_doctor.py", "--repo", ".", "--strict")
+        }
+    }
+}
+
+tasks.register("sdkDoctorRelease") {
+    group = "verification"
+    description = "Builds staged AARs and runs Bidscube SDK Doctor release checks"
+    dependsOn("stageAllReleaseAars")
+    doLast {
+        layout.buildDirectory.dir("reports").get().asFile.mkdirs()
+        exec {
+            commandLine(
+                "python3",
+                "scripts/sdk_doctor.py",
+                "--repo", ".",
+                "--staged-aars", "build/staged-aars",
+                "--json", "build/reports/sdk-doctor.json",
+                "--markdown", "build/reports/sdk-doctor.md",
+                "--strict"
             )
         }
     }

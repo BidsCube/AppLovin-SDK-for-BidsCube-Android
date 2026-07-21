@@ -24,6 +24,26 @@ public class BidscubeSDK {
     private static IBidscubeSDK sdkInstance;
     private static volatile String mediationAdapterVersion = "";
 
+    public static String getMediationAdapterVersion() {
+        return mediationAdapterVersion != null ? mediationAdapterVersion : "";
+    }
+
+    /**
+     * Local runtime diagnostics (no network, no PII). See {@link com.bidscube.sdk.doctor.SdkDoctorReport}.
+     */
+    public static com.bidscube.sdk.doctor.SdkDoctorReport runSdkDoctor(Context context) {
+        return com.bidscube.sdk.doctor.SdkDoctor.run(context,
+                com.bidscube.sdk.doctor.SdkDoctorOptions.defaults());
+    }
+
+    /**
+     * Local runtime diagnostics with options (e.g. MAX mediation expected).
+     */
+    public static com.bidscube.sdk.doctor.SdkDoctorReport runSdkDoctor(Context context,
+            com.bidscube.sdk.doctor.SdkDoctorOptions options) {
+        return com.bidscube.sdk.doctor.SdkDoctor.run(context, options);
+    }
+
     /**
      * Sets the mediation adapter version included in {@link #collectSignal()}.
      * MAX adapters should call this during initialization.

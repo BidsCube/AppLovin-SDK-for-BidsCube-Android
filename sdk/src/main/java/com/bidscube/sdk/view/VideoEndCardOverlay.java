@@ -12,14 +12,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.bidscube.sdk.interfaces.AdCallback;
 import com.bidscube.sdk.utils.VastParser;
 import com.bumptech.glide.Glide;
 
 /**
- * Post-video end card: companion preview image when available, otherwise a dark fallback card.
+ * Post-video end card shown only when VAST includes a companion preview image.
  */
 public final class VideoEndCardOverlay {
 
@@ -43,50 +42,20 @@ public final class VideoEndCardOverlay {
         String linearClickUrl = VastParser.getClickThroughUrl(vastXml);
         String clickUrl = !TextUtils.isEmpty(companionClickUrl) ? companionClickUrl : linearClickUrl;
 
-        if (!TextUtils.isEmpty(companionImageUrl)) {
-            previewView = new ImageView(context);
-            previewView.setLayoutParams(new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT));
-            previewView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            previewView.setContentDescription("Ad preview");
-            previewView.setOnClickListener(v -> handleClick(context, placementId, clickUrl, callback));
-            rootView.addView(previewView);
-            try {
-                Glide.with(context.getApplicationContext())
-                        .load(companionImageUrl)
-                        .centerCrop()
-                        .into(previewView);
-            } catch (Throwable ignored) {
-            }
-        } else {
-            previewView = null;
-            TextView fallbackTitle = new TextView(context);
-            fallbackTitle.setText("Ad ended");
-            fallbackTitle.setTextColor(Color.WHITE);
-            fallbackTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-            fallbackTitle.setGravity(Gravity.CENTER);
-            FrameLayout.LayoutParams titleLp = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT);
-            titleLp.gravity = Gravity.CENTER;
-            rootView.addView(fallbackTitle, titleLp);
-
-            if (!TextUtils.isEmpty(linearClickUrl)) {
-                Button ctaButton = new Button(context);
-                ctaButton.setText("Learn More");
-                ctaButton.setTextColor(Color.WHITE);
-                ctaButton.setAllCaps(false);
-                styleChip(context, ctaButton);
-                ctaButton.setPadding(dp(context, 24), dp(context, 12), dp(context, 24), dp(context, 12));
-                ctaButton.setOnClickListener(v -> handleClick(context, placementId, linearClickUrl, callback));
-                FrameLayout.LayoutParams ctaLp = new FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT);
-                ctaLp.gravity = Gravity.CENTER;
-                ctaLp.topMargin = dp(context, 48);
-                rootView.addView(ctaButton, ctaLp);
-            }
+        previewView = new ImageView(context);
+        previewView.setLayoutParams(new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
+        previewView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        previewView.setContentDescription("Ad preview");
+        previewView.setOnClickListener(v -> handleClick(context, placementId, clickUrl, callback));
+        rootView.addView(previewView);
+        try {
+            Glide.with(context.getApplicationContext())
+                    .load(companionImageUrl)
+                    .centerCrop()
+                    .into(previewView);
+        } catch (Throwable ignored) {
         }
 
         Button closeButton = new Button(context);

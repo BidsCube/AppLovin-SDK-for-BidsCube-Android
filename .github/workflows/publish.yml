@@ -96,35 +96,20 @@ jobs:
           }
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Build all SDK and adapter AAR variants
+      - name: Build, stage AARs, and run SDK Doctor
         env:
           BidscubeVersion: ${{ steps.version.outputs.version }}
           BidscubeAdapterVersion: ${{ steps.version.outputs.version }}
-        run: ./gradlew clean stageAllReleaseAars -PskipSigning=true --no-daemon --stacktrace
+        run: ./gradlew clean sdkDoctorRelease -PskipSigning=true --no-daemon --stacktrace
 
-      - name: Verify staged AARs
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          DIR="build/staged-aars"
-          EXPECTED=(
-            "bidscube-sdk-lite-no-video-${VERSION}.aar"
-            "bidscube-sdk-webview-video-${VERSION}.aar"
-            "bidscube-sdk-legacy-media-video-${VERSION}.aar"
-            "bidscube-sdk-full-video-${VERSION}.aar"
-            "applovin-bidscube-max-adapter-lite-no-video-${VERSION}.aar"
-            "applovin-bidscube-max-adapter-webview-video-${VERSION}.aar"
-            "applovin-bidscube-max-adapter-legacy-media-video-${VERSION}.aar"
-            "applovin-bidscube-max-adapter-full-video-${VERSION}.aar"
-          )
-          for f in "${EXPECTED[@]}"; do
-            if [ ! -f "$DIR/$f" ]; then
-              echo "Missing $DIR/$f"
-              ls -la "$DIR" 2>/dev/null || true
-              exit 1
-            fi
-          done
-          echo "All 8 AAR files present."
+      - name: Upload SDK Doctor reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-doctor-reports
+          path: |
+            build/reports/sdk-doctor.json
+            build/reports/sdk-doctor.md
 
       - name: Create GitHub Release and upload AARs
         uses: softprops/action-gh-release@v2

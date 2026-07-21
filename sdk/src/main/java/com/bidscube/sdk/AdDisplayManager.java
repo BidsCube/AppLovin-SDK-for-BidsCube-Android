@@ -146,6 +146,12 @@ public class AdDisplayManager {
                     currentVideoPlayer = null;
                 }
 
+                if (!VastParser.hasCompanionPreview(vastXml)) {
+                    dialog.dismiss();
+                    fireAdClosedOnce(placementId, callback, closed);
+                    return;
+                }
+
                 endCardOverlay[0] = new VideoEndCardOverlay(context, vastXml, placementId, callback, () -> {
                     if (endCardOverlay[0] != null) {
                         endCardOverlay[0].destroy();
