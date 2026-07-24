@@ -47,6 +47,8 @@ public class NativeAdUrlBuilder {
 
         builder.appendQueryParameter("w", String.valueOf(adWidth))
                .appendQueryParameter("h", String.valueOf(adHeight));
+
+        SspAdUriHelper.appendUserIdIfPresent(builder, deviceInfo);
         
         return builder.build();
     }

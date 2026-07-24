@@ -110,6 +110,16 @@ public class BidscubeSDK {
     }
 
     /**
+     * Sets the publisher user id sent as {@code user_id} on SSP ad requests.
+     * May be set in {@link SDKConfig.Builder#userId(String)} at init or updated later (e.g. after login).
+     */
+    public static void setUserId(String userId) {
+        if (sdkInstance != null) {
+            sdkInstance.setUserId(userId);
+        }
+    }
+
+    /**
      * Show image ad - display mode determined by response position
      *
      * @param placementId Ad placement ID

@@ -26,6 +26,8 @@ public class DeviceInfo {
     private final boolean coppa;
     /** HTTPS authority (host[:port]) for ad request URLs, e.g. ssp-bcc-ads.com */
     private final String adRequestAuthority;
+    /** Optional publisher user id for {@code user_id} query parameter. */
+    private final String userId;
 
     private static final int DEFAULT_GDPR = 0;
     private static final String DEFAULT_GDPR_CONSENT = "";
@@ -39,7 +41,7 @@ public class DeviceInfo {
                       int deviceWidth, int deviceHeight, String userAgent, String ifa,
                       int dnt, String appVersion,
                       int gdpr, String gdprConsent, String usPrivacy, boolean coppa,
-                      String adRequestAuthority) {
+                      String adRequestAuthority, String userId) {
         this.bundle = bundle;
         this.appName = appName;
         this.appStoreUrl = appStoreUrl;
@@ -57,6 +59,20 @@ public class DeviceInfo {
         this.adRequestAuthority = adRequestAuthority != null && !adRequestAuthority.isEmpty()
                 ? adRequestAuthority
                 : DEFAULT_AD_REQUEST_AUTHORITY;
+        this.userId = normalizeUserId(userId);
+    }
+
+    /**
+     * Full constructor with all fields (no user id).
+     */
+    public DeviceInfo(String bundle, String appName, String appStoreUrl, String language,
+                      int deviceWidth, int deviceHeight, String userAgent, String ifa,
+                      int dnt, String appVersion,
+                      int gdpr, String gdprConsent, String usPrivacy, boolean coppa,
+                      String adRequestAuthority) {
+        this(bundle, appName, appStoreUrl, language, deviceWidth, deviceHeight,
+                userAgent, ifa, dnt, appVersion, gdpr, gdprConsent, usPrivacy, coppa,
+                adRequestAuthority, null);
     }
 
     /**
@@ -132,5 +148,23 @@ public class DeviceInfo {
      */
     public String getAdRequestAuthority() {
         return adRequestAuthority;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public DeviceInfo withUserId(String userId) {
+        return new DeviceInfo(bundle, appName, appStoreUrl, language, deviceWidth, deviceHeight,
+                userAgent, ifa, dnt, appVersion, gdpr, gdprConsent, usPrivacy, coppa,
+                adRequestAuthority, userId);
+    }
+
+    private static String normalizeUserId(String userId) {
+        if (userId == null) {
+            return null;
+        }
+        String trimmed = userId.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

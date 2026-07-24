@@ -37,6 +37,12 @@ public interface IBidscubeSDK {
     void setDisplayActivity(Activity activity);
 
     /**
+     * Sets or updates the publisher user id sent as {@code user_id} on ad requests.
+     * Safe to call after {@link #initialize(Context, SDKConfig)} when the user id becomes known later.
+     */
+    void setUserId(String userId);
+
+    /**
      * Show image ad - display mode determined by response position
      *
      * @param placementId Ad placement ID

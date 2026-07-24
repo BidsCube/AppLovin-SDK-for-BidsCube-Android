@@ -81,7 +81,8 @@ public class DeviceInfoProvider {
                     consentString,
                     usPrivacy,
                     coppa,
-                    config.getAdRequestAuthority());
+                    config.getAdRequestAuthority(),
+                    config.getUserId());
 
             new Handler(Looper.getMainLooper()).post(() -> callback.accept(deviceInfo));
         }).start();

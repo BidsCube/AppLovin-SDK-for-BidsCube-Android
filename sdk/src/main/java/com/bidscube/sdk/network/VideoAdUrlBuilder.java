@@ -35,6 +35,8 @@ public class VideoAdUrlBuilder {
                .appendQueryParameter("language", deviceInfo.getLanguage())
                .appendQueryParameter("deviceWidth", String.valueOf(deviceInfo.getDeviceWidth()))
                .appendQueryParameter("deviceHeight", String.valueOf(deviceInfo.getDeviceHeight()));
+
+        SspAdUriHelper.appendUserIdIfPresent(builder, deviceInfo);
         
         return builder.build();
     }
