@@ -84,4 +84,15 @@ public final class SspAdUriHelper {
 
         return builder.authority(a);
     }
+
+    /** Appends {@code user_id} when {@link DeviceInfo#getUserId()} is set. */
+    public static void appendUserIdIfPresent(Uri.Builder builder, DeviceInfo deviceInfo) {
+        if (builder == null || deviceInfo == null) {
+            return;
+        }
+        String userId = deviceInfo.getUserId();
+        if (userId != null && !userId.isEmpty()) {
+            builder.appendQueryParameter("user_id", userId);
+        }
+    }
 }

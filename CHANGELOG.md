@@ -6,6 +6,16 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 ---
 
+## [1.2.11] - 2026-07-24
+
+### Added
+
+- **`SDKConfig.Builder.userId(String)`** — optional publisher user id sent on every SSP ad request as query parameter **`user_id`** (for server postback attribution).
+- **`BidscubeSDK.setUserId(String)`** — update user id after init (e.g. after login).
+- AppLovin MAX adapter: reads optional **`user_id`** / **`userId`** from network Server Parameters at init.
+
+---
+
 ## [1.2.10] - 2026-07-08
 
 ### Added

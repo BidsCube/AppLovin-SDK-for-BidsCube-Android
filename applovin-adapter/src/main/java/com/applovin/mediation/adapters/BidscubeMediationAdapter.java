@@ -73,7 +73,7 @@ public class BidscubeMediationAdapter
 
     @Override
     public String getAdapterVersion() {
-        return getVersionString(BidscubeMediationAdapter.class, "1.2.10");
+        return getVersionString(BidscubeMediationAdapter.class, "1.2.11");
     }
 
     @Override
@@ -167,6 +167,13 @@ public class BidscubeMediationAdapter
                 String statsAuthority = parameters.getServerParameters().getString("stats_authority");
                 if (statsAuthority != null && !statsAuthority.isEmpty()) {
                     configBuilder.statsRequestAuthority(statsAuthority);
+                }
+                String userId = parameters.getServerParameters().getString("user_id");
+                if (userId == null || userId.isEmpty()) {
+                    userId = parameters.getServerParameters().getString("userId");
+                }
+                if (userId != null && !userId.isEmpty()) {
+                    configBuilder.userId(userId);
                 }
                 SDKConfig config = configBuilder.build();
                 BidscubeSDK.setMediationAdapterVersion(getAdapterVersion());

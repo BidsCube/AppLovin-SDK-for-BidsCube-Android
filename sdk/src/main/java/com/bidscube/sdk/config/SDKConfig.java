@@ -42,6 +42,8 @@ public class SDKConfig {
     private final String statsRequestAuthority;
     /** When {@code null}, the SDK uses the built-in Google IMA–based player ({@link com.bidscube.sdk.view.IMAPlayerHandler}). */
     private final BidscubeVastVideoPlayerFactory vastVideoPlayerFactory;
+    /** Optional publisher user identifier; sent as {@code user_id} on ad requests when set. */
+    private final String userId;
 
     private SDKConfig(Builder builder) {
         this.appId = builder.appId;
@@ -62,6 +64,7 @@ public class SDKConfig {
                 : DEFAULT_AD_REQUEST_AUTHORITY;
         this.statsRequestAuthority = builder.statsRequestAuthority;
         this.vastVideoPlayerFactory = builder.vastVideoPlayerFactory;
+        this.userId = normalizeUserId(builder.userId);
     }
 
     public String getAppId() {
@@ -137,6 +140,44 @@ public class SDKConfig {
         return vastVideoPlayerFactory;
     }
 
+    /**
+     * Optional publisher-defined user id. When non-empty, included as {@code user_id} on SSP ad requests.
+     */
+    public String getUserId() {
+        return userId;
+    }
+
+    private static String normalizeUserId(String userId) {
+        if (userId == null) {
+            return null;
+        }
+        String trimmed = userId.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    /** @return copy with a different {@link #getUserId()} (other fields unchanged). */
+    public SDKConfig withUserId(String userId) {
+        Builder b = new Builder(null);
+        b.appId = this.appId;
+        b.appName = this.appName;
+        b.appVersion = this.appVersion;
+        b.language = this.language;
+        b.userAgent = this.userAgent;
+        b.enableLogging = this.enableLogging;
+        b.enableDebugMode = this.enableDebugMode;
+        b.defaultAdTimeout = this.defaultAdTimeout;
+        b.defaultAdPosition = this.defaultAdPosition;
+        b.gdpr = this.gdpr;
+        b.gdprConsent = this.gdprConsent;
+        b.usPrivacy = this.usPrivacy;
+        b.coppa = this.coppa;
+        b.adRequestAuthority = this.adRequestAuthority;
+        b.statsRequestAuthority = this.statsRequestAuthority;
+        b.vastVideoPlayerFactory = this.vastVideoPlayerFactory;
+        b.userId = userId;
+        return b.build();
+    }
+
     /** Fallback app version label when PackageManager lookup fails; matches published AAR ({@link com.bidscube.sdk.BuildConfig#SDK_VERSION_NAME}). */
     private static String embeddedSdkVersionLabel() {
         return com.bidscube.sdk.BuildConfig.SDK_VERSION_NAME;
@@ -165,14 +206,17 @@ public class SDKConfig {
         /** {@code null} = stats beacons disabled */
         private String statsRequestAuthority = null;
         private BidscubeVastVideoPlayerFactory vastVideoPlayerFactory = null;
+        private String userId = null;
 
         /**
          * Create a new Builder with automatic app detection
          *
-         * @param context Application context for automatic detection
+         * @param context Application context for automatic detection; {@code null} skips auto-detect (internal copy builders).
          */
         public Builder(Context context) {
-            autoDetectAppInfo(context);
+            if (context != null) {
+                autoDetectAppInfo(context);
+            }
         }
 
         /**
@@ -353,6 +397,14 @@ public class SDKConfig {
          */
         public Builder vastVideoPlayerFactory(BidscubeVastVideoPlayerFactory factory) {
             this.vastVideoPlayerFactory = factory;
+            return this;
+        }
+
+        /**
+         * Publisher user identifier for postback attribution. Sent as {@code user_id} query parameter on ad requests.
+         */
+        public Builder userId(String userId) {
+            this.userId = userId;
             return this;
         }
 

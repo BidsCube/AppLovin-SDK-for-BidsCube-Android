@@ -32,6 +32,8 @@ public class ImageAdUrlBuilder {
         builder.appendQueryParameter("ua", deviceInfo.getUserAgent())
                .appendQueryParameter("ifa", deviceInfo.getIfa())
                .appendQueryParameter("dnt", String.valueOf(deviceInfo.getDnt()));
+
+        SspAdUriHelper.appendUserIdIfPresent(builder, deviceInfo);
         
         return builder.build();
     }

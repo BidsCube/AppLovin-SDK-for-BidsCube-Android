@@ -171,6 +171,17 @@ public class BidscubeSDKImpl implements IBidscubeSDK {
     }
 
     @Override
+    public void setUserId(String userId) {
+        if (config != null) {
+            config = config.withUserId(userId);
+        }
+        if (deviceInfo != null) {
+            deviceInfo = deviceInfo.withUserId(userId);
+        }
+        SDKLogger.d(TAG, "Publisher user id updated for ad requests");
+    }
+
+    @Override
     public void showImageAd(String placementId, AdCallback callback) {
         checkInitialization();
         if (callback != null) {
