@@ -143,6 +143,9 @@ VERSION_ADAPTER_RE = re.compile(
 ADAPTER_VERSION_JAVA_RE = re.compile(
     r'getVersionString\(BidscubeMediationAdapter\.class,\s*"([^"]+)"\)'
 )
+ADAPTER_VERSION_BUILDCONFIG_RE = re.compile(
+    r'return\s+BuildConfig\.VERSION_NAME\s*;'
+)
 
 
 @dataclass
@@ -196,13 +199,16 @@ def parse_versions(repo: Path) -> Tuple[str, str]:
     adapter_v = adapter_m.group(1) if adapter_m else ""
     adapter_java = repo / "applovin-adapter/src/main/java/com/applovin/mediation/adapters/BidscubeMediationAdapter.java"
     if adapter_java.is_file():
-        jm = ADAPTER_VERSION_JAVA_RE.search(read_text(adapter_java))
+        adapter_java_text = read_text(adapter_java)
+        jm = ADAPTER_VERSION_JAVA_RE.search(adapter_java_text)
         if jm:
             java_v = jm.group(1)
             if adapter_v and java_v != adapter_v:
                 pass  # reported separately
             elif not adapter_v:
                 adapter_v = java_v
+        elif ADAPTER_VERSION_BUILDCONFIG_RE.search(adapter_java_text) and not adapter_v:
+            pass  # version comes from adapterVersion in build.gradle.kts
     return sdk_v, adapter_v
 
 

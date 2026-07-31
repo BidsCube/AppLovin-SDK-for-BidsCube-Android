@@ -6,6 +6,15 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 ---
 
+## [1.2.12] - 2026-07-31
+
+### Fixed
+
+- **VAST preload on Android 14+ / API 36:** `VastParser` no longer fails when `FEATURE_SECURE_PROCESSING` is unsupported — fixes MAX rewarded/interstitial load error **1002** (`Invalid VAST response`) on preload while direct show could still work.
+- **AppLovin MAX Ad Info `Adapter Version: null`:** `getAdapterVersion()` now returns `BuildConfig.VERSION_NAME` instead of a broken `getVersionString(class, "x.y.z")` reflection call.
+
+---
+
 ## [1.2.11] - 2026-07-24
 
 ### Added

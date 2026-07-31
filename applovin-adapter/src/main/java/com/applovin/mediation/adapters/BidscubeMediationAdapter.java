@@ -21,6 +21,7 @@ import com.applovin.mediation.adapter.listeners.MaxSignalCollectionListener;
 import com.applovin.mediation.adapter.parameters.MaxAdapterInitializationParameters;
 import com.applovin.mediation.adapter.parameters.MaxAdapterResponseParameters;
 import com.applovin.mediation.adapter.parameters.MaxAdapterSignalCollectionParameters;
+import com.applovin.mediation.adapters.bidscube.BuildConfig;
 import com.applovin.sdk.AppLovinSdk;
 import com.bidscube.sdk.BidscubeSDK;
 import com.bidscube.sdk.config.SDKConfig;
@@ -73,7 +74,7 @@ public class BidscubeMediationAdapter
 
     @Override
     public String getAdapterVersion() {
-        return getVersionString(BidscubeMediationAdapter.class, "1.2.11");
+        return BuildConfig.VERSION_NAME;
     }
 
     @Override
