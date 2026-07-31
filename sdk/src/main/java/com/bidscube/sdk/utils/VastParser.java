@@ -15,6 +15,7 @@ import java.util.Locale;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public final class VastParser {
 
@@ -217,16 +218,13 @@ public final class VastParser {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(false);
-            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            trySetFeature(factory, XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            trySetFeature(factory, "http://apache.org/xml/features/disallow-doctype-decl", true);
+            trySetFeature(factory, "http://xml.org/sax/features/external-general-entities", false);
+            trySetFeature(factory, "http://xml.org/sax/features/external-parameter-entities", false);
             factory.setExpandEntityReferences(false);
-            try {
-                factory.setAttribute("http://javax.xml.XMLConstants/property/accessExternalDTD", "");
-                factory.setAttribute("http://javax.xml.XMLConstants/property/accessExternalSchema", "");
-            } catch (IllegalArgumentException ignored) {
-            }
+            trySetAttribute(factory, "http://javax.xml.XMLConstants/property/accessExternalDTD", "");
+            trySetAttribute(factory, "http://javax.xml.XMLConstants/property/accessExternalSchema", "");
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new InputSource(new StringReader(vastXml)));
             doc.getDocumentElement().normalize();
@@ -234,6 +232,20 @@ public final class VastParser {
         } catch (Exception e) {
             System.err.println("Error parsing VAST XML: " + e.getMessage());
             return null;
+        }
+    }
+
+    private static void trySetFeature(DocumentBuilderFactory factory, String feature, boolean value) {
+        try {
+            factory.setFeature(feature, value);
+        } catch (ParserConfigurationException ignored) {
+        }
+    }
+
+    private static void trySetAttribute(DocumentBuilderFactory factory, String name, Object value) {
+        try {
+            factory.setAttribute(name, value);
+        } catch (IllegalArgumentException ignored) {
         }
     }
 

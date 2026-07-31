@@ -8,6 +8,7 @@ plugins {
 }
 
 val skipSigning = (project.findProperty("skipSigning") as String?) == "true"
+val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.12"
 
 android {
     namespace = "com.applovin.mediation.adapters.bidscube"
@@ -15,9 +16,14 @@ android {
 
     flavorDimensions += "videoMode"
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         minSdk = 24
         consumerProguardFiles("consumer-rules.pro")
+        buildConfigField("String", "VERSION_NAME", "\"$adapterVersion\"")
     }
 
     productFlavors {
@@ -79,8 +85,6 @@ dependencies {
     implementation("com.applovin:applovin-sdk:13.0.0@aar")
     implementation("androidx.annotation:annotation:1.8.2")
 }
-
-val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.11"
 
 afterEvaluate {
     val flavorPublicationConfig = linkedMapOf(
