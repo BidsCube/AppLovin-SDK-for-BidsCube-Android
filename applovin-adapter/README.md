@@ -1,6 +1,6 @@
 # Bidscube + AppLovin MAX Integration
 
-**Adapter version 1.2.12** · Maven group `com.bidscube`
+**Adapter version 1.2.13** · Maven group `com.bidscube`
 
 AppLovin MAX mediation adapter for Bidscube SDK. Use Bidscube as a custom network in AppLovin MAX.
 
@@ -10,7 +10,7 @@ AppLovin MAX mediation adapter for Bidscube SDK. Use Bidscube as a custom networ
 
 - **Android** minSdk 24+
 - **AppLovin MAX SDK** 13.0.0+
-- **One** Bidscube adapter artifact at **1.2.12** for your video mode (see [Android AAR modes](#android-aar-modes))
+- **One** Bidscube adapter artifact at **1.2.13** for your video mode (see [Android AAR modes](#android-aar-modes))
 - AppLovin **SDK Key** and **Ad Units**
 - Bidscube init value **`app_id`** and a MAX **Placement ID** per ad unit
 
@@ -20,10 +20,10 @@ Pick **one** adapter artifact. Each bundles the matching Bidscube SDK runtime tr
 
 | Mode | Maven artifact | Video support |
 |------|----------------|---------------|
-| **LiteNoVideo** | `com.bidscube:applovin-bidscube-max-adapter-lite-no-video:1.2.12` | Banner / static image only; Native MAX is not supported |
-| **WebViewVideoNoDesugar** | `com.bidscube:applovin-bidscube-max-adapter-webview-video:1.2.12` | WebView / HTML5 |
-| **LegacyMediaVideoNoDesugar** | `com.bidscube:applovin-bidscube-max-adapter-legacy-media-video:1.2.12` | VideoView / MediaPlayer |
-| **FullWithVideo** | `com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.12` | Google IMA-based VAST playback |
+| **LiteNoVideo** | `com.bidscube:applovin-bidscube-max-adapter-lite-no-video:1.2.13` | Banner / static image only; Native MAX is not supported |
+| **WebViewVideoNoDesugar** | `com.bidscube:applovin-bidscube-max-adapter-webview-video:1.2.13` | WebView / HTML5 |
+| **LegacyMediaVideoNoDesugar** | `com.bidscube:applovin-bidscube-max-adapter-legacy-media-video:1.2.13` | VideoView / MediaPlayer |
+| **FullWithVideo** | `com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.13` | Google IMA-based VAST playback |
 
 The first three modes should **not** require `coreLibraryDesugaring` in the host app. **FullWithVideo** may require it. **FullWithVideo** uses Google IMA-based VAST playback; Media3 dependencies may be present transitively but IMA is the primary built-in player path.
 
@@ -45,7 +45,7 @@ repositories {
 
 dependencies {
     implementation 'com.applovin:applovin-sdk:13.0.0@aar'
-    implementation 'com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.12@aar'
+    implementation 'com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.13@aar'
 }
 ```
 
@@ -54,10 +54,10 @@ dependencies {
 Build from this repository:
 
 ```bash
-export BidscubeVersion=1.2.12
-export BidscubeAdapterVersion=1.2.12
+export BidscubeVersion=1.2.13
+export BidscubeAdapterVersion=1.2.13
 ./gradlew :applovin-adapter:stageReleaseAars -PskipSigning=true
-# applovin-adapter/build/staged-aars/applovin-bidscube-max-adapter-*-1.2.12.aar
+# applovin-adapter/build/staged-aars/applovin-bidscube-max-adapter-*-1.2.13.aar
 ```
 
 Copy the AAR for your mode into `app/libs/` and add:
@@ -65,7 +65,7 @@ Copy the AAR for your mode into `app/libs/` and add:
 ```groovy
 dependencies {
     implementation 'com.applovin:applovin-sdk:13.0.0@aar'
-    implementation files('libs/applovin-bidscube-max-adapter-full-video-1.2.12.aar')
+    implementation files('libs/applovin-bidscube-max-adapter-full-video-1.2.13.aar')
 }
 ```
 
@@ -94,10 +94,11 @@ Use [AppLovin’s guide for custom SDK networks](https://support.axon.ai/en/max/
 - **Placement ID**: the Bidscube placement used for the specific MAX ad unit request
 - **`request_authority`** (optional, **Server Parameters**): value passed to `SDKConfig.Builder.adRequestAuthority(...)`. Use **host** only (`my.trycloudflare.com`), **`host:port`** (`127.0.0.1:8787`), or a pasted prefix **`https://host/`** (scheme/path/query stripped by the SDK). If omitted, the SDK default host is used.
 - **`ssp_host`** (optional): alias for `request_authority` if `request_authority` is empty
+- **`auto_close`** (optional, **init** Server Parameters; alias `autoClose`): `true` or `false`. Passed to `SDKConfig.Builder.autoClose(...)`. Default **`false`**. Read **once** at first SDK init (global for the process). When `false`, fullscreen video stays open after linear playback; when `true`, closes immediately after linear video ends or is skipped.
 
 The adapter reads `app_id` from **Server Parameters** and the ad-specific value from the MAX **Placement ID** field.
 
-## Adapter behavior (1.2.12)
+## Adapter behavior (1.2.13)
 
 | MAX API | Bidscube SDK call | Notes |
 |---------|-------------------|--------|
@@ -141,18 +142,18 @@ If OpenRTB 2.6 podded video is a release requirement, implement the OpenRTB resp
 - If MAX does not recognize the custom network, verify the Android adapter class name is `com.applovin.mediation.adapters.BidscubeMediationAdapter`.
 - Run consent before initializing AppLovin MAX and loading ads.
 - For **LiteNoVideo**, rewarded and interstitial video requests fail gracefully (unsupported / no fill) — use a video-capable adapter artifact if you need video.
-- If reward never fires, confirm you are on **1.2.12+** — reward is only forwarded from `onUserRewarded`.
-- **Show / request failures:** see [Error codes](../docs/errors.md) — e.g. code **204** = SSP no fill, **1004** = missing Activity (fixed in 1.2.12+ with official adapter).
+- If reward never fires, confirm you are on **1.2.13+** — reward is only forwarded from `onUserRewarded`.
+- **Show / request failures:** see [Error codes](../docs/errors.md) — e.g. code **204** = SSP no fill, **1004** = missing Activity (fixed in 1.2.13+ with official adapter).
 
 ## Release
 
-- **Artifacts:** `com.bidscube:applovin-bidscube-max-adapter-*` (four variants at **1.2.12**)
-- **Version source:** `BidscubeAdapterVersion` env var, default `1.2.12`
+- **Artifacts:** `com.bidscube:applovin-bidscube-max-adapter-*` (four variants at **1.2.13**)
+- **Version source:** `BidscubeAdapterVersion` env var, default `1.2.13`
 - **Full maintainer guide:** [RELEASE.md](../RELEASE.md)
 
 ```bash
-export BidscubeVersion=1.2.12
-export BidscubeAdapterVersion=1.2.12
+export BidscubeVersion=1.2.13
+export BidscubeAdapterVersion=1.2.13
 ./gradlew clean stageAllReleaseAars -PskipSigning=true
 ```
 

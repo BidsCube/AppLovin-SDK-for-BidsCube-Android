@@ -216,6 +216,7 @@ public final class WebViewVastVideoPlayer extends BidscubeVastVideoPlayer {
         TrackerPinger.pingUrls("vast.complete", completeUrls);
         if (completionListener != null) {
             completionListener.onVideoCompleted();
+            completionListener.onAdSessionCompleted();
         }
     }
 

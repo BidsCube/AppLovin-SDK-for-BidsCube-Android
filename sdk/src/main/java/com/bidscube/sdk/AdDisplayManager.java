@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.util.Log;
 import android.util.TypedValue;
@@ -33,6 +34,7 @@ import com.bidscube.sdk.ads.VideoAdType;
 import com.bidscube.sdk.interfaces.AdCallback;
 import com.bidscube.sdk.models.AdRenderContext;
 import com.bidscube.sdk.models.CachedVideoAd;
+import com.bidscube.sdk.models.CompanionAd;
 import com.bidscube.sdk.models.enums.AdPosition;
 import com.bidscube.sdk.config.SDKConfig;
 import com.bidscube.sdk.errors.AdErrorCode;
@@ -56,7 +58,10 @@ import com.bidscube.sdk.view.NativeAdView;
 import com.bidscube.sdk.view.NativeAdBinder;
 import com.bidscube.sdk.view.VideoSkipCloseOverlay;
 import com.bidscube.sdk.view.VideoSkipControlOverlay;
+import com.bidscube.sdk.video.FullscreenPostVideoAction;
+import com.bidscube.sdk.video.FullscreenVideoSessionController;
 import com.bidscube.sdk.view.VideoEndCardOverlay;
+import com.bidscube.sdk.view.VideoHtmlCompanionOverlay;
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.shape.CornerFamily;
@@ -126,55 +131,67 @@ public class AdDisplayManager {
             VideoAdFormat format,
             Dialog dialog) {
         final VideoSkipControlOverlay[] skipOverlay = new VideoSkipControlOverlay[1];
-        final VideoEndCardOverlay[] endCardOverlay = new VideoEndCardOverlay[1];
+        final VideoEndCardOverlay[] staticEndCard = new VideoEndCardOverlay[1];
+        final VideoHtmlCompanionOverlay[] htmlEndCard = new VideoHtmlCompanionOverlay[1];
+        final View[] manualCloseButton = new View[1];
 
-        Runnable showEndCard = () -> {
-            if (!endCardShown.compareAndSet(false, true)) {
-                return;
-            }
-            runOnUiThread(() -> {
-                if (skipOverlay[0] != null) {
-                    skipOverlay[0].destroy();
-                    skipOverlay[0] = null;
-                }
-                videoPlayer.setVisibility(View.GONE);
-                try {
-                    videoPlayer.release();
-                } catch (Throwable ignored) {
-                }
-                if (currentVideoPlayer == videoPlayer) {
-                    currentVideoPlayer = null;
-                }
+        final CompanionAd postVideoCompanion = VastParser.selectPostVideoCompanion(vastXml);
+        logFullscreenVideoDiagnostics(videoPlayer, postVideoCompanion, "attach-controls");
 
-                if (!VastParser.hasCompanionPreview(vastXml)) {
-                    dialog.dismiss();
-                    fireAdClosedOnce(placementId, callback, closed);
-                    return;
-                }
+        final FullscreenVideoSessionController session = new FullscreenVideoSessionController(
+                sdkConfig.isAutoClose(),
+                videoPlayer.managesPostVideoExperience(),
+                postVideoCompanion);
 
-                endCardOverlay[0] = new VideoEndCardOverlay(context, vastXml, placementId, callback, () -> {
-                    if (endCardOverlay[0] != null) {
-                        endCardOverlay[0].destroy();
-                        endCardOverlay[0] = null;
-                    }
-                    dialog.dismiss();
-                    fireAdClosedOnce(placementId, callback, closed);
-                });
-                endCardOverlay[0].attach(frameContainer);
-            });
+        final Runnable[] requestCloseRef = new Runnable[1];
+        requestCloseRef[0] = () -> {
+            FullscreenPostVideoAction action = session.onUserClose();
+            applyFullscreenPostVideoAction("USER_CLOSE", action, frameContainer, postVideoCompanion, vastXml,
+                    videoPlayer, placementId, callback, closed, skipOverlay, staticEndCard, htmlEndCard,
+                    manualCloseButton, dialog, requestCloseRef[0]);
         };
+        final Runnable requestClose = requestCloseRef[0];
 
         videoPlayer.setOnVideoCompletionListener(new BidscubeVastVideoPlayer.OnVideoCompletionListener() {
             @Override
             public void onVideoCompleted() {
-                fireVideoAdCompleted(placementId, callback, completed, skipped, format);
-                showEndCard.run();
+                if (session.shouldFireLinearCompleted()) {
+                    fireVideoAdCompleted(placementId, callback, completed, skipped, format);
+                }
+                FullscreenPostVideoAction action = session.onLinearCompleted();
+                applyFullscreenPostVideoAction("COMPLETED", action, frameContainer, postVideoCompanion, vastXml,
+                        videoPlayer, placementId, callback, closed, skipOverlay, staticEndCard, htmlEndCard,
+                        manualCloseButton, dialog, requestClose);
             }
 
             @Override
             public void onVideoSkipped() {
-                fireVideoAdSkipped(placementId, callback, completed, skipped);
-                showEndCard.run();
+                if (session.shouldFireSkipped()) {
+                    fireVideoAdSkipped(placementId, callback, completed, skipped);
+                }
+                FullscreenPostVideoAction action = session.onSkipped();
+                applyFullscreenPostVideoAction("SKIPPED", action, frameContainer, postVideoCompanion, vastXml,
+                        videoPlayer, placementId, callback, closed, skipOverlay, staticEndCard, htmlEndCard,
+                        manualCloseButton, dialog, requestClose);
+            }
+
+            @Override
+            public void onAdSessionCompleted() {
+                if (!session.shouldFireAdSessionCompleted()) {
+                    return;
+                }
+                FullscreenPostVideoAction action = session.onAdSessionCompleted();
+                applyFullscreenPostVideoAction("ALL_ADS_COMPLETED", action, frameContainer, postVideoCompanion,
+                        vastXml, videoPlayer, placementId, callback, closed, skipOverlay, staticEndCard, htmlEndCard,
+                        manualCloseButton, dialog, requestClose);
+            }
+
+            @Override
+            public void onVideoPlaybackFailed() {
+                FullscreenPostVideoAction action = session.onPlaybackFailed();
+                applyFullscreenPostVideoAction("PLAYBACK_FAILED", action, frameContainer, postVideoCompanion,
+                        vastXml, videoPlayer, placementId, callback, closed, skipOverlay, staticEndCard, htmlEndCard,
+                        manualCloseButton, dialog, requestClose);
             }
         });
 
@@ -186,8 +203,13 @@ public class AdDisplayManager {
                         videoPlayer.skipVideo();
                     }
                 } catch (Throwable ignored) {
-                    fireVideoAdSkipped(placementId, callback, completed, skipped);
-                    showEndCard.run();
+                    if (session.shouldFireSkipped()) {
+                        fireVideoAdSkipped(placementId, callback, completed, skipped);
+                    }
+                    FullscreenPostVideoAction action = session.onSkipped();
+                    applyFullscreenPostVideoAction("SDK_SKIP", action, frameContainer, postVideoCompanion, vastXml,
+                            videoPlayer, placementId, callback, closed, skipOverlay, staticEndCard, htmlEndCard,
+                            manualCloseButton, dialog, requestClose);
                 }
             }
 
@@ -203,14 +225,151 @@ public class AdDisplayManager {
         });
         skipOverlay[0].attach(frameContainer);
 
+        dialog.setOnCancelListener(d -> requestClose.run());
         dialog.setOnDismissListener(d -> {
             if (skipOverlay[0] != null) {
                 skipOverlay[0].destroy();
+                skipOverlay[0] = null;
             }
-            if (endCardOverlay[0] != null) {
-                endCardOverlay[0].destroy();
+            if (staticEndCard[0] != null) {
+                staticEndCard[0].destroy();
+                staticEndCard[0] = null;
+            }
+            if (htmlEndCard[0] != null) {
+                htmlEndCard[0].destroy();
+                htmlEndCard[0] = null;
+            }
+            if (!session.isAdClosed()) {
+                requestClose.run();
             }
         });
+    }
+
+    private void applyFullscreenPostVideoAction(
+            String trigger,
+            FullscreenPostVideoAction action,
+            FrameLayout frameContainer,
+            CompanionAd postVideoCompanion,
+            String vastXml,
+            BidscubeVastVideoPlayer videoPlayer,
+            String placementId,
+            AdCallback callback,
+            AtomicBoolean closed,
+            VideoSkipControlOverlay[] skipOverlay,
+            VideoEndCardOverlay[] staticEndCard,
+            VideoHtmlCompanionOverlay[] htmlEndCard,
+            View[] manualCloseButton,
+            Dialog dialog,
+            Runnable requestClose) {
+        if (action == null || action.isNoop()) {
+            SDKLogger.d(TAG, "post-video NOOP trigger=" + trigger + " autoClose=" + sdkConfig.isAutoClose());
+            return;
+        }
+        logPostVideoAction(trigger, videoPlayer, postVideoCompanion, action);
+        runOnUiThread(() -> {
+            if (action.isRemoveSkipOverlay() && skipOverlay[0] != null) {
+                skipOverlay[0].destroy();
+                skipOverlay[0] = null;
+            }
+
+            if (action.isReleasePlayer()) {
+                try {
+                    videoPlayer.release();
+                } catch (Throwable ignored) {
+                }
+                if (currentVideoPlayer == videoPlayer) {
+                    currentVideoPlayer = null;
+                }
+            }
+
+            if (action.isHidePlayer()) {
+                videoPlayer.setVisibility(View.GONE);
+            } else if (action.isKeepPlayerVisible()) {
+                videoPlayer.setVisibility(View.VISIBLE);
+            }
+
+            if (action.isShowStaticCompanionEndCard() && staticEndCard[0] == null) {
+                removeFrameManualClose(frameContainer, manualCloseButton);
+                staticEndCard[0] = new VideoEndCardOverlay(context, postVideoCompanion, placementId, callback, () -> {
+                    if (staticEndCard[0] != null) {
+                        staticEndCard[0].destroy();
+                        staticEndCard[0] = null;
+                    }
+                    requestClose.run();
+                });
+                staticEndCard[0].attach(frameContainer);
+            }
+
+            if (action.isShowHtmlCompanionEndCard() && htmlEndCard[0] == null) {
+                removeFrameManualClose(frameContainer, manualCloseButton);
+                htmlEndCard[0] = new VideoHtmlCompanionOverlay(context, postVideoCompanion, placementId, callback,
+                        () -> {
+                            if (htmlEndCard[0] != null) {
+                                htmlEndCard[0].destroy();
+                                htmlEndCard[0] = null;
+                            }
+                            requestClose.run();
+                        });
+                htmlEndCard[0].attach(frameContainer);
+            }
+
+            if (action.isShowManualCloseButton() && manualCloseButton[0] == null
+                    && staticEndCard[0] == null && htmlEndCard[0] == null) {
+                manualCloseButton[0] = buildFullscreenChipCloseControl(requestClose::run);
+                mountCloseOnFrame(frameContainer, manualCloseButton[0]);
+            }
+
+            if (action.isDismissDialog() && dialog.isShowing()) {
+                dialog.setOnDismissListener(null);
+                dialog.dismiss();
+            }
+
+            if (action.isFireAdClosed()) {
+                fireAdClosedOnce(placementId, callback, closed);
+            }
+        });
+    }
+
+    private static void removeFrameManualClose(FrameLayout frameContainer, View[] manualCloseButton) {
+        if (manualCloseButton[0] != null) {
+            try {
+                frameContainer.removeView(manualCloseButton[0]);
+            } catch (Throwable ignored) {
+            }
+            manualCloseButton[0] = null;
+        }
+    }
+
+    private void logFullscreenVideoDiagnostics(
+            BidscubeVastVideoPlayer videoPlayer,
+            CompanionAd companion,
+            String phase) {
+        String companionType = companion == null ? "NONE" : companion.getResourceType().name();
+        Log.i(INTEGRATION, "fullscreen video diagnostics phase=" + phase
+                + " player=" + videoPlayer.getClass().getSimpleName()
+                + " autoClose=" + sdkConfig.isAutoClose()
+                + " managesPostVideo=" + videoPlayer.managesPostVideoExperience()
+                + " companion=" + companionType);
+    }
+
+    private void logPostVideoAction(
+            String trigger,
+            BidscubeVastVideoPlayer videoPlayer,
+            CompanionAd companion,
+            FullscreenPostVideoAction action) {
+        String companionType = companion == null ? "NONE" : companion.getResourceType().name();
+        SDKLogger.d(TAG, "post-video trigger=" + trigger
+                + " player=" + videoPlayer.getClass().getSimpleName()
+                + " autoClose=" + sdkConfig.isAutoClose()
+                + " companion=" + companionType
+                + " releasePlayer=" + action.isReleasePlayer()
+                + " hidePlayer=" + action.isHidePlayer()
+                + " keepPlayerVisible=" + action.isKeepPlayerVisible()
+                + " showHtml=" + action.isShowHtmlCompanionEndCard()
+                + " showStatic=" + action.isShowStaticCompanionEndCard()
+                + " showManualClose=" + action.isShowManualCloseButton()
+                + " dismiss=" + action.isDismissDialog()
+                + " fireAdClosed=" + action.isFireAdClosed());
     }
 
     private VideoSkipCloseOverlay attachVideoSkipCloseOverlay(
@@ -263,7 +422,13 @@ public class AdDisplayManager {
             }
         }
         Log.i(INTEGRATION, "VAST player: built-in flavor-specific provider");
-        return DefaultVastVideoPlayerProvider.create(context, adm, vastRedirectUrl);
+        BidscubeVastVideoPlayer player = DefaultVastVideoPlayerProvider.create(context, adm, vastRedirectUrl);
+        Log.i(INTEGRATION, "VAST player selected: " + player.getClass().getSimpleName()
+                + " autoClose=" + sdkConfig.isAutoClose()
+                + " inlineMediaFile=" + VastParser.validateVastStructure(adm)
+                + " htmlCompanion=" + VastParser.hasHtmlCompanion(adm)
+                + " staticCompanion=" + VastParser.hasCompanionPreview(adm));
+        return player;
     }
 
     private static void fireAdLoadedAndDisplayed(String placementId, AdCallback callback) {
@@ -349,6 +514,36 @@ public class AdDisplayManager {
         });
     }
 
+    /** Semi-transparent chip close for fullscreen post-video (matches skip/close overlay styling). */
+    private Button buildFullscreenChipCloseControl(Runnable onDismiss) {
+        Button btn = new Button(context);
+        btn.setText("✕");
+        btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        btn.setTextColor(Color.WHITE);
+        btn.setAllCaps(false);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(0x99000000);
+        bg.setCornerRadius(overlayDp(context, 18));
+        btn.setBackground(bg);
+        int padH = overlayDp(context, 10);
+        int padV = overlayDp(context, 4);
+        btn.setPadding(padH, padV, padH, padV);
+        btn.setMinWidth(overlayDp(context, 36));
+        btn.setMinHeight(overlayDp(context, 36));
+        btn.setContentDescription(context.getString(R.string.bidscube_cd_close_ad));
+        btn.setOnClickListener(v -> {
+            if (onDismiss != null) {
+                onDismiss.run();
+            }
+        });
+        return btn;
+    }
+
+    private static int overlayDp(Context context, int dp) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
+    }
+
     /** Corner close control for overlays / embedded SDK ad slots. */
     private ImageButton buildCloseAdControl(Runnable onDismiss, String placementId, AdCallback callback) {
         ImageButton btn = new ImageButton(context);
@@ -374,7 +569,7 @@ public class AdDisplayManager {
         return btn;
     }
 
-    private static void mountCloseOnFrame(FrameLayout host, ImageButton close) {
+    private static void mountCloseOnFrame(FrameLayout host, View close) {
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -1206,8 +1401,10 @@ public class AdDisplayManager {
             VastParser.analyzeVast(adm);
             String vastRedirectUrl = VastParser.getClickThroughUrl(adm);
 
-            if (effectivePosition == AdPosition.FULL_SCREEN) {
-                SDKLogger.d(TAG, "Response indicates full screen display for video ad");
+            if (effectivePosition == AdPosition.FULL_SCREEN
+                    || format == VideoAdFormat.INTERSTITIAL
+                    || format == VideoAdFormat.REWARDED) {
+                SDKLogger.d(TAG, "Fullscreen video ad (position=" + effectivePosition + ", format=" + format + ")");
                 displayFullscreenVideoAd(placementId, adm, format, callback, dialogActivity);
                 return;
             }

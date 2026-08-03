@@ -1,10 +1,8 @@
 package com.bidscube.sdk.view;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -14,11 +12,13 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.bidscube.sdk.interfaces.AdCallback;
+import com.bidscube.sdk.models.CompanionAd;
+import com.bidscube.sdk.utils.CompanionClickHandler;
 import com.bidscube.sdk.utils.VastParser;
 import com.bumptech.glide.Glide;
 
 /**
- * Post-video end card shown only when VAST includes a companion preview image.
+ * Post-video static image VAST Companion.
  */
 public final class VideoEndCardOverlay {
 
@@ -28,8 +28,14 @@ public final class VideoEndCardOverlay {
 
     private final FrameLayout rootView;
     private final ImageView previewView;
+    private final CompanionClickHandler clickHandler;
 
     public VideoEndCardOverlay(Context context, String vastXml, String placementId, AdCallback callback,
+            OnClosedListener closedListener) {
+        this(context, VastParser.selectPostVideoCompanion(vastXml), placementId, callback, closedListener);
+    }
+
+    public VideoEndCardOverlay(Context context, CompanionAd companionAd, String placementId, AdCallback callback,
             OnClosedListener closedListener) {
         rootView = new FrameLayout(context);
         rootView.setLayoutParams(new FrameLayout.LayoutParams(
@@ -37,10 +43,8 @@ public final class VideoEndCardOverlay {
                 FrameLayout.LayoutParams.MATCH_PARENT));
         rootView.setBackgroundColor(0xFF121212);
 
-        String companionImageUrl = VastParser.getCompanionImageUrl(vastXml);
-        String companionClickUrl = VastParser.getCompanionClickThroughUrl(vastXml);
-        String linearClickUrl = VastParser.getClickThroughUrl(vastXml);
-        String clickUrl = !TextUtils.isEmpty(companionClickUrl) ? companionClickUrl : linearClickUrl;
+        clickHandler = new CompanionClickHandler(companionAd);
+        String companionImageUrl = companionAd != null ? companionAd.getResource() : null;
 
         previewView = new ImageView(context);
         previewView.setLayoutParams(new FrameLayout.LayoutParams(
@@ -48,16 +52,42 @@ public final class VideoEndCardOverlay {
                 FrameLayout.LayoutParams.MATCH_PARENT));
         previewView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         previewView.setContentDescription("Ad preview");
-        previewView.setOnClickListener(v -> handleClick(context, placementId, clickUrl, callback));
+        previewView.setOnClickListener(v -> clickHandler.handleClick(context, placementId, callback));
         rootView.addView(previewView);
-        try {
-            Glide.with(context.getApplicationContext())
-                    .load(companionImageUrl)
-                    .centerCrop()
-                    .into(previewView);
-        } catch (Throwable ignored) {
+        if (!TextUtils.isEmpty(companionImageUrl)) {
+            try {
+                Glide.with(context.getApplicationContext())
+                        .load(companionImageUrl)
+                        .centerCrop()
+                        .into(previewView);
+            } catch (Throwable ignored) {
+            }
         }
 
+        rootView.addView(buildCloseButton(context, closedListener));
+    }
+
+    public void attach(FrameLayout parent) {
+        parent.addView(rootView);
+        clickHandler.fireCreativeViewOnce();
+    }
+
+    public void destroy() {
+        if (previewView != null) {
+            try {
+                Glide.with(previewView.getContext().getApplicationContext()).clear(previewView);
+            } catch (Throwable ignored) {
+            }
+        }
+        try {
+            if (rootView.getParent() instanceof FrameLayout) {
+                ((FrameLayout) rootView.getParent()).removeView(rootView);
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static Button buildCloseButton(Context context, OnClosedListener closedListener) {
         Button closeButton = new Button(context);
         closeButton.setText("✕");
         closeButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
@@ -78,38 +108,16 @@ public final class VideoEndCardOverlay {
         closeLp.gravity = Gravity.TOP | Gravity.END;
         int margin = dp(context, 16);
         closeLp.setMargins(0, dp(context, 20), margin, 0);
-        rootView.addView(closeButton, closeLp);
+        closeButton.setLayoutParams(closeLp);
+        return closeButton;
     }
 
-    public void attach(FrameLayout parent) {
-        parent.addView(rootView);
+    static void styleChipPublic(Context context, View view) {
+        styleChip(context, view);
     }
 
-    public void destroy() {
-        if (previewView != null) {
-            try {
-                Glide.with(previewView.getContext().getApplicationContext()).clear(previewView);
-            } catch (Throwable ignored) {
-            }
-        }
-    }
-
-    private static void handleClick(Context context, String placementId, String url, AdCallback callback) {
-        if (TextUtils.isEmpty(url)) {
-            return;
-        }
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
-        } catch (Throwable ignored) {
-        }
-        if (callback != null && placementId != null) {
-            try {
-                callback.onAdClicked(placementId);
-            } catch (Throwable ignored) {
-            }
-        }
+    static int dpPublic(Context context, int dp) {
+        return dp(context, dp);
     }
 
     private static void styleChip(Context context, View view) {

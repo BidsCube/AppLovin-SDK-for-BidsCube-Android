@@ -44,6 +44,13 @@ public class SDKConfig {
     private final BidscubeVastVideoPlayerFactory vastVideoPlayerFactory;
     /** Optional publisher user identifier; sent as {@code user_id} on ad requests when set. */
     private final String userId;
+    /**
+     * When {@code false} (default), fullscreen video remains open after linear playback so IMA post-roll / mini-game
+     * or a VAST Companion can display; {@link com.bidscube.sdk.interfaces.AdCallback#onAdClosed(String)} fires only
+     * after the user closes the ad. When {@code true}, the fullscreen ad closes immediately after linear video ends
+     * or is skipped (no post-video content).
+     */
+    private final boolean autoClose;
 
     private SDKConfig(Builder builder) {
         this.appId = builder.appId;
@@ -65,6 +72,7 @@ public class SDKConfig {
         this.statsRequestAuthority = builder.statsRequestAuthority;
         this.vastVideoPlayerFactory = builder.vastVideoPlayerFactory;
         this.userId = normalizeUserId(builder.userId);
+        this.autoClose = builder.autoClose;
     }
 
     public String getAppId() {
@@ -147,6 +155,11 @@ public class SDKConfig {
         return userId;
     }
 
+    /** @see Builder#autoClose(boolean) */
+    public boolean isAutoClose() {
+        return autoClose;
+    }
+
     private static String normalizeUserId(String userId) {
         if (userId == null) {
             return null;
@@ -175,6 +188,7 @@ public class SDKConfig {
         b.statsRequestAuthority = this.statsRequestAuthority;
         b.vastVideoPlayerFactory = this.vastVideoPlayerFactory;
         b.userId = userId;
+        b.autoClose = this.autoClose;
         return b.build();
     }
 
@@ -207,6 +221,7 @@ public class SDKConfig {
         private String statsRequestAuthority = null;
         private BidscubeVastVideoPlayerFactory vastVideoPlayerFactory = null;
         private String userId = null;
+        private boolean autoClose = false;
 
         /**
          * Create a new Builder with automatic app detection
@@ -405,6 +420,19 @@ public class SDKConfig {
          */
         public Builder userId(String userId) {
             this.userId = userId;
+            return this;
+        }
+
+        /**
+         * Controls fullscreen video auto-close after linear playback ends or is skipped.
+         * <ul>
+         *   <li>{@code false} (default) — keep the ad open for post-video content; user closes manually.</li>
+         *   <li>{@code true} — dismiss immediately after linear video (legacy behavior).</li>
+         * </ul>
+         * Immutable after {@link #build()}; set only at SDK init.
+         */
+        public Builder autoClose(boolean autoClose) {
+            this.autoClose = autoClose;
             return this;
         }
 

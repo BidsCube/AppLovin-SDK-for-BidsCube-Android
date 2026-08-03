@@ -1,5 +1,6 @@
 package com.bidscube.sdk.utils;
 
+import com.bidscube.sdk.models.CompanionAd;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -167,48 +168,219 @@ public final class VastParser {
         System.out.println("Impression trackers: " + getImpressionUrls(vastXml).size());
         System.out.println("Start trackers: " + getTrackingUrls(vastXml, "start").size());
         System.out.println("Complete trackers: " + getTrackingUrls(vastXml, "complete").size());
+        CompanionAd selected = selectPostVideoCompanion(vastXml);
+        System.out.println("Selected companion: " + (selected != null ? selected.getResourceType() : "NONE"));
         System.out.println("Companion preview URL: " + valueOrMissing(getCompanionImageUrl(vastXml)));
         System.out.println("Companion click URL: " + valueOrMissing(getCompanionClickThroughUrl(vastXml)));
         System.out.println("Skip offset ms: " + getSkipOffsetMs(vastXml));
         System.out.println("=== End Analysis ===");
     }
 
-    public static String getCompanionImageUrl(String vastXml) {
+    /**
+     * Selects the best post-video Companion. HTML/IFrame resources take priority over Static.
+     * Tracking and click URLs are scoped to the selected {@code Companion} element only.
+     */
+    public static CompanionAd selectPostVideoCompanion(String vastXml) {
         Document doc = parseDocument(vastXml);
         if (doc == null) {
             return null;
         }
-
         NodeList companionList = doc.getElementsByTagName("Companion");
-        if (companionList != null && companionList.getLength() > 0) {
-            Element companion = (Element) companionList.item(0);
-            NodeList staticResources = companion.getElementsByTagName("StaticResource");
-            if (staticResources != null && staticResources.getLength() > 0) {
-                return normalizeText(staticResources.item(0));
+        if (companionList == null || companionList.getLength() == 0) {
+            return null;
+        }
+
+        CompanionAd best = null;
+        int bestPriority = -1;
+        for (int i = 0; i < companionList.getLength(); i++) {
+            Node node = companionList.item(i);
+            if (!(node instanceof Element)) {
+                continue;
             }
+            CompanionAd candidate = parseCompanionElement((Element) node);
+            if (candidate == null) {
+                continue;
+            }
+            int priority = companionResourcePriority(candidate.getResourceType());
+            if (priority > bestPriority) {
+                best = candidate;
+                bestPriority = priority;
+            }
+        }
+        return best;
+    }
+
+    public static String getCompanionImageUrl(String vastXml) {
+        CompanionAd companion = selectPostVideoCompanion(vastXml);
+        if (companion != null && companion.getResourceType() == CompanionAd.ResourceType.STATIC) {
+            return companion.getResource();
         }
         return null;
     }
 
-    /** True when VAST includes a companion preview image (StaticResource under Companion). */
+    /** True when the selected companion is a static image resource. */
     public static boolean hasCompanionPreview(String vastXml) {
-        return !isBlank(getCompanionImageUrl(vastXml));
+        CompanionAd companion = selectPostVideoCompanion(vastXml);
+        return companion != null && companion.isStaticImage();
+    }
+
+    /** True when the selected companion is HTML or IFrame. */
+    public static boolean hasHtmlCompanion(String vastXml) {
+        CompanionAd companion = selectPostVideoCompanion(vastXml);
+        return companion != null && companion.isInteractive();
+    }
+
+    /** Inline HTML snippet from the selected companion {@code HTMLResource}. */
+    public static String getCompanionHtmlContent(String vastXml) {
+        CompanionAd companion = selectPostVideoCompanion(vastXml);
+        if (companion != null && companion.getResourceType() == CompanionAd.ResourceType.HTML) {
+            return companion.getResource();
+        }
+        return null;
+    }
+
+    /** Remote document URL from the selected companion {@code IFrameResource}. */
+    public static String getCompanionIFrameUrl(String vastXml) {
+        CompanionAd companion = selectPostVideoCompanion(vastXml);
+        if (companion != null && companion.getResourceType() == CompanionAd.ResourceType.IFRAME) {
+            return companion.getResource();
+        }
+        return null;
     }
 
     public static String getCompanionClickThroughUrl(String vastXml) {
-        Document doc = parseDocument(vastXml);
-        if (doc == null) {
+        CompanionAd companion = selectPostVideoCompanion(vastXml);
+        return companion != null ? companion.getClickThroughUrl() : null;
+    }
+
+    private static CompanionAd parseCompanionElement(Element companion) {
+        String html = firstChildText(companion, "HTMLResource");
+        String iframe = firstChildText(companion, "IFrameResource");
+        String staticUrl = firstStaticResourceUrl(companion);
+
+        CompanionAd.ResourceType resourceType;
+        String resource;
+        if (!isBlank(html)) {
+            resourceType = CompanionAd.ResourceType.HTML;
+            resource = html;
+        } else if (!isBlank(iframe)) {
+            resourceType = CompanionAd.ResourceType.IFRAME;
+            resource = iframe;
+        } else if (!isBlank(staticUrl)) {
+            resourceType = CompanionAd.ResourceType.STATIC;
+            resource = staticUrl;
+        } else {
             return null;
         }
-        NodeList companionList = doc.getElementsByTagName("Companion");
-        if (companionList != null && companionList.getLength() > 0) {
-            Element companion = (Element) companionList.item(0);
-            NodeList clickThroughNodes = companion.getElementsByTagName("CompanionClickThrough");
-            if (clickThroughNodes != null && clickThroughNodes.getLength() > 0) {
-                return normalizeText(clickThroughNodes.item(0));
+
+        int width = parseDimensionAttribute(companion.getAttribute("width"));
+        int height = parseDimensionAttribute(companion.getAttribute("height"));
+        String clickThrough = firstChildText(companion, "CompanionClickThrough");
+        List<String> clickTracking = childTextList(companion, "CompanionClickTracking");
+        List<String> creativeView = companionTrackingUrls(companion, "creativeView");
+
+        return new CompanionAd(resourceType, resource, width, height, clickThrough, clickTracking, creativeView);
+    }
+
+    private static int companionResourcePriority(CompanionAd.ResourceType type) {
+        if (type == CompanionAd.ResourceType.HTML) {
+            return 3;
+        }
+        if (type == CompanionAd.ResourceType.IFRAME) {
+            return 2;
+        }
+        if (type == CompanionAd.ResourceType.STATIC) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private static String firstChildText(Element parent, String tagName) {
+        NodeList nodes = parent.getElementsByTagName(tagName);
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node node = nodes.item(i);
+            if (node.getParentNode() != parent) {
+                continue;
+            }
+            String text = normalizeText(node);
+            if (!isBlank(text)) {
+                return text;
             }
         }
         return null;
+    }
+
+    private static String firstStaticResourceUrl(Element companion) {
+        NodeList nodes = companion.getElementsByTagName("StaticResource");
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node node = nodes.item(i);
+            if (node.getParentNode() != companion) {
+                continue;
+            }
+            String text = normalizeText(node);
+            if (!isBlank(text)) {
+                return text;
+            }
+        }
+        return null;
+    }
+
+    private static List<String> childTextList(Element parent, String tagName) {
+        List<String> values = new ArrayList<>();
+        NodeList nodes = parent.getElementsByTagName(tagName);
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node node = nodes.item(i);
+            if (node.getParentNode() != parent) {
+                continue;
+            }
+            String text = normalizeText(node);
+            if (!isBlank(text)) {
+                values.add(text);
+            }
+        }
+        return values;
+    }
+
+    private static List<String> companionTrackingUrls(Element companion, String eventName) {
+        List<String> urls = new ArrayList<>();
+        NodeList trackingEvents = companion.getElementsByTagName("TrackingEvents");
+        for (int i = 0; i < trackingEvents.getLength(); i++) {
+            Node eventsNode = trackingEvents.item(i);
+            if (eventsNode.getParentNode() != companion) {
+                continue;
+            }
+            if (!(eventsNode instanceof Element)) {
+                continue;
+            }
+            NodeList trackingNodes = ((Element) eventsNode).getElementsByTagName("Tracking");
+            for (int j = 0; j < trackingNodes.getLength(); j++) {
+                Node trackingNode = trackingNodes.item(j);
+                if (!(trackingNode instanceof Element)) {
+                    continue;
+                }
+                Element trackingElement = (Element) trackingNode;
+                String event = trackingElement.getAttribute("event");
+                if (!eventName.equalsIgnoreCase(event)) {
+                    continue;
+                }
+                String url = normalizeText(trackingElement);
+                if (!isBlank(url)) {
+                    urls.add(url);
+                }
+            }
+        }
+        return urls;
+    }
+
+    private static int parseDimensionAttribute(String raw) {
+        if (isBlank(raw)) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
     }
 
     private static Document parseDocument(String vastXml) {

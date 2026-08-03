@@ -177,6 +177,7 @@ public class ProgressiveMp4VastVideoPlayer extends BidscubeVastVideoPlayer {
         TrackerPinger.pingUrls("vast.complete", completeUrls);
         if (completionListener != null) {
             completionListener.onVideoCompleted();
+            completionListener.onAdSessionCompleted();
         }
     }
 
