@@ -176,6 +176,9 @@ public class BidscubeMediationAdapter
                 if (userId != null && !userId.isEmpty()) {
                     configBuilder.userId(userId);
                 }
+                boolean autoClose = BidscubeServerParameters.readAutoClose(parameters.getServerParameters());
+                configBuilder.autoClose(autoClose);
+                diag("initialize: autoClose=" + autoClose);
                 SDKConfig config = configBuilder.build();
                 BidscubeSDK.setMediationAdapterVersion(getAdapterVersion());
                 diag("initialize: calling BidscubeSDK.initialize; adAuthority="

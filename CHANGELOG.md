@@ -6,6 +6,28 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 ---
 
+## [1.2.13] - 2026-08-03
+
+### Added
+
+- **`SDKConfig.Builder.autoClose(boolean)`** — global fullscreen close policy (default **`false`**). `false` keeps the ad open after linear video for IMA post-roll, mini-game, or VAST Companion; `onAdClosed()` fires only on user close. `true` closes immediately after linear video ends or is skipped.
+- **`BidscubeVastVideoPlayer.managesPostVideoExperience()`** and **`onAdSessionCompleted()`** — separates linear completion from full ad session (IMA `ALL_ADS_COMPLETED`).
+- **`CompanionAd`** model and scoped VAST Companion parsing (HTML > IFrame > Static); **`VideoHtmlCompanionOverlay`** for interactive companions.
+- AppLovin MAX init Server Parameter **`auto_close`** (alias `autoClose`); applied once at first SDK init.
+- **`onVideoPlaybackFailed()`** for IMA error recovery; diagnostic logs for player selection and post-video actions.
+
+### Fixed
+
+- **IMA lifecycle:** `COMPLETED` keeps player alive for post-video; `ALL_ADS_COMPLETED` releases player and shows SDK Companion when present.
+- **Non-IMA:** second `onAdSessionCompleted()` is `NOOP` after companion UI — no restored released player.
+- **IMA listeners** registered before `AdsManager.init()`; controlled error handling (no black-screen hang).
+- **Companion tracking** scoped to selected `<Companion>`; `creativeView` and click tracking once per display/click.
+- **StaticResource Companion** shown again when `autoClose=false`.
+- **Idempotent fullscreen cleanup** — single close path; no duplicate `onAdClosed` or duplicate close buttons.
+- Unit tests for config, session controller, companion parser, and adapter parameter parsing.
+
+---
+
 ## [1.2.12] - 2026-07-31
 
 ### Fixed

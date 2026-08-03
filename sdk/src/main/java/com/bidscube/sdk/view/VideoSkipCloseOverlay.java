@@ -100,6 +100,15 @@ public final class VideoSkipCloseOverlay {
             closeButton.animate().cancel();
         } catch (Throwable ignored) {
         }
+        try {
+            if (countdownView.getParent() instanceof FrameLayout) {
+                ((FrameLayout) countdownView.getParent()).removeView(countdownView);
+            }
+            if (closeButton.getParent() instanceof FrameLayout) {
+                ((FrameLayout) closeButton.getParent()).removeView(closeButton);
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
     private static int resolveSkipSeconds(String vastXml) {

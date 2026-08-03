@@ -31,6 +31,15 @@ public abstract class BidscubeVastVideoPlayer extends FrameLayout {
 
     public abstract void skipVideo();
 
+    /**
+     * When {@code true}, the player may continue showing post-linear content (e.g. Google IMA interactive end card)
+     * after {@link OnVideoCompletionListener#onVideoCompleted()}. The SDK must not release the player until the user
+     * closes the fullscreen ad or the player fires {@link OnVideoCompletionListener#onAdSessionCompleted()}.
+     */
+    public boolean managesPostVideoExperience() {
+        return false;
+    }
+
     public boolean isVideoSupported() {
         return true;
     }
@@ -44,8 +53,22 @@ public abstract class BidscubeVastVideoPlayer extends FrameLayout {
     }
 
     public interface OnVideoCompletionListener {
+        /** Linear VAST / IMA {@code COMPLETED} — not the same as fullscreen ad close. */
         void onVideoCompleted();
 
         void onVideoSkipped();
+
+        /**
+         * Entire ad session finished (IMA {@code ALL_ADS_COMPLETED}). Default players fire this immediately after
+         * {@link #onVideoCompleted()} because they do not manage post-linear UI.
+         */
+        default void onAdSessionCompleted() {
+        }
+
+        /**
+         * Playback failed before a normal terminal event. Default players may omit this.
+         */
+        default void onVideoPlaybackFailed() {
+        }
     }
 }

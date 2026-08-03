@@ -8,7 +8,7 @@ plugins {
 }
 
 // Published Maven version; also BuildConfig.SDK_VERSION_NAME at runtime.
-val sdkVersionString = System.getenv("BidscubeVersion") ?: "1.2.12"
+val sdkVersionString = System.getenv("BidscubeVersion") ?: "1.2.13"
 val sdkVersion by extra(sdkVersionString)
 
 val skipSigning = (project.findProperty("skipSigning") as String?) == "true"
@@ -59,6 +59,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     publishing {
         singleVariant("liteNoVideoRelease") {
             withSourcesJar()
@@ -80,6 +84,8 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
     implementation("com.google.android.ump:user-messaging-platform:2.2.0")
     implementation("com.google.android.gms:play-services-ads-identifier:18.0.1")
     implementation("androidx.cardview:cardview:1.0.0")

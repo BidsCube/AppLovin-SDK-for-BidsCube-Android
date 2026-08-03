@@ -174,6 +174,7 @@ public final class LegacyMediaVastVideoPlayer extends BidscubeVastVideoPlayer {
         TrackerPinger.pingUrls("vast.complete", completeUrls);
         if (completionListener != null) {
             completionListener.onVideoCompleted();
+            completionListener.onAdSessionCompleted();
         }
     }
 

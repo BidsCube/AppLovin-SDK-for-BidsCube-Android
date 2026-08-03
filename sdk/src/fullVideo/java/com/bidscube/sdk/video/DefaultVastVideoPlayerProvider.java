@@ -14,15 +14,17 @@ public final class DefaultVastVideoPlayerProvider {
     }
 
     public static BidscubeVastVideoPlayer create(Context context, String vastAdMarkup, String clickThroughRedirectUrl) {
-        if (VastParser.validateVastStructure(vastAdMarkup)) {
-            Log.i(INTEGRATION, "VAST player: progressive MP4 (inline MediaFile, no IMA required)");
+        boolean hasInlineMediaFile = VastParser.validateVastStructure(vastAdMarkup);
+        if (hasInlineMediaFile) {
+            Log.i(INTEGRATION, "VAST player selection: ProgressiveMp4VastVideoPlayer"
+                    + " reason=inline MediaFile present (IMA mini-game unavailable for this creative)");
             return new ProgressiveMp4VastVideoPlayer(context, vastAdMarkup, clickThroughRedirectUrl);
         }
         if (isImaAvailable()) {
-            Log.i(INTEGRATION, "VAST player: Google IMA (no inline MediaFile)");
+            Log.i(INTEGRATION, "VAST player selection: IMAPlayerHandler reason=no inline MediaFile");
             return new IMAPlayerHandler(vastAdMarkup, clickThroughRedirectUrl, context);
         }
-        Log.w(INTEGRATION, "VAST player: IMA not on classpath; trying progressive MP4 anyway");
+        Log.w(INTEGRATION, "VAST player selection: ProgressiveMp4VastVideoPlayer fallback (IMA not on classpath)");
         return new ProgressiveMp4VastVideoPlayer(context, vastAdMarkup, clickThroughRedirectUrl);
     }
 

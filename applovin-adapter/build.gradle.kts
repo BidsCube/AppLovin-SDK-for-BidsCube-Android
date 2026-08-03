@@ -8,7 +8,7 @@ plugins {
 }
 
 val skipSigning = (project.findProperty("skipSigning") as String?) == "true"
-val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.12"
+val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.13"
 
 android {
     namespace = "com.applovin.mediation.adapters.bidscube"
@@ -56,6 +56,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     publishing {
         singleVariant("liteNoVideoRelease") {
             withSourcesJar()
@@ -77,6 +81,8 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
     add("liteNoVideoApi", project(":sdk"))
     add("webViewVideoApi", project(":sdk"))
     add("legacyMediaVideoApi", project(":sdk"))

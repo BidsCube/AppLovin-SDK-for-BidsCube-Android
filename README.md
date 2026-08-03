@@ -1,6 +1,6 @@
 # Bidscube SDK for Android
 
-**SDK 1.2.12** · **AppLovin MAX adapter 1.2.12**
+**SDK 1.2.13** · **AppLovin MAX adapter 1.2.13**
 
 Android SDK and **AppLovin MAX** adapter for BidCube demand. Choose **one** adapter artifact for your video mode (see [Android AAR modes](#android-aar-modes)); each bundles the matching BidCube SDK runtime and the MAX adapter (`BidscubeMediationAdapter`).
 
@@ -13,7 +13,7 @@ Android SDK and **AppLovin MAX** adapter for BidCube demand. Choose **one** adap
 - **Android** minSdk **24+**
 - **Gradle** with `google()` and `mavenCentral()`
 - **AppLovin MAX:** `com.applovin:applovin-sdk` **13.0.x** (adapter built against 13.0.0; newer 13.x often works)
-- **Adapter:** one of `com.bidscube:applovin-bidscube-max-adapter-*` at **1.2.12** (see [Android AAR modes](#android-aar-modes))
+- **Adapter:** one of `com.bidscube:applovin-bidscube-max-adapter-*` at **1.2.13** (see [Android AAR modes](#android-aar-modes))
 - **JDK 17** and **Android SDK** for building this repo
 - **Permissions:** `INTERNET`, `ACCESS_NETWORK_STATE`
 
@@ -32,7 +32,7 @@ Add **AppLovin MAX** and **one** Bidscube adapter line for your chosen video mod
 ```kotlin
 dependencies {
     implementation("com.applovin:applovin-sdk:13.0.0@aar")
-    implementation("com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.12@aar")
+    implementation("com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.13@aar")
 }
 ```
 
@@ -41,7 +41,7 @@ dependencies {
 ```groovy
 dependencies {
     implementation 'com.applovin:applovin-sdk:13.0.0@aar'
-    implementation 'com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.12@aar'
+    implementation 'com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.13@aar'
 }
 ```
 
@@ -90,7 +90,7 @@ Banner, MREC, Interstitial, Rewarded.
 | Interstitial | Preload on load; show cached creative | Never |
 | Rewarded | Preload on load; show cached creative | Only on `onUserRewarded` |
 | Banner / MREC | `getImageAdView`; click forwarded to MAX | — |
-| Native | **Not supported** via MAX adapter in 1.2.12 | — |
+| Native | **Not supported** via MAX adapter in 1.2.13 | — |
 
 Use the standalone Bidscube SDK (`getNativeAdView`) for native outside MAX.
 
@@ -207,11 +207,11 @@ Use this when you **do not** use AppLovin MAX.
 
 ### Maven
 
-Pick **one** standalone SDK artifact at **1.2.12** (override with env `BidscubeVersion` when building from source):
+Pick **one** standalone SDK artifact at **1.2.13** (override with env `BidscubeVersion` when building from source):
 
 ```kotlin
 dependencies {
-    implementation("com.bidscube:sdk-full-video:1.2.12@aar")
+    implementation("com.bidscube:sdk-full-video:1.2.13@aar")
 }
 ```
 
@@ -226,6 +226,7 @@ import com.bidscube.sdk.config.SDKConfig;
 SDKConfig config = new SDKConfig.Builder(this)
         .enableLogging(true)
         .enableDebugMode(false)
+        .autoClose(false)  // default: keep fullscreen video open after linear playback
         .userId(publisherUserId)  // optional; sent as user_id on /sdk requests
         // Optional: .adRequestAuthority("example.com")
         .build();
@@ -256,6 +257,7 @@ Display mode follows server `position`; optional `BidscubeSDK.setAdPosition(...)
 |--------|--------|
 | **`adRequestAuthority`** | Optional; default `ssp-bcc-ads.com` |
 | **`userId`** | Optional publisher user id → query param **`user_id`** |
+| **`autoClose`** | Optional; default **`false`**. When `false`, fullscreen video stays open after linear playback (post-roll mini-game / interactive end card); user closes manually. Set `true` for legacy auto-dismiss. |
 | **`appId`**, **`appName`**, … | Optional; else from package / system |
 | **Consent fields** | Optional; can tie to UMP |
 
@@ -263,8 +265,8 @@ Per ad: placement id (and native **w** / **h**). The SDK builds **GET** `https:/
 
 ### Local AAR / modules
 
-- Build all SDK AARs: `./gradlew :sdk:stageReleaseAars` → `sdk/build/staged-aars/bidscube-sdk-*-1.2.12.aar`
-- Build all adapter AARs: `./gradlew :applovin-adapter:stageReleaseAars` → `applovin-adapter/build/staged-aars/applovin-bidscube-max-adapter-*-1.2.12.aar`
+- Build all SDK AARs: `./gradlew :sdk:stageReleaseAars` → `sdk/build/staged-aars/bidscube-sdk-*-1.2.13.aar`
+- Build all adapter AARs: `./gradlew :applovin-adapter:stageReleaseAars` → `applovin-adapter/build/staged-aars/applovin-bidscube-max-adapter-*-1.2.13.aar`
 - Build everything into one folder: `./gradlew stageAllReleaseAars` → `build/staged-aars/`
 - Include `:sdk` or `:applovin-adapter` as Gradle modules with matching `videoMode` flavor, or `files("libs/...")` with `flatDir` if needed.
 
@@ -281,20 +283,20 @@ The SDK and AppLovin MAX adapter are published in **four** variants. Pick **one*
 | **LegacyMediaVideoNoDesugar** | `applovin-bidscube-max-adapter-legacy-media-video` | `sdk-legacy-media-video` | VideoView / MediaPlayer | Legacy media | Not required |
 | **FullWithVideo** | `applovin-bidscube-max-adapter-full-video` | `sdk-full-video` | Google IMA-based VAST playback | Google IMA | May be required |
 
-**Gradle dependency examples** (version **1.2.12**):
+**Gradle dependency examples** (version **1.2.13**):
 
 ```kotlin
 // LiteNoVideo — no video; rewarded/interstitial video return unsupported / no fill
-implementation("com.bidscube:applovin-bidscube-max-adapter-lite-no-video:1.2.12@aar")
+implementation("com.bidscube:applovin-bidscube-max-adapter-lite-no-video:1.2.13@aar")
 
 // WebViewVideoNoDesugar — HTML5 video via WebView
-implementation("com.bidscube:applovin-bidscube-max-adapter-webview-video:1.2.12@aar")
+implementation("com.bidscube:applovin-bidscube-max-adapter-webview-video:1.2.13@aar")
 
 // LegacyMediaVideoNoDesugar — legacy Android media player path
-implementation("com.bidscube:applovin-bidscube-max-adapter-legacy-media-video:1.2.12@aar")
+implementation("com.bidscube:applovin-bidscube-max-adapter-legacy-media-video:1.2.13@aar")
 
 // FullWithVideo — Google IMA-based VAST playback (Media3 dependencies may be present transitively)
-implementation("com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.12@aar")
+implementation("com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.13@aar")
 ```
 
 Notes:
@@ -328,8 +330,8 @@ See **[RELEASE.md](RELEASE.md)** for the full checklist.
 **Local release AARs:**
 
 ```bash
-export BidscubeVersion=1.2.12
-export BidscubeAdapterVersion=1.2.12
+export BidscubeVersion=1.2.13
+export BidscubeAdapterVersion=1.2.13
 ./gradlew clean stageAllReleaseAars -PskipSigning=true --no-daemon
 # build/staged-aars/ — 8 AAR files (4 SDK + 4 adapter)
 ```
@@ -337,8 +339,8 @@ export BidscubeAdapterVersion=1.2.12
 **Maven Central:** publish all four SDK variants, then all four adapter variants.
 
 ```bash
-export BidscubeVersion=1.2.12
-export BidscubeAdapterVersion=1.2.12
+export BidscubeVersion=1.2.13
+export BidscubeAdapterVersion=1.2.13
 ./gradlew :sdk:publishLiteNoVideoReleasePublicationToCentralRepository \
   :sdk:publishWebViewVideoReleasePublicationToCentralRepository \
   :sdk:publishLegacyMediaVideoReleasePublicationToCentralRepository \
