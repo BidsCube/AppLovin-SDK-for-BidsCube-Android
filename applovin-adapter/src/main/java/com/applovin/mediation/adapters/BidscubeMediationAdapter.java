@@ -286,6 +286,7 @@ public class BidscubeMediationAdapter
                 @Override
                 public void onAdDisplayed(String placementId) {
                     diag("loadAdViewAd callback: onAdDisplayed placement=" + placementId);
+                    listener.onAdViewAdDisplayed();
                 }
 
                 @Override

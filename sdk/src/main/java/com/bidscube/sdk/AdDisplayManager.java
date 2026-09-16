@@ -53,6 +53,8 @@ import com.bidscube.sdk.utils.SDKLogger;
 import com.bidscube.sdk.video.BidscubeVastVideoPlayer;
 import com.bidscube.sdk.video.DefaultVastVideoPlayerProvider;
 import com.bidscube.sdk.video.BidscubeVastVideoPlayerFactory;
+import com.bidscube.sdk.view.BannerAdTrace;
+import com.bidscube.sdk.view.BannerHtmlPreparer;
 import com.bidscube.sdk.view.BannerViewFactory;
 import com.bidscube.sdk.view.NativeAdView;
 import com.bidscube.sdk.view.NativeAdBinder;
@@ -437,6 +439,53 @@ public class AdDisplayManager {
         }
         callback.onAdLoaded(placementId);
         callback.onAdDisplayed(placementId);
+    }
+
+    private static void fireAdLoaded(String placementId, AdCallback callback) {
+        if (callback != null && placementId != null) {
+            callback.onAdLoaded(placementId);
+        }
+    }
+
+    private static void fireAdDisplayed(String placementId, AdCallback callback) {
+        if (callback != null && placementId != null) {
+            callback.onAdDisplayed(placementId);
+        }
+    }
+
+    private void notifyBannerDisplayedAfterLayout(String placementId, View bannerView,
+            AdCallback callback, BannerAdTrace trace) {
+        if (bannerView == null) {
+            fireAdDisplayed(placementId, callback);
+            return;
+        }
+        final java.util.concurrent.atomic.AtomicBoolean fired = new java.util.concurrent.atomic.AtomicBoolean(false);
+        final int[] attempts = {0};
+        Runnable tryFire = new Runnable() {
+            @Override
+            public void run() {
+                if (fired.get()) {
+                    return;
+                }
+                attempts[0]++;
+                if ((!bannerView.isAttachedToWindow()
+                        || bannerView.getWidth() <= 0
+                        || bannerView.getHeight() <= 0)
+                        && attempts[0] < 30) {
+                    bannerView.postDelayed(this, 100);
+                    return;
+                }
+                fired.set(true);
+                if (trace != null) {
+                    trace.callbackOrder("onAdDisplayed");
+                    if (bannerView instanceof WebView) {
+                        trace.layout((WebView) bannerView);
+                    }
+                }
+                fireAdDisplayed(placementId, callback);
+            }
+        };
+        bannerView.post(tryFire);
     }
 
     private static void fireVideoAdUiReady(String placementId, AdCallback callback) {
@@ -972,13 +1021,25 @@ public class AdDisplayManager {
                 SDKLogger.d(TAG, "Error cleaning previous banner overlay: " + ex.getMessage());
             }
 
+            if (BannerHtmlPreparer.looksLikeVast(adm)) {
+                reportAdStatFail(placementId, "image", "vast_in_banner_path");
+                SDKLogger.e(TAG, "showImageAd received VAST ADM for placement " + placementId);
+                if (callback != null) {
+                    callback.onAdFailed(placementId, -1, "Banner placement returned VAST markup");
+                }
+                return;
+            }
+
             if (handleRenderOverride(placementId, adm, effectivePosition, AdType.Type.IMAGE, callback)) {
                 SDKLogger.d(TAG, "Image ad rendering overridden by host for placement " + placementId);
                 fireAdLoadedAndDisplayed(placementId, callback);
                 return;
             }
 
-            currentBanner = BannerViewFactory.createBanner(context, adm);
+            final BannerAdTrace trace = BannerAdTrace.start(placementId, "showImageAd");
+            trace.admStage("responseAdm", adm);
+            currentBanner = BannerViewFactory.createBanner(context, adm, null, trace,
+                    view -> notifyBannerDisplayedAfterLayout(placementId, view, callback, trace));
 
             int defaultHeightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 250, context.getResources().getDisplayMetrics());
 
@@ -1116,7 +1177,8 @@ public class AdDisplayManager {
                     overlayContainer.requestLayout();
                     if (currentBanner != null) currentBanner.requestLayout();
                     SDKLogger.d(TAG, "Image ad overlay (sized) added to activity content for placement " + placementId);
-                    fireAdLoadedAndDisplayed(placementId, callback);
+                    trace.callbackOrder("onAdLoaded");
+                    fireAdLoaded(placementId, callback);
                 } else {
                     SDKLogger.e(TAG, "Activity root (android.R.id.content) not found");
                     reportAdStatFail(placementId, "image", "activity_root_not_found");
@@ -1756,113 +1818,74 @@ public class AdDisplayManager {
      */
     public View getImageAdView(String placementId, String url, AdCallback callback) {
         SDKLogger.d(TAG, "Getting image ad view for integration: " + url);
+        final BannerAdTrace trace = BannerAdTrace.start(placementId, url);
 
-        final RelativeLayout root = new RelativeLayout(context);
+        final FrameLayout root = new FrameLayout(context);
         root.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
-        root.setBackgroundColor(Color.parseColor("#4CAF50"));
-        root.setPadding(16, 16, 16, 16);
+        root.setBackgroundColor(Color.TRANSPARENT);
 
         TextView loadingText = new TextView(context);
-        loadingText.setText("Loading image ad...");
-        loadingText.setTextColor(Color.WHITE);
-        loadingText.setTextSize(14);
+        loadingText.setText("Loading banner...");
+        loadingText.setTextColor(Color.DKGRAY);
+        loadingText.setTextSize(12);
         loadingText.setGravity(Gravity.CENTER);
-        RelativeLayout.LayoutParams loadLp = new RelativeLayout.LayoutParams(
+        root.addView(loadingText, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-        loadLp.addRule(RelativeLayout.CENTER_IN_PARENT);
-        root.addView(loadingText, loadLp);
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER));
 
         sendAdRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse response) {
                 runOnUiThread(() -> {
-
                     setResponseAdPosition(response.getPosition());
-
                     root.removeView(loadingText);
 
-                    if (handleRenderOverride(placementId, sanitizeAdm(response.getAdm()),
-                            getEffectiveAdPosition(), AdType.Type.IMAGE, callback)) {
+                    final String adm = sanitizeAdm(response.getAdm());
+                    trace.admStage("responseAdm", adm);
+
+                    if (adm == null || adm.isEmpty()) {
+                        reportAdStatFail(placementId, "image", "empty_adm");
+                        if (callback != null) {
+                            callback.onAdFailed(placementId, -1, "Empty ADM");
+                        }
+                        return;
+                    }
+
+                    if (BannerHtmlPreparer.looksLikeVast(adm)) {
+                        reportAdStatFail(placementId, "image", "vast_in_banner_path");
+                        SDKLogger.e(TAG, "Banner path received VAST ADM for placement " + placementId);
+                        if (callback != null) {
+                            callback.onAdFailed(placementId, -1, "Banner placement returned VAST markup");
+                        }
+                        return;
+                    }
+
+                    if (handleRenderOverride(placementId, adm, getEffectiveAdPosition(),
+                            AdType.Type.IMAGE, callback)) {
                         SDKLogger.d(TAG, "Image ad view rendering overridden by host app");
+                        trace.callbackOrder("onAdLoaded+onAdDisplayed (override)");
                         fireAdLoadedAndDisplayed(placementId, callback);
                         return;
                     }
 
-                    float density = context.getResources().getDisplayMetrics().density;
-                    int closeBarPx = (int) (48 * density + 0.5f);
-                    int creativeMaxPx = (int) TypedValue.applyDimension(
-                            TypedValue.COMPLEX_UNIT_DIP,
-                            280f,
-                            context.getResources().getDisplayMetrics());
+                    // Embedded MAX view: dedicated WebView (do not use shared currentBanner).
+                    WebView bannerWebView = BannerViewFactory.createBanner(
+                            context,
+                            adm,
+                            null,
+                            trace,
+                            view -> notifyBannerDisplayedAfterLayout(placementId, view, callback, trace));
 
-                    TextView imageAdLabel = new TextView(context);
-                    imageAdLabel.setText(context.getString(R.string.bidscube_label_image_ad));
-                    imageAdLabel.setGravity(Gravity.CENTER);
-                    imageAdLabel.setTextColor(Color.WHITE);
-                    imageAdLabel.setBackgroundColor(0xDD1B5E20);
-                    imageAdLabel.setTextSize(13);
-                    int labelPadV = (int) (6 * density + 0.5f);
-                    imageAdLabel.setPadding(0, labelPadV, 0, labelPadV);
-
-                    Button closeRow = new Button(context);
-                    closeRow.setText(context.getString(R.string.bidscube_close_ad_button));
-                    closeRow.setTextColor(Color.WHITE);
-                    closeRow.setTextSize(14);
-                    closeRow.setAllCaps(false);
-                    closeRow.setBackgroundColor(0xFFE53935);
-                    closeRow.setMinHeight(closeBarPx);
-                    int hPad = (int) (12 * density + 0.5f);
-                    closeRow.setPadding(hPad, (int) (8 * density + 0.5f), hPad, (int) (8 * density + 0.5f));
-                    closeRow.setOnClickListener(v -> {
-                        try {
-                            if (currentBanner != null) {
-                                currentBanner.destroy();
-                                currentBanner = null;
-                            }
-                        } catch (Throwable ignored) {
-                        }
-                        root.removeAllViews();
-                        root.setVisibility(View.GONE);
-                        fireAdClosed(placementId, callback);
-                    });
-
-                    LinearLayout strip = new LinearLayout(context);
-                    strip.setOrientation(LinearLayout.VERTICAL);
-                    strip.setId(View.generateViewId());
-                    int stripId = strip.getId();
-                    strip.setBackgroundColor(0xEE1B5E20);
-                    strip.setElevation(14f * density);
-                    strip.addView(imageAdLabel, new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT));
-                    strip.addView(closeRow, new LinearLayout.LayoutParams(
+                    root.addView(bannerWebView, new FrameLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT));
 
-                    RelativeLayout.LayoutParams stripLp = new RelativeLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT);
-                    stripLp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                    root.addView(strip, stripLp);
-
-                    View adView = createImageAdView(sanitizeAdm(response.getAdm()));
-                    ScrollView creativeScroll = new ScrollView(context);
-                    creativeScroll.setFillViewport(true);
-                    creativeScroll.addView(adView, new ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT));
-                    RelativeLayout.LayoutParams scrollLp = new RelativeLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            creativeMaxPx);
-                    scrollLp.addRule(RelativeLayout.BELOW, stripId);
-                    root.addView(creativeScroll, scrollLp);
-
-                    fireAdLoadedAndDisplayed(placementId, callback);
-
-                    SDKLogger.d(TAG, "Image ad view created and integrated into container");
+                    trace.callbackOrder("onAdLoaded");
+                    fireAdLoaded(placementId, callback);
+                    SDKLogger.d(TAG, "Embedded banner WebView created for placement " + placementId);
                 });
             }
 
@@ -1875,14 +1898,13 @@ public class AdDisplayManager {
                         root.removeView(loadingText);
                         TextView errorText = new TextView(context);
                         errorText.setText("Failed to load ad: " + msg);
-                        errorText.setTextColor(Color.WHITE);
-                        errorText.setTextSize(14);
+                        errorText.setTextColor(Color.DKGRAY);
+                        errorText.setTextSize(12);
                         errorText.setGravity(Gravity.CENTER);
-                        RelativeLayout.LayoutParams errLp = new RelativeLayout.LayoutParams(
+                        root.addView(errorText, new FrameLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT);
-                        errLp.addRule(RelativeLayout.CENTER_IN_PARENT);
-                        root.addView(errorText, errLp);
+                                ViewGroup.LayoutParams.WRAP_CONTENT,
+                                Gravity.CENTER));
                     } catch (Throwable uiError) {
                         SDKLogger.e(TAG, "Failed to update image ad view error UI: " + uiError.getMessage());
                     }

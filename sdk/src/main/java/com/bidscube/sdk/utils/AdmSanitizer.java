@@ -21,6 +21,11 @@ public final class AdmSanitizer {
             Pattern.compile("(?is)<span[^>]*\\bid\\s*=\\s*[\"']banner_[^\"']*[\"'][^>]*>(.*?)</span>");
     private static final Pattern WRAPPER_DIV_START =
             Pattern.compile("(?is)<div\\s+id\\s*=\\s*[\"']wrapper_[^\"']*[\"'][^>]*>");
+    private static final Pattern IMG_TAG = Pattern.compile("(?is)<img\\b[^>]*>");
+    private static final Pattern SCRIPT_TAG = Pattern.compile("(?is)<script\\b[^>]*>.*?</script>");
+    /** width/height exactly 1 — not 10, 100, 150, … */
+    private static final Pattern ONE_PX_DIM = Pattern.compile(
+            "(?i)(?:\\bwidth\\s*=\\s*[\"']?1(?![0-9])|\\bheight\\s*=\\s*[\"']?1(?![0-9]))");
     private static final int TOP_LEVEL_JSON_ADM_SCAN_LIMIT = 80;
 
     private AdmSanitizer() {
@@ -33,68 +38,11 @@ public final class AdmSanitizer {
 
         String current = peelBidscubeJsonEnvelope(adm);
         for (int iter = 0; iter < 6; iter++) {
-            String trimmed = current.trim();
-            String lower = trimmed.toLowerCase(Locale.US);
-            if (!lower.contains("document.write") && !lower.contains("document.writeln")) {
+            String peeled = peelLeadingDocumentWrite(current.trim());
+            if (peeled == null || peeled.equals(current)) {
                 break;
             }
-
-            Pattern p = Pattern.compile("(?is).*document\\.writeln?\\s*\\((.*)\\)\\s*;?\\s*$");
-            Matcher m = p.matcher(trimmed);
-            String extracted = null;
-            if (m.matches()) {
-                extracted = m.group(1);
-            } else {
-                int docIdx = lower.indexOf("document.write");
-                if (docIdx == -1) {
-                    docIdx = lower.indexOf("document.writeln");
-                }
-                if (docIdx != -1) {
-                    int openIdx = trimmed.indexOf('(', docIdx);
-                    if (openIdx >= 0) {
-                        int depth = 0;
-                        int closeIdx = -1;
-                        for (int i = openIdx; i < trimmed.length(); i++) {
-                            char c = trimmed.charAt(i);
-                            if (c == '(') {
-                                depth++;
-                            } else if (c == ')') {
-                                depth--;
-                                if (depth == 0) {
-                                    closeIdx = i;
-                                    break;
-                                }
-                            }
-                        }
-                        if (closeIdx > openIdx) {
-                            extracted = trimmed.substring(openIdx + 1, closeIdx);
-                        }
-                    }
-                }
-            }
-
-            if (extracted == null) {
-                break;
-            }
-
-            String inner = unwrapFunctionWrapping(extracted.trim());
-            if (inner.length() >= 2) {
-                char start = inner.charAt(0);
-                char end = inner.charAt(inner.length() - 1);
-                if ((start == '\'' && end == '\'') || (start == '"' && end == '"') || (start == '`' && end == '`')) {
-                    inner = inner.substring(1, inner.length() - 1);
-                }
-            }
-
-            inner = unescapeJsString(inner);
-            inner = peelBidscubeJsonEnvelope(inner);
-            inner = extractNestedAdmFromSpan(inner);
-
-            if (!inner.equals(current)) {
-                current = inner;
-            } else {
-                break;
-            }
+            current = peeled;
         }
 
         current = extractNestedAdmFromSpan(current);
@@ -226,6 +174,85 @@ public final class AdmSanitizer {
     }
 
     /**
+     * Replaces a leading {@code document.write(...)} / {@code document.writeln(...)} prefix with its
+     * HTML argument, preserving any markup that follows the statement.
+     */
+    private static String peelLeadingDocumentWrite(String trimmed) {
+        if (trimmed == null || trimmed.isEmpty()) {
+            return null;
+        }
+        String lower = trimmed.toLowerCase(Locale.US);
+        if (!lower.contains("document.write") && !lower.contains("document.writeln")) {
+            return null;
+        }
+
+        Pattern whole = Pattern.compile("(?is)^\\s*document\\.writeln?\\s*\\((.*)\\)\\s*;?\\s*$");
+        Matcher wholeMatcher = whole.matcher(trimmed);
+        if (wholeMatcher.matches()) {
+            return unwrapDocumentWriteArgument(wholeMatcher.group(1));
+        }
+
+        int docIdx = lower.indexOf("document.write");
+        if (docIdx == -1) {
+            docIdx = lower.indexOf("document.writeln");
+        }
+        if (docIdx < 0 || !trimmed.substring(0, docIdx).trim().isEmpty()) {
+            return null;
+        }
+
+        int openIdx = trimmed.indexOf('(', docIdx);
+        if (openIdx < 0) {
+            return null;
+        }
+        int closeIdx = findMatchingParen(trimmed, openIdx);
+        if (closeIdx <= openIdx) {
+            return null;
+        }
+
+        String inner = unwrapDocumentWriteArgument(trimmed.substring(openIdx + 1, closeIdx));
+        int afterStmt = closeIdx + 1;
+        while (afterStmt < trimmed.length()) {
+            char c = trimmed.charAt(afterStmt);
+            if (c == ';' || Character.isWhitespace(c)) {
+                afterStmt++;
+            } else {
+                break;
+            }
+        }
+        return inner + trimmed.substring(afterStmt);
+    }
+
+    private static int findMatchingParen(String s, int openIdx) {
+        int depth = 0;
+        for (int i = openIdx; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '(') {
+                depth++;
+            } else if (c == ')') {
+                depth--;
+                if (depth == 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private static String unwrapDocumentWriteArgument(String extracted) {
+        String inner = unwrapFunctionWrapping(extracted.trim());
+        if (inner.length() >= 2) {
+            char start = inner.charAt(0);
+            char end = inner.charAt(inner.length() - 1);
+            if ((start == '\'' && end == '\'') || (start == '"' && end == '"') || (start == '`' && end == '`')) {
+                inner = inner.substring(1, inner.length() - 1);
+            }
+        }
+        inner = unescapeJsString(inner);
+        inner = peelBidscubeJsonEnvelope(inner);
+        return extractNestedAdmFromSpan(inner);
+    }
+
+    /**
      * When a wrapper_* div exists, drop document.write positioning shells and keep the actual ad unit.
      */
     private static String collapseToWrapperCreative(String html) {
@@ -236,8 +263,43 @@ public final class AdmSanitizer {
         if (!startMatcher.find()) {
             return html;
         }
-        String extracted = extractFromWrapperDiv(html, startMatcher.start());
-        return extracted != null ? extracted : html;
+        int wrapperStart = startMatcher.start();
+        String extracted = extractFromWrapperDiv(html, wrapperStart);
+        if (extracted == null) {
+            return html;
+        }
+        String prefixTracking = extractTrackingMarkupBeforeWrapper(html.substring(0, wrapperStart));
+        if (prefixTracking.isEmpty()) {
+            return extracted;
+        }
+        return prefixTracking + extracted;
+    }
+
+    /**
+     * Keeps 1×1 impression pixels and scripts that appear before a {@code wrapper_*} div
+     * (document.write positioning shells in the prefix are dropped).
+     */
+    private static String extractTrackingMarkupBeforeWrapper(String prefix) {
+        if (prefix == null || prefix.trim().isEmpty()) {
+            return "";
+        }
+        StringBuilder out = new StringBuilder();
+        Matcher imgMatcher = IMG_TAG.matcher(prefix);
+        while (imgMatcher.find()) {
+            String tag = imgMatcher.group();
+            if (isOneByOneTrackingImgTag(tag)) {
+                out.append(tag);
+            }
+        }
+        Matcher scriptMatcher = SCRIPT_TAG.matcher(prefix);
+        while (scriptMatcher.find()) {
+            out.append(scriptMatcher.group());
+        }
+        return out.toString();
+    }
+
+    private static boolean isOneByOneTrackingImgTag(String imgTag) {
+        return imgTag != null && ONE_PX_DIM.matcher(imgTag).find();
     }
 
     private static String extractFromWrapperDiv(String html, int start) {
@@ -273,8 +335,16 @@ public final class AdmSanitizer {
         StringBuilder out = new StringBuilder(html.substring(start, end));
         String remainder = html.substring(end);
         Matcher scriptMatcher = Pattern.compile("(?is)^\\s*(<script[^>]*>.*?</script>\\s*)+").matcher(remainder);
+        int consumed = 0;
         if (scriptMatcher.find()) {
             out.append(scriptMatcher.group());
+            consumed = scriptMatcher.end();
+        }
+        if (consumed < remainder.length()) {
+            String tail = remainder.substring(consumed).trim();
+            if (!tail.isEmpty()) {
+                out.append(tail);
+            }
         }
         return out.toString().trim();
     }
