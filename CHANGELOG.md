@@ -6,6 +6,14 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 ---
 
+## [1.2.15] - 2026-09-16
+
+### Fixed
+
+- **SSP `bundle` parameter:** ad requests now send the host app's Android package name (`applicationId`) as `bundle`, not the Bidscube publisher `appId` (e.g. `5421`). `SDKConfig.appId()` remains the SSP registration id; package is auto-detected from the integration `Context`.
+
+---
+
 ## [1.2.14] - 2026-09-16
 
 ### Fixed
