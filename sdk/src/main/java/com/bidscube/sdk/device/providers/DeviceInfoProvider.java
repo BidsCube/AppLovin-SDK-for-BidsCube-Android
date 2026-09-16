@@ -28,9 +28,10 @@ public class DeviceInfoProvider {
     }
 
     public void getDeviceInfoAsync(Consumer<DeviceInfo> callback) {
-        String bundle = config.getAppId();
+        String bundle = config.getRequestBundle();
         String appName = config.getAppName();
         String appStoreUrl = "https://play.google.com/store/apps/details?id=" + bundle;
+        SDKLogger.d("DeviceInfoProvider", "request bundle=" + bundle + " appId=" + config.getAppId());
         String language = config.getLanguage();
         DisplayMetrics metrics = getDisplayMetrics();
         int deviceWidth = metrics.widthPixels;

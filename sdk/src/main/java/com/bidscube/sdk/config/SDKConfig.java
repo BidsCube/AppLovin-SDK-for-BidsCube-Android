@@ -19,6 +19,8 @@ public class SDKConfig {
     public static final String DEFAULT_AD_REQUEST_AUTHORITY = com.bidscube.sdk.models.DeviceInfo.DEFAULT_AD_REQUEST_AUTHORITY;
 
     private final String appId;
+    /** Host app Android package (applicationId); sent as {@code bundle} on SSP requests. */
+    private final String packageName;
     private final String appName;
     private final String appVersion;
     private final String language;
@@ -54,6 +56,7 @@ public class SDKConfig {
 
     private SDKConfig(Builder builder) {
         this.appId = builder.appId;
+        this.packageName = builder.packageName;
         this.appName = builder.appName;
         this.appVersion = builder.appVersion;
         this.language = builder.language;
@@ -76,6 +79,22 @@ public class SDKConfig {
     }
 
     public String getAppId() {
+        return appId;
+    }
+
+    /**
+     * Android package name of the host app ({@code applicationId}).
+     * Used as {@code bundle} query parameter on ad requests.
+     */
+    public String getPackageName() {
+        return packageName;
+    }
+
+    /** {@code bundle} for SSP — package name when known, otherwise {@link #getAppId()}. */
+    public String getRequestBundle() {
+        if (packageName != null && !packageName.isEmpty()) {
+            return packageName;
+        }
         return appId;
     }
 
@@ -172,6 +191,7 @@ public class SDKConfig {
     public SDKConfig withUserId(String userId) {
         Builder b = new Builder(null);
         b.appId = this.appId;
+        b.packageName = this.packageName;
         b.appName = this.appName;
         b.appVersion = this.appVersion;
         b.language = this.language;
@@ -202,6 +222,7 @@ public class SDKConfig {
      */
     public static class Builder {
         private String appId;
+        private String packageName;
         private String appName;
         private String appVersion;
         private String language = "en";
@@ -242,7 +263,8 @@ public class SDKConfig {
                 PackageManager pm = context.getPackageManager();
                 PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
 
-                this.appId = context.getPackageName();
+                this.packageName = context.getPackageName();
+                this.appId = this.packageName;
 
                 this.appName = pm.getApplicationLabel(pm.getApplicationInfo(context.getPackageName(), 0)).toString();
 
@@ -254,6 +276,7 @@ public class SDKConfig {
 
             } catch (Exception e) {
 
+                this.packageName = context != null ? context.getPackageName() : null;
                 this.appId = "unknown_app";
                 this.appName = "Unknown App";
                 this.appVersion = embeddedSdkVersionLabel();
@@ -282,10 +305,18 @@ public class SDKConfig {
         }
 
         /**
-         * Override auto-detected app ID
+         * Bidscube publisher app id (SSP registration). Does not change {@link #getRequestBundle()}.
          */
         public Builder appId(String appId) {
             this.appId = appId;
+            return this;
+        }
+
+        /**
+         * Override auto-detected host package ({@code applicationId}) used as {@code bundle} on ad requests.
+         */
+        public Builder packageName(String packageName) {
+            this.packageName = packageName;
             return this;
         }
 
