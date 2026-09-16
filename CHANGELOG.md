@@ -6,6 +6,21 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 ---
 
+## [1.2.14] - 2026-09-16
+
+### Fixed
+
+- **Banner impressions (HTML/ADM):** `BannerViewFactory` no longer strips 1×1 SSP impression pixels before `WebView.loadDataWithBaseURL()` — the primary cause of wins without impressions when the creative still rendered.
+- **`AdmSanitizer`:** preserves tracking pixels/scripts before and after `wrapper_*` divs; leading `document.write(...)` no longer drops markup that follows the statement.
+- **`AdDisplayManager.getImageAdView()`:** clean WebView for MAX banner slots (no debug wrapper); defers `onAdDisplayed` until page finish + container layout (not viewability).
+- **AppLovin MAX adapter:** forwards `onAdViewAdDisplayed()` when the SDK reports banner display.
+
+### Added
+
+- **`BannerHtmlPreparer`**, **`BannerAdTrace`**, and regression unit tests for pixel preservation and imp URL network logging (duplicate detection).
+
+---
+
 ## [1.2.13] - 2026-08-03
 
 ### Added

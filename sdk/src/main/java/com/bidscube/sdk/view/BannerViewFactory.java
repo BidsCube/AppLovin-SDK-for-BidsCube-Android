@@ -5,333 +5,108 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.view.MotionEvent;
+import android.view.ViewGroup;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.WebChromeClient;
-import android.view.ViewGroup;
-import android.view.MotionEvent;
-import com.bidscube.sdk.utils.AdmSanitizer;
+
 import com.bidscube.sdk.utils.SDKLogger;
 
+/**
+ * Creates WebView instances for HTML banner ADM.
+ */
 public class BannerViewFactory {
 
-    /** IAB display banner default; avoids WebView measuring ~0 with WRAP_CONTENT before paint. */
+    public interface PageLifecycleListener {
+        void onPageFinished(WebView view);
+    }
+
     private static int standardBannerMinHeightPx(Context context) {
         return (int) (50f * context.getResources().getDisplayMetrics().density + 0.5f);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     public static WebView createBanner(Context context, String adHtml) {
-        WebView webView = new WebView(context);
-
-        int minH = standardBannerMinHeightPx(context);
-        // Fixed initial slot height: embedded WebView + WRAP_CONTENT often collapses to ~0 on Android
-        // until late layout; host sees an empty strip even when the network response is valid.
-        webView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                minH));
-
-        WebSettings settings = webView.getSettings();
-        settings.setJavaScriptEnabled(true);
-        settings.setDomStorageEnabled(true);
-        settings.setLoadWithOverviewMode(true);
-        settings.setUseWideViewPort(true);
-        // Allow mixed content (http resources on https pages) and file/Universal access
-        try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-            }
-            settings.setAllowFileAccess(true);
-            settings.setAllowContentAccess(true);
-            // Allow JS from file URLs (useful when baseUrl is file-based)
-            settings.setAllowUniversalAccessFromFileURLs(true);
-        } catch (Throwable ignored) {}
-
-        webView.setBackgroundColor(Color.TRANSPARENT);
-        try { webView.setMinimumHeight(minH); } catch (Throwable ignored) {}
-        try { webView.setVisibility(android.view.View.VISIBLE); } catch (Throwable ignored) {}
-
-        // Disable scrollbars and prevent WebView fling/scroll gestures from moving the parent ScrollView
-        try { webView.setVerticalScrollBarEnabled(false); webView.setHorizontalScrollBarEnabled(false); } catch (Throwable ignored) {}
-        webView.setOnTouchListener((v, event) -> {
-            try {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    // prevent parent ScrollView from stealing touch events while interacting with the ad
-                    v.getParent();
-                    android.view.ViewParent p = v.getParent();
-                    while (p != null) {
-                        if (p instanceof android.widget.ScrollView) {
-                            ((android.widget.ScrollView) p).requestDisallowInterceptTouchEvent(true);
-                            break;
-                        }
-                        p = p.getParent();
-                    }
-                    return false; // allow click handling
-                } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                    // consume move events to keep the banner static
-                    return true;
-                }
-            } catch (Throwable ignored) {}
-            return false;
-        });
-
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                String url = request.getUrl().toString();
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                view.getContext().startActivity(intent);
-                return true;
-            }
-
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                try {
-                    SDKLogger.d("BannerViewFactory", "onPageFinished: view measuredWidth=" + view.getMeasuredWidth() + " measuredHeight=" + view.getMeasuredHeight());
-                } catch (Throwable ignored) {}
-                // JS: set child to fill width and keep auto height so images scale down to fit without cropping.
-                String js = "(function(){try{var root=document.getElementById('ad-root'); if(!root) return; var child=root.firstElementChild||root;" +
-                        "if(!child) return;" +
-                        // set width to 100% and height to auto to preserve aspect ratio
-                        "child.style.position='relative'; child.style.left='0'; child.style.top='0'; child.style.margin='0';" +
-                        "child.style.width='100%'; child.style.height='auto'; child.style.maxWidth='100%'; child.style.display='block'; child.style.transform='none';" +
-                        // clear inline negative margins/positions for descendants
-                        "var els=child.querySelectorAll('[style]'); for(var i=0;i<els.length;i++){ try{ els[i].style.margin='0'; els[i].style.left='0'; els[i].style.top='0'; els[i].style.height='auto'; }catch(e){} }" +
-                        // fallback: if child is still wider than container, scale it down proportionally
-                        "var w=child.scrollWidth||child.offsetWidth||child.clientWidth; var cw=root.clientWidth||document.documentElement.clientWidth; if(w>0 && cw>0 && w>cw){ var scale=cw/w; child.style.transformOrigin='center top'; child.style.transform='scale('+scale+')'; }" +
-                        "}catch(e){console.error(e);}})();";
-                try {
-                    view.evaluateJavascript(js, null);
-                } catch (Throwable ignored) {
-                }
-
-                // Extra normalization for stubborn creatives: force widths to 100vw and retry after delays
-                try {
-                    String forceWidthJs = "(function(){try{var root=document.getElementById('ad-root'); if(root){ root.style.width='100vw'; root.style.maxWidth='100vw'; root.style.boxSizing='border-box'; } var child=(root&&root.firstElementChild)?root.firstElementChild:root; if(child){ child.style.width='100vw'; child.style.maxWidth='100vw'; child.style.boxSizing='border-box'; } document.documentElement.style.width='100vw'; document.body.style.width='100vw';}catch(e){console.error(e);}})();";
-                    view.evaluateJavascript(forceWidthJs, null);
-                    // re-run the height calculation after short delays to accommodate late image/script loads
-                    view.postDelayed(() -> {
-                        try {
-                            view.evaluateJavascript("(function(){return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);})();", v -> {
-                                try {
-                                    if (v == null) return;
-                                    String s = v.replaceAll("\"", "").trim();
-                                    if (s.isEmpty()) return;
-                                    float cssPx = Float.parseFloat(s);
-                                    float density = view.getContext().getResources().getDisplayMetrics().density;
-                                    int minBanner = standardBannerMinHeightPx(view.getContext());
-                                    int rawPx = Math.round(cssPx * density);
-                                    int heightPx = Math.max(minBanner, rawPx);
-                                    SDKLogger.d("BannerViewFactory", "onPageFinished: computed content cssHeight=" + cssPx + " => rawPx=" + rawPx + " => heightPx=" + heightPx);
-                                    ViewGroup.LayoutParams params = view.getLayoutParams();
-                                    if (params == null)
-                                        params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPx);
-                                    else params.height = heightPx;
-                                    view.setLayoutParams(params);
-                                    view.requestLayout();
-                                } catch (Exception ignored) {
-                                }
-                            });
-                        } catch (Throwable ignored) {
-                        }
-                    }, 300);
-                    view.postDelayed(() -> {
-                        try {
-                            view.evaluateJavascript("(function(){return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);})();", v -> {
-                                try {
-                                    if (v == null) return;
-                                    String s = v.replaceAll("\"", "").trim();
-                                    if (s.isEmpty()) return;
-                                    float cssPx = Float.parseFloat(s);
-                                    float density = view.getContext().getResources().getDisplayMetrics().density;
-                                    int minBanner = standardBannerMinHeightPx(view.getContext());
-                                    int rawPx = Math.round(cssPx * density);
-                                    int heightPx = Math.max(minBanner, rawPx);
-                                    ViewGroup.LayoutParams params = view.getLayoutParams();
-                                    if (params == null)
-                                        params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPx);
-                                    else params.height = heightPx;
-                                    view.setLayoutParams(params);
-                                    view.requestLayout();
-                                } catch (Exception ignored) {
-                                }
-                            });
-                        } catch (Throwable ignored) {
-                        }
-                    }, 800);
-                    // Additional cleanup: remove tiny/tracking images that may appear under the creative
-                    try {
-                        String removeTinyImgsJs = "(function(){try{var imgs=document.getElementsByTagName('img'); for(var i=imgs.length-1;i>=0;i--){var im=imgs[i]; try{var w=im.naturalWidth||im.width; var h=im.naturalHeight||im.height; if((w&&w<=2)||(h&&h<=2)){ im.parentNode&&im.parentNode.removeChild(im); } else { var s=(im.getAttribute('style')||'').toLowerCase(); if(s.indexOf('position: absolute')!==-1 && (s.indexOf('width:1px')!==-1||s.indexOf('height:1px')!==-1)){ im.parentNode&&im.parentNode.removeChild(im); } } }catch(e){} } }catch(e){} })();";
-                        view.evaluateJavascript(removeTinyImgsJs, null);
-                    } catch (Throwable ignored) {}
-                 } catch (Throwable ignored) {
-                 }
-            }
-
-            @Override
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                super.onReceivedError(view, errorCode, description, failingUrl);
-                SDKLogger.e("BannerViewFactory", "WebView onReceivedError: code=" + errorCode + " desc=" + description + " url=" + failingUrl);
-            }
-
-            @Override
-            public void onReceivedHttpError(WebView view, android.webkit.WebResourceRequest request, android.webkit.WebResourceResponse errorResponse) {
-                super.onReceivedHttpError(view, request, errorResponse);
-                SDKLogger.e("BannerViewFactory", "WebView onReceivedHttpError: url=" + (request != null && request.getUrl() != null ? request.getUrl().toString() : "") + " status=" + (errorResponse != null ? errorResponse.getStatusCode() : -1));
-            }
-        });
-
-        // Add WebChromeClient for console logging to capture JS errors from creatives
-        try {
-            webView.setWebChromeClient(new android.webkit.WebChromeClient() {
-                @Override
-                public boolean onConsoleMessage(android.webkit.ConsoleMessage consoleMessage) {
-                    try {
-                        String msg = consoleMessage.message();
-                        String src = consoleMessage.sourceId();
-                        int line = consoleMessage.lineNumber();
-                        SDKLogger.d("BannerViewFactory", "WebView console: " + msg + " (" + src + ":" + line + ")");
-                    } catch (Throwable ignored) {}
-                    return super.onConsoleMessage(consoleMessage);
-                }
-            });
-        } catch (Throwable ignored) {}
-
-        // Ensure images and resources are not blocked
-        try {
-            settings.setBlockNetworkImage(false);
-            settings.setLoadsImagesAutomatically(true);
-            settings.setJavaScriptCanOpenWindowsAutomatically(true);
-        } catch (Throwable ignored) {}
-
-        webView.post(() -> {
-             String content = AdmSanitizer.sanitize(adHtml);
-            if (content == null) {
-                content = "";
-            }
-            SDKLogger.d("BannerViewFactory", "createBanner called, admLen=" + content.length());
-
-            // Remove inline style attributes so our CSS and JS can normalize sizing and positioning.
-            // This helps with creatives that embed fixed pixel widths/heights or negative margins.
-            try {
-                // remove style="..." and style='...'
-                content = content.replaceAll("(?i)\\sstyle=\"[^\"]*\"", "");
-                content = content.replaceAll("(?i)\\sstyle='[^']*'", "");
-                // Remove obvious 1x1 tracking images and absolutely positioned 1px beacons
-                content = content.replaceAll("(?i)<img[^>]*(?:width\\s*=\\s*['\"]?1['\"]?|height\\s*=\\s*['\"]?1['\"]?)[^>]*>", "");
-                content = content.replaceAll("(?i)<img[^>]*style=['\"][^'\"]*(?:position\\s*:\\s*absolute|width\\s*:\\s*1px|height\\s*:\\s*1px)[^'\"]*['\"][^>]*>", "");
-                // Fixed pixel width/height on the main image prevents full-bleed scaling in WebView.
-                content = content.replaceAll("(?i)(<img[^>]*?)\\s+width\\s*=\\s*['\"][^'\"]*['\"]", "$1");
-                content = content.replaceAll("(?i)(<img[^>]*?)\\s+height\\s*=\\s*['\"][^'\"]*['\"]", "$1");
-            } catch (Throwable ignored) {
-            }
-
-            StringBuilder sb = new StringBuilder();
-            sb.append("<html><head>");
-            sb.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\">");
-            sb.append("<style>");
-            // Responsive wrapper: force no scrolling inside webview (we want static banner) and make width 100%
-            sb.append("html,body,#ad-root{height:auto;min-height:0;width:100%;margin:0;padding:0;overflow:hidden;}");
-            sb.append("#ad-root{display:block;overflow:hidden;box-sizing:border-box;position:relative;width:100%;}");
-            sb.append("#ad-root, #ad-root div, #ad-root a {"
-                    + "width:100% !important;"
-                    + "max-width:100% !important;"
-                    + "margin:0 !important;"
-                    + "padding:0 !important;"
-                    + "box-sizing:border-box !important;"
-                    + "}");
-            sb.append("#ad-root a { display:block !important; }");
-
-            /* Main creative — full width of the banner slot */
-            sb.append("#ad-root img, #ad-root iframe, #ad-root video {"
-                    + "width:100% !important;"
-                    + "max-width:100% !important;"
-                    + "height:auto !important;"
-                    + "object-fit:contain !important;"
-                    + "display:block !important;"
-                    + "}");
-            sb.append("#ad-root img[width=\"1\"], #ad-root img[height=\"1\"],"
-                    + "#ad-root img[width='1'], #ad-root img[height='1'] {"
-                    + "display:none !important;width:0 !important;height:0 !important;"
-                    + "}");
-
-
-            /* --- AdChoices / i-icon wrapper override --- */
-            sb.append(".ad_choices_icon, .adchoices, .ad-choice-icon, .ad_choices, .ad_mark, .adchoice {"
-                    + "position:absolute !important;"
-                    + "top:8px !important;"
-                    + "right:8px !important;"
-                    + "z-index:99999 !important;"
-                    + "width:auto !important;"
-                    + "height:auto !important;"
-                    + "opacity:1 !important;"
-                    + "pointer-events:auto !important;"
-                    + "}");
-
-
-            /* Inline style overrides */
-            sb.append("*[style] { width:100% !important; max-width:100% !important; height:auto !important; }");
-
-            sb.append("</style></head>");
-            sb.append("<body><div id=\"ad-root\">");
-
-            sb.append(content != null ? content : "");
-
-            sb.append("</div></body></html>");
-
-            String finalHtml = sb.toString();
-            SDKLogger.d("BannerViewFactory", "Loading finalHtml length=" + finalHtml.length());
-
-            // Use a non-null base URL so relative resources and external script tags are allowed to load.
-            String base = "https://adcontent.local/";
-            webView.loadDataWithBaseURL(base, finalHtml, "text/html", "utf-8", null);
-
-        });
-
-        return webView;
+        return createBanner(context, adHtml, null, null, null);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     public static WebView createBanner(Context context, String adHtml, int heightDp) {
+        return createBanner(context, adHtml, heightDp, null, null);
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    public static WebView createBanner(Context context, String adHtml, PageLifecycleListener listener) {
+        return createBanner(context, adHtml, null, null, listener);
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    public static WebView createBanner(Context context, String adHtml, Integer heightDp,
+            BannerAdTrace trace, PageLifecycleListener listener) {
         WebView webView = new WebView(context);
-
-        // Set the WebView height to the specified value in dp, with matching parent width
-        int heightPx = (int) (heightDp * context.getResources().getDisplayMetrics().density + 0.5f);
+        int minH = standardBannerMinHeightPx(context);
+        int layoutH = heightDp != null
+                ? Math.max((int) (heightDp * context.getResources().getDisplayMetrics().density + 0.5f), minH)
+                : minH;
         webView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                heightPx));
+                ViewGroup.LayoutParams.MATCH_PARENT, layoutH));
 
+        configureSettings(webView);
+        webView.setBackgroundColor(Color.TRANSPARENT);
+        try {
+            webView.setMinimumHeight(minH);
+        } catch (Throwable ignored) {
+        }
+        attachTouchHandler(webView);
+        attachClients(webView, trace, listener);
+
+        webView.post(() -> {
+            String finalHtml = BannerHtmlPreparer.prepareFinalHtml(adHtml);
+            if (trace != null) {
+                trace.admStage("sanitized", BannerHtmlPreparer.prepareSanitizedContent(adHtml));
+                trace.finalHtml(finalHtml);
+            }
+            SDKLogger.d("BannerViewFactory", "createBanner admLen="
+                    + (adHtml != null ? adHtml.length() : 0)
+                    + " finalHtmlLen=" + finalHtml.length()
+                    + " imgs=" + BannerHtmlPreparer.countImgTags(finalHtml));
+            webView.loadDataWithBaseURL("https://adcontent.local/", finalHtml, "text/html", "utf-8", null);
+        });
+        return webView;
+    }
+
+    private static void configureSettings(WebView webView) {
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
-        // Allow mixed content (http resources on https pages) and file/Universal access
         try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                 settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
             }
             settings.setAllowFileAccess(true);
             settings.setAllowContentAccess(true);
-            // Allow JS from file URLs (useful when baseUrl is file-based)
             settings.setAllowUniversalAccessFromFileURLs(true);
-        } catch (Throwable ignored) {}
+            settings.setBlockNetworkImage(false);
+            settings.setLoadsImagesAutomatically(true);
+            settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        } catch (Throwable ignored) {
+        }
+        try {
+            webView.setVerticalScrollBarEnabled(false);
+            webView.setHorizontalScrollBarEnabled(false);
+        } catch (Throwable ignored) {
+        }
+    }
 
-        webView.setBackgroundColor(Color.TRANSPARENT);
-        int minSlot = Math.max(heightPx, standardBannerMinHeightPx(context));
-        try { webView.setMinimumHeight(minSlot); } catch (Throwable ignored) {}
-        try { webView.setVisibility(android.view.View.VISIBLE); } catch (Throwable ignored) {}
-
-        // Disable scrollbars and prevent WebView fling/scroll gestures from moving the parent ScrollView
-        try { webView.setVerticalScrollBarEnabled(false); webView.setHorizontalScrollBarEnabled(false); } catch (Throwable ignored) {}
+    private static void attachTouchHandler(WebView webView) {
         webView.setOnTouchListener((v, event) -> {
             try {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    // prevent parent ScrollView from stealing touch events while interacting with the ad
-                    v.getParent();
                     android.view.ViewParent p = v.getParent();
                     while (p != null) {
                         if (p instanceof android.widget.ScrollView) {
@@ -340,15 +115,17 @@ public class BannerViewFactory {
                         }
                         p = p.getParent();
                     }
-                    return false; // allow click handling
+                    return false;
                 } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                    // consume move events to keep the banner static
                     return true;
                 }
-            } catch (Throwable ignored) {}
+            } catch (Throwable ignored) {
+            }
             return false;
         });
+    }
 
+    private static void attachClients(WebView webView, BannerAdTrace trace, PageLifecycleListener listener) {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -359,210 +136,95 @@ public class BannerViewFactory {
             }
 
             @Override
+            public android.webkit.WebResourceResponse shouldInterceptRequest(WebView view,
+                    WebResourceRequest request) {
+                if (trace != null && request != null && request.getUrl() != null) {
+                    trace.networkRequest(request.getUrl().toString(), request.isForMainFrame());
+                }
+                return super.shouldInterceptRequest(view, request);
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                try {
-                    SDKLogger.d("BannerViewFactory", "onPageFinished: view measuredWidth=" + view.getMeasuredWidth() + " measuredHeight=" + view.getMeasuredHeight());
-                } catch (Throwable ignored) {}
-                // JS: set child to fill width and keep auto height so images scale down to fit without cropping.
-                String js = "(function(){try{var root=document.getElementById('ad-root'); if(!root) return; var child=root.firstElementChild||root;" +
-                        "if(!child) return;" +
-                        // set width to 100% and height to auto to preserve aspect ratio
-                        "child.style.position='relative'; child.style.left='0'; child.style.top='0'; child.style.margin='0';" +
-                        "child.style.width='100%'; child.style.height='auto'; child.style.maxWidth='100%'; child.style.display='block'; child.style.transform='none';" +
-                        // clear inline negative margins/positions for descendants
-                        "var els=child.querySelectorAll('[style]'); for(var i=0;i<els.length;i++){ try{ els[i].style.margin='0'; els[i].style.left='0'; els[i].style.top='0'; els[i].style.height='auto'; }catch(e){} }" +
-                        // fallback: if child is still wider than container, scale it down proportionally
-                        "var w=child.scrollWidth||child.offsetWidth||child.clientWidth; var cw=root.clientWidth||document.documentElement.clientWidth; if(w>0 && cw>0 && w>cw){ var scale=cw/w; child.style.transformOrigin='center top'; child.style.transform='scale('+scale+')'; }" +
-                        "}catch(e){console.error(e);}})();";
-                try {
-                    view.evaluateJavascript(js, null);
-                } catch (Throwable ignored) {
+                SDKLogger.d("BannerViewFactory", "onPageFinished w=" + view.getMeasuredWidth()
+                        + " h=" + view.getMeasuredHeight());
+                if (trace != null) {
+                    trace.layout(view);
                 }
-
-                // Extra normalization for stubborn creatives: force widths to 100vw and retry after delays
-                try {
-                    String forceWidthJs = "(function(){try{var root=document.getElementById('ad-root'); if(root){ root.style.width='100vw'; root.style.maxWidth='100vw'; root.style.boxSizing='border-box'; } var child=(root&&root.firstElementChild)?root.firstElementChild:root; if(child){ child.style.width='100vw'; child.style.maxWidth='100vw'; child.style.boxSizing='border-box'; } document.documentElement.style.width='100vw'; document.body.style.width='100vw';}catch(e){console.error(e);}})();";
-                    view.evaluateJavascript(forceWidthJs, null);
-                    // re-run the height calculation after short delays to accommodate late image/script loads
-                    view.postDelayed(() -> {
-                        try {
-                            view.evaluateJavascript("(function(){return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);})();", v -> {
-                                try {
-                                    if (v == null) return;
-                                    String s = v.replaceAll("\"", "").trim();
-                                    if (s.isEmpty()) return;
-                                    float cssPx = Float.parseFloat(s);
-                                    float density = view.getContext().getResources().getDisplayMetrics().density;
-                                    int minBanner = standardBannerMinHeightPx(view.getContext());
-                                    int rawPx = Math.round(cssPx * density);
-                                    int heightPx = Math.max(minBanner, rawPx);
-                                    SDKLogger.d("BannerViewFactory", "onPageFinished: computed content cssHeight=" + cssPx + " => rawPx=" + rawPx + " => heightPx=" + heightPx);
-                                    ViewGroup.LayoutParams params = view.getLayoutParams();
-                                    if (params == null)
-                                        params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPx);
-                                    else params.height = heightPx;
-                                    view.setLayoutParams(params);
-                                    view.requestLayout();
-                                } catch (Exception ignored) {
-                                }
-                            });
-                        } catch (Throwable ignored) {
-                        }
-                    }, 300);
-                    view.postDelayed(() -> {
-                        try {
-                            view.evaluateJavascript("(function(){return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);})();", v -> {
-                                try {
-                                    if (v == null) return;
-                                    String s = v.replaceAll("\"", "").trim();
-                                    if (s.isEmpty()) return;
-                                    float cssPx = Float.parseFloat(s);
-                                    float density = view.getContext().getResources().getDisplayMetrics().density;
-                                    int minBanner = standardBannerMinHeightPx(view.getContext());
-                                    int rawPx = Math.round(cssPx * density);
-                                    int heightPx = Math.max(minBanner, rawPx);
-                                    ViewGroup.LayoutParams params = view.getLayoutParams();
-                                    if (params == null)
-                                        params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPx);
-                                    else params.height = heightPx;
-                                    view.setLayoutParams(params);
-                                    view.requestLayout();
-                                } catch (Exception ignored) {
-                                }
-                            });
-                        } catch (Throwable ignored) {
-                        }
-                    }, 800);
-                    // Additional cleanup: remove tiny/tracking images that may appear under the creative
-                    try {
-                        String removeTinyImgsJs = "(function(){try{var imgs=document.getElementsByTagName('img'); for(var i=imgs.length-1;i>=0;i--){var im=imgs[i]; try{var w=im.naturalWidth||im.width; var h=im.naturalHeight||im.height; if((w&&w<=2)||(h&&h<=2)){ im.parentNode&&im.parentNode.removeChild(im); } else { var s=(im.getAttribute('style')||'').toLowerCase(); if(s.indexOf('position: absolute')!==-1 && (s.indexOf('width:1px')!==-1||s.indexOf('height:1px')!==-1)){ im.parentNode&&im.parentNode.removeChild(im); } } }catch(e){} } }catch(e){} })();";
-                        view.evaluateJavascript(removeTinyImgsJs, null);
-                    } catch (Throwable ignored) {}
-                 } catch (Throwable ignored) {
-                 }
+                adjustHeightToContent(view);
+                if (listener != null) {
+                    listener.onPageFinished(view);
+                }
             }
 
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                 super.onReceivedError(view, errorCode, description, failingUrl);
-                SDKLogger.e("BannerViewFactory", "WebView onReceivedError: code=" + errorCode + " desc=" + description + " url=" + failingUrl);
+                String msg = "code=" + errorCode + " url=" + failingUrl;
+                SDKLogger.e("BannerViewFactory", "onReceivedError " + msg);
+                if (trace != null) {
+                    trace.webViewError("onReceivedError", msg);
+                }
             }
 
             @Override
-            public void onReceivedHttpError(WebView view, android.webkit.WebResourceRequest request, android.webkit.WebResourceResponse errorResponse) {
+            public void onReceivedHttpError(WebView view, WebResourceRequest request,
+                    android.webkit.WebResourceResponse errorResponse) {
                 super.onReceivedHttpError(view, request, errorResponse);
-                SDKLogger.e("BannerViewFactory", "WebView onReceivedHttpError: url=" + (request != null && request.getUrl() != null ? request.getUrl().toString() : "") + " status=" + (errorResponse != null ? errorResponse.getStatusCode() : -1));
+                String msg = "url=" + (request.getUrl()) + " status="
+                        + (errorResponse != null ? errorResponse.getStatusCode() : -1);
+                SDKLogger.e("BannerViewFactory", "onReceivedHttpError " + msg);
+                if (trace != null) {
+                    trace.webViewError("onReceivedHttpError", msg);
+                }
             }
         });
 
-        // Add WebChromeClient for console logging to capture JS errors from creatives
         try {
-            webView.setWebChromeClient(new android.webkit.WebChromeClient() {
+            webView.setWebChromeClient(new WebChromeClient() {
                 @Override
                 public boolean onConsoleMessage(android.webkit.ConsoleMessage consoleMessage) {
-                    try {
-                        String msg = consoleMessage.message();
-                        String src = consoleMessage.sourceId();
-                        int line = consoleMessage.lineNumber();
-                        SDKLogger.d("BannerViewFactory", "WebView console: " + msg + " (" + src + ":" + line + ")");
-                    } catch (Throwable ignored) {}
+                    SDKLogger.d("BannerViewFactory", "console: " + consoleMessage.message());
                     return super.onConsoleMessage(consoleMessage);
                 }
             });
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {
+        }
+    }
 
-        // Ensure images and resources are not blocked
-        try {
-            settings.setBlockNetworkImage(false);
-            settings.setLoadsImagesAutomatically(true);
-            settings.setJavaScriptCanOpenWindowsAutomatically(true);
-        } catch (Throwable ignored) {}
-
-        webView.post(() -> {
-             String content = AdmSanitizer.sanitize(adHtml);
-            if (content == null) {
-                content = "";
-            }
-            SDKLogger.d("BannerViewFactory", "createBanner called, admLen=" + content.length());
-
-            // Remove inline style attributes so our CSS and JS can normalize sizing and positioning.
-            // This helps with creatives that embed fixed pixel widths/heights or negative margins.
+    private static void adjustHeightToContent(WebView view) {
+        view.postDelayed(() -> {
             try {
-                // remove style="..." and style='...'
-                content = content.replaceAll("(?i)\\sstyle=\"[^\"]*\"", "");
-                content = content.replaceAll("(?i)\\sstyle='[^']*'", "");
-                // Remove obvious 1x1 tracking images and absolutely positioned 1px beacons
-                content = content.replaceAll("(?i)<img[^>]*(?:width\\s*=\\s*['\"]?1['\"]?|height\\s*=\\s*['\"]?1['\"]?)[^>]*>", "");
-                content = content.replaceAll("(?i)<img[^>]*style=['\"][^'\"]*(?:position\\s*:\\s*absolute|width\\s*:\\s*1px|height\\s*:\\s*1px)[^'\"]*['\"][^>]*>", "");
-                // Fixed pixel width/height on the main image prevents full-bleed scaling in WebView.
-                content = content.replaceAll("(?i)(<img[^>]*?)\\s+width\\s*=\\s*['\"][^'\"]*['\"]", "$1");
-                content = content.replaceAll("(?i)(<img[^>]*?)\\s+height\\s*=\\s*['\"][^'\"]*['\"]", "$1");
+                view.evaluateJavascript(
+                        "(function(){return Math.max(document.body.scrollHeight,document.documentElement.scrollHeight);})();",
+                        value -> {
+                            try {
+                                if (value == null) {
+                                    return;
+                                }
+                                String s = value.replaceAll("\"", "").trim();
+                                if (s.isEmpty()) {
+                                    return;
+                                }
+                                float cssPx = Float.parseFloat(s);
+                                int minBanner = standardBannerMinHeightPx(view.getContext());
+                                int heightPx = Math.max(minBanner,
+                                        Math.round(cssPx * view.getResources().getDisplayMetrics().density));
+                                ViewGroup.LayoutParams params = view.getLayoutParams();
+                                if (params == null) {
+                                    params = new ViewGroup.LayoutParams(
+                                            ViewGroup.LayoutParams.MATCH_PARENT, heightPx);
+                                } else {
+                                    params.height = heightPx;
+                                }
+                                view.setLayoutParams(params);
+                                view.requestLayout();
+                            } catch (Exception ignored) {
+                            }
+                        });
             } catch (Throwable ignored) {
             }
-
-            StringBuilder sb = new StringBuilder();
-            sb.append("<html><head>");
-            sb.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\">");
-            sb.append("<style>");
-            // Responsive wrapper: force no scrolling inside webview (we want static banner) and make width 100%
-            sb.append("html,body,#ad-root{height:auto;min-height:0;width:100%;margin:0;padding:0;overflow:hidden;}");
-            sb.append("#ad-root{display:block;overflow:hidden;box-sizing:border-box;position:relative;width:100%;}");
-            sb.append("#ad-root, #ad-root div, #ad-root a {"
-                    + "width:100% !important;"
-                    + "max-width:100% !important;"
-                    + "margin:0 !important;"
-                    + "padding:0 !important;"
-                    + "box-sizing:border-box !important;"
-                    + "}");
-            sb.append("#ad-root a { display:block !important; }");
-
-            /* Main creative — full width of the banner slot */
-            sb.append("#ad-root img, #ad-root iframe, #ad-root video {"
-                    + "width:100% !important;"
-                    + "max-width:100% !important;"
-                    + "height:auto !important;"
-                    + "object-fit:contain !important;"
-                    + "display:block !important;"
-                    + "}");
-            sb.append("#ad-root img[width=\"1\"], #ad-root img[height=\"1\"],"
-                    + "#ad-root img[width='1'], #ad-root img[height='1'] {"
-                    + "display:none !important;width:0 !important;height:0 !important;"
-                    + "}");
-
-
-            /* --- AdChoices / i-icon wrapper override --- */
-            sb.append(".ad_choices_icon, .adchoices, .ad-choice-icon, .ad_choices, .ad_mark, .adchoice {"
-                    + "position:absolute !important;"
-                    + "top:8px !important;"
-                    + "right:8px !important;"
-                    + "z-index:99999 !important;"
-                    + "width:auto !important;"
-                    + "height:auto !important;"
-                    + "opacity:1 !important;"
-                    + "pointer-events:auto !important;"
-                    + "}");
-
-
-            /* Inline style overrides */
-            sb.append("*[style] { width:100% !important; max-width:100% !important; height:auto !important; }");
-
-            sb.append("</style></head>");
-            sb.append("<body><div id=\"ad-root\">");
-
-            sb.append(content != null ? content : "");
-
-            sb.append("</div></body></html>");
-
-            String finalHtml = sb.toString();
-            SDKLogger.d("BannerViewFactory", "Loading finalHtml length=" + finalHtml.length());
-
-            // Use a non-null base URL so relative resources and external script tags are allowed to load.
-            String base = "https://adcontent.local/";
-            webView.loadDataWithBaseURL(base, finalHtml, "text/html", "utf-8", null);
-
-        });
-
-        return webView;
+        }, 300);
     }
 }
