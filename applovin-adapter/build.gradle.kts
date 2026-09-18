@@ -8,7 +8,7 @@ plugins {
 }
 
 val skipSigning = (project.findProperty("skipSigning") as String?) == "true"
-val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.15"
+val adapterVersion = System.getenv("BidscubeAdapterVersion") ?: "1.2.16"
 
 android {
     namespace = "com.applovin.mediation.adapters.bidscube"

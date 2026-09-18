@@ -2,7 +2,6 @@ package com.bidscube.sdk.view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.view.MotionEvent;
@@ -13,6 +12,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.bidscube.sdk.utils.CompanionUrlSafety;
 import com.bidscube.sdk.utils.SDKLogger;
 
 /**
@@ -129,9 +129,20 @@ public class BannerViewFactory {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                String url = request.getUrl().toString();
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                view.getContext().startActivity(intent);
+                if (request == null || request.getUrl() == null) {
+                    return false;
+                }
+                CompanionUrlSafety.openExternal(view.getContext(), request.getUrl());
+                return true;
+            }
+
+            @Override
+            @SuppressWarnings("deprecation")
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url == null || url.isEmpty()) {
+                    return false;
+                }
+                CompanionUrlSafety.openExternal(view.getContext(), Uri.parse(url));
                 return true;
             }
 

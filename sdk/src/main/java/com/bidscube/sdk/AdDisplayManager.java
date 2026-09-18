@@ -53,6 +53,7 @@ import com.bidscube.sdk.utils.SDKLogger;
 import com.bidscube.sdk.video.BidscubeVastVideoPlayer;
 import com.bidscube.sdk.video.DefaultVastVideoPlayerProvider;
 import com.bidscube.sdk.video.BidscubeVastVideoPlayerFactory;
+import com.bidscube.sdk.qa.QaAdmOverride;
 import com.bidscube.sdk.view.BannerAdTrace;
 import com.bidscube.sdk.view.BannerHtmlPreparer;
 import com.bidscube.sdk.view.BannerViewFactory;
@@ -451,6 +452,58 @@ public class AdDisplayManager {
         if (callback != null && placementId != null) {
             callback.onAdDisplayed(placementId);
         }
+    }
+
+    private void renderImageAdViewFromAdm(String placementId, String adm, int position,
+            BannerAdTrace trace, FrameLayout root, TextView loadingText, AdCallback callback) {
+        if (position >= 0) {
+            setResponseAdPosition(position);
+        }
+        if (loadingText != null && loadingText.getParent() == root) {
+            root.removeView(loadingText);
+        }
+
+        trace.admStage("responseAdm", adm);
+
+        if (adm == null || adm.isEmpty()) {
+            reportAdStatFail(placementId, "image", "empty_adm");
+            if (callback != null) {
+                callback.onAdFailed(placementId, -1, "Empty ADM");
+            }
+            return;
+        }
+
+        if (BannerHtmlPreparer.looksLikeVast(adm)) {
+            reportAdStatFail(placementId, "image", "vast_in_banner_path");
+            SDKLogger.e(TAG, "Banner path received VAST ADM for placement " + placementId);
+            if (callback != null) {
+                callback.onAdFailed(placementId, -1, "Banner placement returned VAST markup");
+            }
+            return;
+        }
+
+        if (handleRenderOverride(placementId, adm, getEffectiveAdPosition(),
+                AdType.Type.IMAGE, callback)) {
+            SDKLogger.d(TAG, "Image ad view rendering overridden by host app");
+            trace.callbackOrder("onAdLoaded+onAdDisplayed (override)");
+            fireAdLoadedAndDisplayed(placementId, callback);
+            return;
+        }
+
+        WebView bannerWebView = BannerViewFactory.createBanner(
+                context,
+                adm,
+                null,
+                trace,
+                view -> notifyBannerDisplayedAfterLayout(placementId, view, callback, trace));
+
+        root.addView(bannerWebView, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        trace.callbackOrder("onAdLoaded");
+        fireAdLoaded(placementId, callback);
+        SDKLogger.d(TAG, "Embedded banner WebView created for placement " + placementId);
     }
 
     private void notifyBannerDisplayedAfterLayout(String placementId, View bannerView,
@@ -1836,56 +1889,28 @@ public class AdDisplayManager {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 Gravity.CENTER));
 
+        final String qaAdm = QaAdmOverride.resolveAdm(sdkConfig, placementId);
+        if (qaAdm != null) {
+            SDKLogger.d(TAG, "Using QA ADM override for placement " + placementId);
+            trace.rawResponse(200, qaAdm);
+            runOnUiThread(() -> renderImageAdViewFromAdm(
+                    placementId, qaAdm, 0, trace, root, loadingText, callback));
+            return root;
+        }
+
         sendAdRequest(url, new BidscubeCallback() {
             @Override
             public void onSuccess(int responseCode, BidscubeResponse response) {
                 runOnUiThread(() -> {
                     setResponseAdPosition(response.getPosition());
-                    root.removeView(loadingText);
-
-                    final String adm = sanitizeAdm(response.getAdm());
-                    trace.admStage("responseAdm", adm);
-
-                    if (adm == null || adm.isEmpty()) {
-                        reportAdStatFail(placementId, "image", "empty_adm");
-                        if (callback != null) {
-                            callback.onAdFailed(placementId, -1, "Empty ADM");
-                        }
-                        return;
-                    }
-
-                    if (BannerHtmlPreparer.looksLikeVast(adm)) {
-                        reportAdStatFail(placementId, "image", "vast_in_banner_path");
-                        SDKLogger.e(TAG, "Banner path received VAST ADM for placement " + placementId);
-                        if (callback != null) {
-                            callback.onAdFailed(placementId, -1, "Banner placement returned VAST markup");
-                        }
-                        return;
-                    }
-
-                    if (handleRenderOverride(placementId, adm, getEffectiveAdPosition(),
-                            AdType.Type.IMAGE, callback)) {
-                        SDKLogger.d(TAG, "Image ad view rendering overridden by host app");
-                        trace.callbackOrder("onAdLoaded+onAdDisplayed (override)");
-                        fireAdLoadedAndDisplayed(placementId, callback);
-                        return;
-                    }
-
-                    // Embedded MAX view: dedicated WebView (do not use shared currentBanner).
-                    WebView bannerWebView = BannerViewFactory.createBanner(
-                            context,
-                            adm,
-                            null,
+                    renderImageAdViewFromAdm(
+                            placementId,
+                            sanitizeAdm(response.getAdm()),
+                            response.getPosition(),
                             trace,
-                            view -> notifyBannerDisplayedAfterLayout(placementId, view, callback, trace));
-
-                    root.addView(bannerWebView, new FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT));
-
-                    trace.callbackOrder("onAdLoaded");
-                    fireAdLoaded(placementId, callback);
-                    SDKLogger.d(TAG, "Embedded banner WebView created for placement " + placementId);
+                            root,
+                            loadingText,
+                            callback);
                 });
             }
 

@@ -411,6 +411,19 @@ public class BidscubeSDK {
         sdkInstance.enableConsentDebugMode(deviceId);
     }
 
+    /**
+     * Debug QA only: inject ADM for a placement (skips HTTP when {@link SDKConfig#isEnableDebugMode()}).
+     * Accepts raw HTML or JSON {@code {"adm":"...","position":0}}.
+     */
+    public static void setQaAdmOverride(String placementId, String admOrJson) {
+        com.bidscube.sdk.qa.QaAdmOverride.set(placementId, admOrJson);
+    }
+
+    /** Clears all debug QA ADM overrides. */
+    public static void clearQaAdmOverrides() {
+        com.bidscube.sdk.qa.QaAdmOverride.clearAll();
+    }
+
     /** Version of this Bidscube SDK artifact (from build; same as published Maven version). */
     public static String getSdkVersion() {
         return com.bidscube.sdk.BuildConfig.SDK_VERSION_NAME;
