@@ -39,6 +39,69 @@ MOCK_ADM = """<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="view
 <body style="margin:0;background:#16213e;color:#e94560;font-family:system-ui,sans-serif;text-align:center;padding:32px;">
 <h2>Mock Bidscube SSP</h2><p>Custom <code>adRequestAuthority</code> works.</p></body></html>"""
 
+# Inline SVG data URIs — via.placeholder.com often fails SSL in WebView on real devices.
+_QA_BANNER_SVG = (
+    "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27320%27%20"
+    "height%3D%2750%27%3E%3Crect%20width%3D%27320%27%20height%3D%2750%27%20fill%3D%27%2316213e%27/%3E%3C"
+    "text%20x%3D%2750%25%27%20y%3D%2750%25%27%20dominant-baseline%3D%27middle%27%20text-anchor%3D%27"
+    "middle%27%20fill%3D%27%23e94560%27%20font-family%3D%27sans-serif%27%20font-size%3D%2714%27%3E"
+    "Mock%20Banner%3C/text%3E%3C/svg%3E"
+)
+_DOCWRITE_BANNER_SVG = (
+    "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27320%27%20"
+    "height%3D%2750%27%3E%3Crect%20width%3D%27320%27%20height%3D%2750%27%20fill%3D%27%230f3460%27/%3E%3C"
+    "text%20x%3D%2750%25%27%20y%3D%2750%25%27%20dominant-baseline%3D%27middle%27%20text-anchor%3D%27"
+    "middle%27%20fill%3D%27%2353d8fb%27%20font-family%3D%27sans-serif%27%20font-size%3D%2714%27%3E"
+    "DocWrite%3C/text%3E%3C/svg%3E"
+)
+
+BANNER_IMP_ADM = (
+    "<div id=\"wrapper_mock\">"
+    "<a href=\"https://click.example/mock\"><img width=\"320\" height=\"50\" "
+    f"src=\"{_QA_BANNER_SVG}\" alt=\"ad\"></a>"
+    "</div>"
+    "<img width=\"1\" height=\"1\" src=\"https://ssp-bcc-ads.com/sdk?c=b&amp;m=i&amp;h=mock123token\">"
+    "<img width=\"1\" height=\"1\" src=\"https://tracking.onaudience.com/pixel/mock\">"
+)
+
+BANNER_DOCWRITE_ADM = (
+    "document.write('<span id=\"pos\"></span>');"
+    "<img width=\"1\" height=\"1\" src=\"https://ssp-bcc-ads.com/sdk?c=b&amp;m=i&amp;h=mockPresWrapper\">"
+    "<div id=\"wrapper_docwrite\">"
+    "<a href=\"https://click.example/docwrite\"><img width=\"320\" height=\"50\" "
+    f"src=\"{_DOCWRITE_BANNER_SVG}\" alt=\"ad\"></a>"
+    "</div>"
+    "<img width=\"1\" height=\"1\" src=\"https://ssp-bcc-ads.com/sdk?c=b&amp;m=i&amp;h=mockPostWrapper\">"
+)
+
+PRESETS = {
+    "default": MOCK_ADM,
+    "banner_imp": BANNER_IMP_ADM,
+    "banner_docwrite": BANNER_DOCWRITE_ADM,
+}
+
+
+def parse_query(path: str) -> dict[str, str]:
+    from urllib.parse import parse_qs, urlparse
+
+    q = urlparse(path).query
+    parsed = parse_qs(q, keep_blank_values=True)
+    return {k: (v[0] if v else "") for k, v in parsed.items()}
+
+
+def log_request_params(path: str) -> None:
+    params = parse_query(path)
+    sys.stderr.write(
+        "[mock-ssp] placementId=%s bundle=%s c=%s m=%s preset=%s\n"
+        % (
+            params.get("placementId", params.get("id", "-")),
+            params.get("bundle", "-"),
+            params.get("c", "-"),
+            params.get("m", "-"),
+            params.get("preset", "default"),
+        )
+    )
+
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args: object) -> None:
@@ -47,7 +110,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         path = self.path.split("?", 1)[0]
         if path == "/sdk" or path.startswith("/sdk/"):
-            payload = {"adm": MOCK_ADM, "position": 0}
+            log_request_params(self.path)
+            params = parse_query(self.path)
+            preset = params.get("preset", "default")
+            adm = PRESETS.get(preset, PRESETS["default"])
+            payload = {"adm": adm, "position": 0}
             body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")

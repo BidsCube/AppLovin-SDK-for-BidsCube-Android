@@ -6,6 +6,24 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 ---
 
+## [1.2.16] - 2026-09-18
+
+### Fixed
+
+- **Banner click-through:** `BannerViewFactory` opens HTTP/HTTPS click URLs via `CompanionUrlSafety` (`FLAG_ACTIVITY_NEW_TASK`, blocked schemes filtered) — same safe path as VAST companions and native ads.
+
+### Added
+
+- **Debug QA ADM injection:** `BidscubeSDK.setQaAdmOverride()` / `clearQaAdmOverrides()` — active only when `SDKConfig.isEnableDebugMode()`; runs the full `getImageAdView()` render path without HTTP.
+- **Unit tests:** `BannerAdTraceTest`, `AdmSanitizerTest`, `ImageAdUrlBuilderTest`.
+- **`docs/test-app.md`:** banner verification QA without MAX keys.
+
+### Changed
+
+- **`AdDisplayManager.getImageAdView()`:** extracted `renderImageAdViewFromAdm()` (refactor; live SSP behavior unchanged).
+
+---
+
 ## [1.2.15] - 2026-09-16
 
 ### Fixed
