@@ -3,6 +3,8 @@ package com.bidscube.sdk.video;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.SurfaceTexture;
+import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
@@ -10,8 +12,9 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.Surface;
+import android.view.TextureView;
 import android.widget.FrameLayout;
-import android.widget.VideoView;
 
 import com.bidscube.sdk.network.TrackerPinger;
 import com.bidscube.sdk.utils.SDKLogger;
@@ -22,7 +25,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Plays progressive MP4 from inline VAST ({@code MediaFile} URL). Does not require Google IMA on the host app classpath.
+ * Plays progressive MP4 from inline VAST ({@code MediaFile} URL) on a {@link TextureView}.
+ * A {@link android.view.SurfaceView} would punch through the window and hide the AppLovin
+ * creative-debugger button that the flip gesture adds on top of the current activity.
  */
 @SuppressLint("ViewConstructor")
 public class ProgressiveMp4VastVideoPlayer extends BidscubeVastVideoPlayer {
@@ -30,7 +35,11 @@ public class ProgressiveMp4VastVideoPlayer extends BidscubeVastVideoPlayer {
     private static final String TAG = "ProgressiveMp4Vast";
     private static final long PROGRESS_POLL_MS = 250L;
 
-    private final VideoView videoView;
+    private final TextureView textureView;
+    private MediaPlayer mediaPlayer;
+    private Surface videoSurface;
+    private String pendingMediaUrl;
+    private boolean surfaceReady;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable progressRunnable = new Runnable() {
         @Override
@@ -68,26 +77,62 @@ public class ProgressiveMp4VastVideoPlayer extends BidscubeVastVideoPlayer {
         super(context);
         this.initialVastMarkup = vastMarkup;
         this.initialClickThroughRedirectUrl = clickThroughRedirectUrl;
-        videoView = createConfiguredVideoView(context);
-        addView(videoView);
+        textureView = createConfiguredTextureView(context);
+        addView(textureView);
     }
 
     public ProgressiveMp4VastVideoPlayer(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.initialVastMarkup = null;
         this.initialClickThroughRedirectUrl = null;
-        videoView = createConfiguredVideoView(context);
-        addView(videoView);
+        textureView = createConfiguredTextureView(context);
+        addView(textureView);
     }
 
-    private VideoView createConfiguredVideoView(Context context) {
-        VideoView view = new VideoView(context);
+    private TextureView createConfiguredTextureView(Context context) {
+        TextureView view = new TextureView(context);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT,
                 Gravity.CENTER);
         view.setLayoutParams(params);
         view.setOnClickListener(v -> handleClicked());
+        view.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+            @Override
+            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+                surfaceReady = true;
+                videoSurface = new Surface(surface);
+                if (mediaPlayer != null) {
+                    mediaPlayer.setSurface(videoSurface);
+                }
+                if (!TextUtils.isEmpty(pendingMediaUrl)) {
+                    String url = pendingMediaUrl;
+                    pendingMediaUrl = null;
+                    openMedia(url);
+                }
+            }
+
+            @Override
+            public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+            }
+
+            @Override
+            public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+                surfaceReady = false;
+                if (mediaPlayer != null) {
+                    mediaPlayer.setSurface(null);
+                }
+                if (videoSurface != null) {
+                    videoSurface.release();
+                    videoSurface = null;
+                }
+                return true;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+            }
+        });
         return view;
     }
 
@@ -126,15 +171,35 @@ public class ProgressiveMp4VastVideoPlayer extends BidscubeVastVideoPlayer {
 
         resetPlaybackState();
         stopProgressPolling();
+        if (!surfaceReady || videoSurface == null) {
+            pendingMediaUrl = mediaFileUrl;
+            return;
+        }
+        openMedia(mediaFileUrl);
+    }
 
-        videoView.setOnPreparedListener(this::onPrepared);
-        videoView.setOnCompletionListener(mediaPlayer -> onCompleted());
-        videoView.setOnErrorListener((mediaPlayer, what, extra) -> {
+    private void openMedia(String mediaFileUrl) {
+        releasePlayerOnly();
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
+                .build());
+        if (videoSurface != null) {
+            mediaPlayer.setSurface(videoSurface);
+        }
+        mediaPlayer.setOnPreparedListener(this::onPrepared);
+        mediaPlayer.setOnCompletionListener(mp -> onCompleted());
+        mediaPlayer.setOnErrorListener((mp, what, extra) -> {
             handleError("MediaPlayer error " + what + " / " + extra);
             return true;
         });
-        videoView.setVideoURI(Uri.parse(mediaFileUrl));
-        videoView.start();
+        try {
+            mediaPlayer.setDataSource(getContext(), Uri.parse(mediaFileUrl));
+            mediaPlayer.prepareAsync();
+        } catch (Exception e) {
+            handleError("Failed to open media: " + e.getMessage());
+        }
     }
 
     @Override
@@ -145,8 +210,40 @@ public class ProgressiveMp4VastVideoPlayer extends BidscubeVastVideoPlayer {
     @Override
     public void release() {
         stopProgressPolling();
+        pendingMediaUrl = null;
+        releasePlayerOnly();
+    }
+
+    private void releasePlayerOnly() {
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.setOnPreparedListener(null);
+                mediaPlayer.setOnCompletionListener(null);
+                mediaPlayer.setOnErrorListener(null);
+                mediaPlayer.release();
+            } catch (Throwable ignored) {
+            }
+            mediaPlayer = null;
+        }
+    }
+
+    @Override
+    public void pausePlayback() {
         try {
-            videoView.stopPlayback();
+            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    @Override
+    public void resumePlayback() {
+        try {
+            if (mediaPlayer != null && started.get() && !completed.get() && !skipped.get()
+                    && !mediaPlayer.isPlaying()) {
+                mediaPlayer.start();
+            }
         } catch (Throwable ignored) {
         }
     }
@@ -154,14 +251,22 @@ public class ProgressiveMp4VastVideoPlayer extends BidscubeVastVideoPlayer {
     @Override
     public void skipVideo() {
         try {
-            videoView.pause();
+            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+            }
         } catch (Throwable ignored) {
         }
         markSkipped();
     }
 
-    private void onPrepared(MediaPlayer mediaPlayer) {
-        durationMs = mediaPlayer != null ? mediaPlayer.getDuration() : 0;
+    private void onPrepared(MediaPlayer preparedPlayer) {
+        durationMs = preparedPlayer != null ? preparedPlayer.getDuration() : 0;
+        try {
+            if (preparedPlayer != null) {
+                preparedPlayer.start();
+            }
+        } catch (Throwable ignored) {
+        }
         if (started.compareAndSet(false, true)) {
             TrackerPinger.pingUrls("vast.impression", impressionUrls);
             TrackerPinger.pingUrls("vast.start", startUrls);
@@ -228,7 +333,7 @@ public class ProgressiveMp4VastVideoPlayer extends BidscubeVastVideoPlayer {
         }
         int currentMs;
         try {
-            currentMs = videoView.getCurrentPosition();
+            currentMs = mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
         } catch (Throwable ignored) {
             return;
         }

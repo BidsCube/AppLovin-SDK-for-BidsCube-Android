@@ -31,6 +31,14 @@ public abstract class BidscubeVastVideoPlayer extends FrameLayout {
 
     public abstract void skipVideo();
 
+    /** Pause linear playback while the fullscreen ad is not in the foreground. */
+    public void pausePlayback() {
+    }
+
+    /** Resume linear playback after {@link #pausePlayback()}. */
+    public void resumePlayback() {
+    }
+
     /**
      * When {@code true}, the player may continue showing post-linear content (e.g. Google IMA interactive end card)
      * after {@link OnVideoCompletionListener#onVideoCompleted()}. The SDK must not release the player until the user

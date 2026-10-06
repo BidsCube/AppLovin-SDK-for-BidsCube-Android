@@ -2,14 +2,14 @@
 
 ## Version sources
 
-| Item | Source | Example (1.2.16) |
+| Item | Source | Example (1.2.17) |
 |------|--------|-----------------|
-| **SDK Maven version** | `BidscubeVersion` env or `sdk/build.gradle.kts` default | `1.2.16` |
-| **Adapter Maven version** | `BidscubeAdapterVersion` env or `applovin-adapter/build.gradle.kts` default | `1.2.16` |
-| **Runtime SDK version** | `BuildConfig.SDK_VERSION_NAME` / `BidscubeSDK.getSdkVersion()` | `1.2.16` |
-| **Runtime adapter version** | `BidscubeMediationAdapter.getAdapterVersion()` fallback string | `1.2.16` |
-| **Git tag (full stack)** | `v` + version | `v1.2.16` |
-| **Git tag (adapter only)** | `applovin-adapter-v` + version | `applovin-adapter-v1.2.16` |
+| **SDK Maven version** | `BidscubeVersion` env or `sdk/build.gradle.kts` default | `1.2.17` |
+| **Adapter Maven version** | `BidscubeAdapterVersion` env or `applovin-adapter/build.gradle.kts` default | `1.2.17` |
+| **Runtime SDK version** | `BuildConfig.SDK_VERSION_NAME` / `BidscubeSDK.getSdkVersion()` | `1.2.17` |
+| **Runtime adapter version** | `BidscubeMediationAdapter.getAdapterVersion()` fallback string | `1.2.17` |
+| **Git tag (full stack)** | `v` + version | `v1.2.17` |
+| **Git tag (adapter only)** | `applovin-adapter-v` + version | `applovin-adapter-v1.2.17` |
 
 Keep SDK and adapter versions aligned unless you intentionally ship a hotfix for one artifact only.
 
@@ -49,8 +49,8 @@ Do **not** include in release archives:
 ## Build release AARs locally
 
 ```bash
-export BidscubeVersion=1.2.16
-export BidscubeAdapterVersion=1.2.16
+export BidscubeVersion=1.2.17
+export BidscubeAdapterVersion=1.2.17
 
 ./gradlew clean stageAllReleaseAars -PskipSigning=true --no-daemon
 ls -la build/staged-aars/
@@ -61,8 +61,8 @@ ls -la build/staged-aars/
 Requires `mavenCentralUsername`, `mavenCentralPassword`, and GPG signing (`useGpgCmd()`). Use `-PskipSigning=true` only for local dry runs.
 
 ```bash
-export BidscubeVersion=1.2.16
-export BidscubeAdapterVersion=1.2.16
+export BidscubeVersion=1.2.17
+export BidscubeAdapterVersion=1.2.17
 
 ./gradlew \
   :sdk:publishLiteNoVideoReleasePublicationToCentralRepository \
@@ -85,8 +85,8 @@ Publish SDK variants first, then adapter variants.
 Triggers `.github/workflows/publish.yml`:
 
 ```bash
-git tag -a v1.2.16 -m "Bidscube Android SDK + AppLovin MAX adapter 1.2.16"
-git push origin v1.2.16
+git tag -a v1.2.17 -m "Bidscube Android SDK + AppLovin MAX adapter 1.2.17"
+git push origin v1.2.17
 ```
 
 Uploads all **8** staged AAR files from `build/staged-aars/`.
@@ -96,22 +96,22 @@ Uploads all **8** staged AAR files from `build/staged-aars/`.
 Triggers `.github/workflows/release-applovin-adapter.yml`:
 
 ```bash
-git tag -a applovin-adapter-v1.2.16 -m "AppLovin Bidscube MAX adapter 1.2.16"
-git push origin applovin-adapter-v1.2.16
+git tag -a applovin-adapter-v1.2.17 -m "AppLovin Bidscube MAX adapter 1.2.17"
+git push origin applovin-adapter-v1.2.17
 ```
 
-## Maven coordinates (1.2.16)
+## Maven coordinates (1.2.17)
 
 **AppLovin MAX** — pick one adapter (SDK is transitive):
 
 ```kotlin
-implementation("com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.16@aar")
+implementation("com.bidscube:applovin-bidscube-max-adapter-full-video:1.2.17@aar")
 ```
 
 **Standalone SDK** — pick one core artifact:
 
 ```kotlin
-implementation("com.bidscube:sdk-full-video:1.2.16@aar")
+implementation("com.bidscube:sdk-full-video:1.2.17@aar")
 ```
 
 See [README.md](README.md#android-aar-modes) for all four modes.

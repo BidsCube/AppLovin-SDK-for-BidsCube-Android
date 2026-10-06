@@ -3,4 +3,9 @@
     <string name="bidscube_cd_close_ad">Close ad</string>
     <string name="bidscube_label_image_ad">Image ad</string>
     <string name="bidscube_close_ad_button">Close ad</string>
+    <string name="bidscube_reward_leave_title">Leave this ad?</string>
+    <string name="bidscube_reward_leave_message">If you leave now, you will not receive the reward.</string>
+    <string name="bidscube_reward_leave_stay">Stay</string>
+    <string name="bidscube_reward_leave_exit">Leave</string>
+    <string name="bidscube_video_debug_title">Debug</string>
 </resources>

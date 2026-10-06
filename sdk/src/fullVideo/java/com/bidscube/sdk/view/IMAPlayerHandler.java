@@ -83,6 +83,7 @@ public class IMAPlayerHandler extends BidscubeVastVideoPlayer {
 
         sdkFactory = ImaSdkFactory.getInstance();
         ImaSdkSettings imaSdkSettings = sdkFactory.createImaSdkSettings();
+        imaSdkSettings.setDebugMode(com.bidscube.sdk.video.VideoPlaybackDebug.imaDebugMode);
         adsLoader = sdkFactory.createAdsLoader(context, imaSdkSettings, adDisplayContainer);
     }
 
@@ -237,6 +238,26 @@ public class IMAPlayerHandler extends BidscubeVastVideoPlayer {
         isVideoPlaying = false;
         if (completionListener != null) {
             completionListener.onVideoPlaybackFailed();
+        }
+    }
+
+    @Override
+    public void pausePlayback() {
+        if (adsManager != null && isVideoPlaying) {
+            try {
+                adsManager.pause();
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
+    @Override
+    public void resumePlayback() {
+        if (adsManager != null && isVideoPlaying) {
+            try {
+                adsManager.resume();
+            } catch (Throwable ignored) {
+            }
         }
     }
 

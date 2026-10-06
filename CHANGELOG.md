@@ -6,6 +6,21 @@ All notable changes to the Bidscube Android SDK and AppLovin MAX adapter are doc
 
 ---
 
+## [1.2.17] - 2026-10-06
+
+### Fixed
+
+- **AppLovin creative debugger during interstitial:** progressive MP4 now plays on a `TextureView` instead of `VideoView`, so the flip-to-debug button is no longer hidden behind the video surface.
+- **Game audio during video ads:** fullscreen interstitial and rewarded open in their own activity, so the host app pauses and its sound does not play over the ad. Audio focus is taken for the duration of the ad and released when it closes.
+
+### Changed
+
+- **Rewarded video:** the Skip button is removed. Device Back before the video ends asks for confirmation; leaving forfeits the reward.
+- **Interstitial video:** device Back does not close the ad until the skip offset has elapsed.
+- **Early exit:** leaving the app before the linear video finishes does not count the view and does not grant a reward.
+
+---
+
 ## [1.2.16] - 2026-09-18
 
 ### Fixed
